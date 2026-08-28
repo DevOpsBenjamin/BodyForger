@@ -10,6 +10,11 @@ enum class RoutineSetType(val displayName: String, val shortBadge: String) {
     REST_PAUSE("Rest-Pause", "RP")
 }
 
+enum class WeightUnit(val symbol: String, val displayName: String) {
+    KG("kg", "Kilogrammes (kg)"),
+    LBS("lbs", "Livres (lbs)")
+}
+
 data class RoutineSet(
     val id: String = UUID.randomUUID().toString(),
     val setIndex: Int = 1,
@@ -29,6 +34,7 @@ data class RoutineExercise(
     val primaryMuscle: MuscleGroup,
     val equipment: EquipmentType,
     val isUnilateral: Boolean = false,
+    val weightUnit: WeightUnit = WeightUnit.KG,
     val orderIndex: Int = 0,
     val restTimeSeconds: Int = 90,
     val notes: String = "",

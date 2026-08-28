@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Timer
@@ -60,6 +61,7 @@ fun RoutineExerciseCard(
     totalExercises: Int,
     exercise: RoutineExercise,
     onOpenReorder: () -> Unit,
+    onOpenWeightUnitPicker: () -> Unit,
     onReplace: () -> Unit,
     onRemove: () -> Unit,
     onOpenRestPicker: () -> Unit,
@@ -149,6 +151,13 @@ fun RoutineExerciseCard(
                             }
                         )
                         DropdownMenuItem(
+                            text = { Text("⚖️ Unité : ${exercise.weightUnit.symbol.uppercase()}", color = ElectricCyan) },
+                            onClick = {
+                                menuExpanded = false
+                                onOpenWeightUnitPicker()
+                            }
+                        )
+                        DropdownMenuItem(
                             text = { Text(stringResource(R.string.routine_editor_replace_exercise), color = ElectricCyan) },
                             onClick = {
                                 menuExpanded = false
@@ -197,7 +206,7 @@ fun RoutineExerciseCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 3. En-tête des colonnes de séries
+            // 3. En-tête des colonnes de séries avec Unité cliquable (KG / LBS ▾)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -212,14 +221,32 @@ fun RoutineExerciseCard(
                     modifier = Modifier.width(34.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.routine_editor_col_kg),
-                    color = TextMuted,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
+
+                // Bouton interactif pour l'unité (KG ▾ ou LBS ▾)
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(SurfaceElevated.copy(alpha = 0.5f))
+                        .clickable { onOpenWeightUnitPicker() }
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = exercise.weightUnit.symbol.uppercase(),
+                        color = ElectricCyan,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = null,
+                        tint = ElectricCyan,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.routine_editor_col_reps),

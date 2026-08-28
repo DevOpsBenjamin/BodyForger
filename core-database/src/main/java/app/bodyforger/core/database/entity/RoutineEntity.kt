@@ -12,6 +12,7 @@ import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSet
 import app.bodyforger.core.model.RoutineSetType
+import app.bodyforger.core.model.WeightUnit
 import java.util.UUID
 
 @Entity(tableName = "routines")
@@ -43,6 +44,7 @@ data class RoutineExerciseEntity(
     val primaryMuscle: String,
     val equipment: String,
     val isUnilateral: Boolean = false,
+    val weightUnit: String = "KG",
     val orderIndex: Int = 0,
     val restTimeSeconds: Int = 90,
     val notes: String = "",
@@ -110,6 +112,7 @@ fun RoutineExercise.toEntity(parentRoutineId: String): RoutineExerciseEntity = R
     primaryMuscle = primaryMuscle.name,
     equipment = equipment.name,
     isUnilateral = isUnilateral,
+    weightUnit = weightUnit.name,
     orderIndex = orderIndex,
     restTimeSeconds = restTimeSeconds,
     notes = notes,
@@ -161,6 +164,7 @@ fun RoutineWithExercises.toDomain(): Routine {
                 primaryMuscle = try { MuscleGroup.valueOf(ex.primaryMuscle) } catch (e: Exception) { MuscleGroup.FULL_BODY },
                 equipment = try { EquipmentType.valueOf(ex.equipment) } catch (e: Exception) { EquipmentType.BODYWEIGHT },
                 isUnilateral = ex.isUnilateral,
+                weightUnit = try { WeightUnit.valueOf(ex.weightUnit) } catch (e: Exception) { WeightUnit.KG },
                 orderIndex = ex.orderIndex,
                 restTimeSeconds = ex.restTimeSeconds,
                 notes = ex.notes,

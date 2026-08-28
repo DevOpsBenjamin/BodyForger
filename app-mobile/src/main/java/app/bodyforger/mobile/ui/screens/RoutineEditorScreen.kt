@@ -49,10 +49,12 @@ import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSet
 import app.bodyforger.core.model.RoutineSetType
+import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.components.RestTimePickerDialog
 import app.bodyforger.mobile.ui.components.RoutineExerciseCard
 import app.bodyforger.mobile.ui.components.SetTypePickerDialog
+import app.bodyforger.mobile.ui.components.WeightUnitPickerDialog
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.Obsidian
@@ -82,6 +84,7 @@ fun RoutineEditorScreen(
 
     var activeRestDialogExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var activeSetTypeDialogIndex by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var activeWeightUnitDialogExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var showingReorderScreen by remember { mutableStateOf(false) }
 
     if (showingReorderScreen) {
@@ -285,6 +288,7 @@ fun RoutineEditorScreen(
                             totalExercises = exercises.size,
                             exercise = exItem,
                             onOpenReorder = { showingReorderScreen = true },
+                            onOpenWeightUnitPicker = { activeWeightUnitDialogExerciseIndex = exIndex },
                             onReplace = { onOpenCatalogForReplace(exIndex) },
                             onRemove = { exercises.removeAt(exIndex) },
                             onOpenRestPicker = { activeRestDialogExerciseIndex = exIndex },
@@ -353,6 +357,18 @@ fun RoutineEditorScreen(
             )
         }
 
+        // --- MODALE DE L'UNITÉ DE POIDS (KG vs LBS) ---
+        activeWeightUnitDialogExerciseIndex?.let { exIdx ->
+            val currentUnit = exercises.getOrNull(exIdx)?.weightUnit ?: WeightUnit.KG
+            WeightUnitPickerDialog(
+                currentUnit = currentUnit,
+                onUnitSelected = { newUnit ->
+                    exercises[exIdx] = exercises[exIdx].copy(weightUnit = newUnit)
+                },
+                onDismiss = { activeWeightUnitDialogExerciseIndex = null }
+            )
+        }
+
         // --- MODALE DU TYPE DE SÉRIE & OPTIONS DE RÉPÉTITIONS ---
         activeSetTypeDialogIndex?.let { (exIdx, setIdx) ->
             val currentSet = exercises.getOrNull(exIdx)?.sets?.getOrNull(setIdx)
@@ -385,6 +401,7 @@ fun Exercise.toRoutineExercise(routineId: String = ""): RoutineExercise = Routin
     primaryMuscle = primaryMuscleGroup,
     equipment = equipment,
     isUnilateral = isUnilateral,
+    weightUnit = WeightUnit.KG,
     orderIndex = 0,
     restTimeSeconds = 90,
     notes = "",
