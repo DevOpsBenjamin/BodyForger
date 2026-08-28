@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
@@ -74,6 +75,7 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 @Composable
 fun CatalogScreen(
     customExercises: List<Exercise> = emptyList(),
+    isSelectionMode: Boolean = false,
     onBack: () -> Unit = {},
     onOpenCreateExercise: () -> Unit = {},
     onSelectExercise: (Exercise) -> Unit = {}
@@ -431,18 +433,27 @@ fun CatalogScreen(
                             }
                         }
 
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(SurfaceElevated),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        if (isSelectionMode) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(SurfaceElevated),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Ajouter",
+                                    tint = NeonLime,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        } else {
                             Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Ajouter",
-                                tint = NeonLime,
-                                modifier = Modifier.size(16.dp)
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                contentDescription = "Détails",
+                                tint = TextMuted.copy(alpha = 0.4f),
+                                modifier = Modifier.size(12.dp)
                             )
                         }
                     }
