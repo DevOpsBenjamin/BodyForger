@@ -31,122 +31,105 @@ The motivation stems from daily frustrations with commercial solutions like **He
 +---------------------------------------------------------------------------------------+
 ```
 
-### ⌚ 1. Wrist-First Autonomous Wear OS App
-* **True Standalone Operation**: Train without a phone. Workouts are logged locally in Room DB and synced asynchronously via the Wearable Data Layer API upon reconnection.
-* **Health Services API**: Uses Android Health Services (`ExerciseClient`) to track real-time heart rate (BPM) and active calories on the low-power sensor coprocessor.
-* **Ambient Mode & Always-On (AOD)**: Optimized `AmbientLifecycleObserver` display (pure black, 1 Hz refresh) keeps active workouts and rest countdowns running without OS battery termination.
-* **Haptic Rest Timers**: Custom vibration patterns (warning pulses at -3s, strong finish burst) to signal set readiness eyes-free.
-* **Rotary Dial & Quick Entry**: Rapid weight, reps, and RPE logging optimized for small circular screens.
-* **Direct On-Watch BLE Scale Weigh-In**: Connect directly to Bluetooth scales via GATT client from the watch.
-
-### 🧬 2. Clinical Body Composition & BLE Scales (SimpleBodyGraph Heritage)
-* **Direct BLE Scale Drivers**: Native GATT driver registry supporting proprietary scales (HUAWEI Scale 3 / 3 Pro with cryptographic handshake) and standard Bluetooth Weight Scale (`0x181D`).
-* **DEXA-Calibrated BIA Modeling**:
-  * Total Mass, Fat Mass (kg), Body Fat (%), Lean Body Mass (FFM), Skeletal Muscle Mass (SMM), Bone Mineral Content.
-  * Hydration: Total Body Water (TBW), Extracellular (ECW), Intracellular (ICW), ECW/TBW ratio.
-  * Somatotype classification, Visceral Fat Level (VFL), BMR, Metabolic Age, Health Score.
-  * 5-Zone Segmental Breakdown: Trunk, Left/Right Arms, Left/Right Legs.
-* **Morphological Tape Tracking**: Circumference logs (Chest, Waist, Biceps, Thighs) with dynamic trend graphs.
-* **Milestone Paliers**: Automated goal validation based on 7-day rolling median trends.
-
-### 🏋️ 3. Strength & Routine Engine (openGym Heritage)
-* **1,300+ Exercise Library**: Muscle tags, equipment filters, step-by-step instructions, and execution animations.
-* **Advanced Set Modeling**:
-  * Straight work sets & Warmups.
-  * Drop-sets with automated percentage weight reductions.
-  * Rest-pause & Myo-reps cluster breakdowns.
-  * RPE (Rate of Perceived Exertion) and 1RM estimation (Epley/Brzycki).
-* **Routine & Split Builder**: Push/Pull/Legs, Upper/Lower, Full Body, custom supersets.
-* **Muscle Heatmap**: Visual anatomical map highlighting weekly stimulus and volume distribution.
-
-### 🔄 4. Google Health Connect & MCP AI Sync
-* **Planned Workouts**: Reads and writes **`PlannedExerciseSessionRecord`** (`WRITE_PLANNED_EXERCISE` / `READ_PLANNED_EXERCISE`) for seamless workout schedule interoperability.
-* **Completed Session Telemetry**: Writes full **`ExerciseSessionRecord`** (`EXERCISE_TYPE_STRENGTH_TRAINING`, `CALISTHENICS`, etc.) paired with continuous **`HeartRateRecord`** time-series and active calories.
-* **Model Context Protocol (MCP) Server**:
-  * Connects directly to **Gemini**, Claude, or other LLMs.
-  * Tools: `get_body_metrics()`, `search_exercises()`, `push_workout_routine()`.
-  * AI assistants analyze user BIA evolution and generate personalized routine plans directly into the app.
-* **Android Deep Linking**: `bodyforger://import/routine?payload=...` and native Android Share Sheet intent ingestion.
-
 ---
 
-## 📐 System Architecture
+## 🔬 Deep Technical Specifications
 
-```mermaid
-graph TD
-    subgraph AI [AI & Assistant Layer]
-        Gemini[Gemini / AI Assistant]
-        MCP[BodyForger MCP Server]
-        Gemini <==>|Tools| MCP
-    end
+### ⌚ 1. Wear OS Autonomous Engine & Screen-Off Management
+* **`ExerciseClient` (Health Services API)**:
+  * Manages the workout lifecycle through a native Android Foreground Service.
+  * Captures real-time heart rate (BPM) directly via the low-power sensor hub coprocessor, ensuring continuous monitoring even in sleep mode.
+  * Updates `OngoingActivityNotification` to display a live workout chip on the active watch face.
+* **Ambient Mode Lifecycle (`AmbientLifecycleObserver`)**:
+  * Switches automatically to a dimmed, pure-black 1 Hz interface when the wrist is lowered.
+  * Prevents OS termination while saving OLED battery life.
+* **Haptic Vibration Countdown (`Vibrator`)**:
+  * Triggered via background coroutine timer: 3 distinct warning pulses at -3s, followed by 1 strong burst at 0s.
 
-    subgraph WearOS [Wear OS Smartwatch - Standalone]
-        W_UI[Compose for Wear OS UI]
-        W_HS[Health Services API - HR/Sensors]
-        W_BLE[GATT BLE Client - Smart Scale]
-        W_DB[(Wear Room DB)]
-        W_Timer[Haptic Rest Timer Service]
-        
-        W_UI --> W_DB
-        W_HS --> W_DB
-        W_BLE --> W_DB
-        W_UI --> W_Timer
-    end
+### 🧬 2. Clinical Bio-Impedance (BIA) & BLE Scale Driver
 
-    subgraph Mobile [Android Smartphone App]
-        M_UI[Jetpack Compose Phone UI]
-        M_BIA[BIA DEXA Calculation Engine]
-        M_ExDB[1,300+ Exercise Catalogue]
-        M_DB[(Mobile Room DB)]
-        M_HC[Google Health Connect Client]
-        
-        M_UI --> M_DB
-        M_BIA --> M_DB
-        M_ExDB --> M_DB
-        M_DB --> M_HC
-    end
+#### 2.1. HUAWEI Scale 3 Pro GATT Profile & Crypto Handshake
+* **Protocol**: Proprietary HaigeBLE GATT service.
+* **GATT Characteristic Map**:
+  | Step | Handle | UUID | Access | Role |
+  | :--- | :--- | :--- | :--- | :--- |
+  | Sentinel | `0x71` | `ba216311-1787-472b-bef6-3eb29e62293e` | Notify | Global status sentinel |
+  | Step 1 | `0x21` | `02b2a08e-f8b0-4047-b1fd-f4e0efeee679` | WriteCmd / Indicate | `REQUEST_AUTH` (Nonce exchange) |
+  | Step 2 | `0x25` | `32330a04-15d9-421a-91c5-2a2d5c7525c9` | WriteCmd / Indicate | `AUTH_TOKEN` (HMAC-SHA256 mutual auth) |
+  | Step 3 | `0x29` | `a3d330f8-b84f-4f48-a78c-f8d1e33b597a` | WriteCmd / Indicate | `WORK_KEY` (Session key injection) |
+  | Step 4 | `0xd7` | `0000fe01-0000-1000-8000-00805f9b34fb` | WriteCmd / Notify | Enable 8-electrode capability (`5a0005...`) |
+  | Step 5 | `0x52` | `00002a2b-0000-1000-8000-00805f9b34fb` | WriteCmd / Indicate | `TIME_SYNC` (Epoch synchronization) |
+  | Step 6 | `0x31` | `8cc61d7d-66c0-4802-89c3-38c5a163592e` | WriteCmd / Indicate | `SET_USER_INFO` (User profile payload 69B) |
+  | Step 7 | `0x97` | `46797c17-d639-488d-9476-4789e8472878` | Indicate | `REALTIME_WEIGHT` (4 encrypted telemetry packets) |
 
-    subgraph Sync [Wearable Data Layer API]
-        W_DB <==>|Bluetooth / Wi-Fi Sync| M_DB
-    end
+#### 2.2. DEXA BIA Mathematical Engine
+* **Multifrequency Compartment Modeling**:
+  * $TBW = \alpha \cdot \frac{H^2}{Z_{50}} + \beta \cdot M + \gamma \cdot \text{Age} + \delta$
+  * $ECW = f(Z_{low}, H, M)$, $ICW = TBW - ECW$, Ratio $\frac{ECW}{TBW} \approx 0.38 - 0.40$ (clinical norm).
+  * $FFM = \frac{TBW}{0.732}$, $BF\% = \frac{M - FFM}{M} \times 100$.
+  * $SMM$ (Skeletal Muscle Mass), $SMI = \frac{ASMM}{H^2}$.
+  * 5-Zone Segmental Distribution (Trunk, Right/Left Arms, Right/Left Legs).
 
-    subgraph HealthConnect [Google Health Connect]
-        M_HC ==> HC_Store[(Health Connect Central Store)]
-    end
+### 🏋️ 3. Strength & Exercise Mechanics (openGym)
 
-    MCP -->|Direct Push Routine| M_DB
+#### 3.1. Set Data Model
+Sets use a dual-axis discriminator:
+```kotlin
+enum class SetPhase { WORK, WARMUP }
+enum class SetType { STRAIGHT, DROPSET, RESTPAUSE }
+
+data class WorkoutSet(
+    val id: String,
+    val phase: SetPhase = SetPhase.WORK,
+    val type: SetType = SetType.STRAIGHT,
+    val weightKg: Double,
+    val reps: Int,
+    val rpe: Double? = null,
+    val isCompleted: Boolean = false,
+    val drops: List<DropSubSet> = emptyList(),      // Additional drops for dropsets
+    val clusters: List<ClusterSubSet> = emptyList() // Decomposition for rest-pause
+)
 ```
 
+### 🔄 4. Google Health Connect & MCP AI Sync
+
+#### 4.1. Health Connect Data Mapping
+* **`PlannedExerciseSessionRecord`**: Structured workouts with exercise blocks and target sets/reps.
+* **`ExerciseSessionRecord`**: Completed workouts mapped to `EXERCISE_TYPE_STRENGTH_TRAINING` or `CALISTHENICS`.
+* **`HeartRateRecord`**: Continuous BPM time-series data points captured from the watch.
+
+#### 4.2. Model Context Protocol (MCP) Server
+* **Endpoints**:
+  * `get_body_metrics()`: Return current BIA status (weight, body fat %, muscle mass, trend).
+  * `search_exercises(query, muscle_group, equipment)`: Query 1,300+ catalogue exercises.
+  * `push_workout_routine(plan_json)`: Inject AI-generated routines into BodyForger's Room/Cloud DB.
+
 ---
 
-## 🗂️ Proposed Android Multi-Module Structure
+## 🗂️ Project Structure
 
 ```
 BodyForger/
-├── app-mobile/                # Android Mobile Application (Jetpack Compose)
-│   ├── src/main/kotlin/       # Screens: Dashboard, BIA Report, Workout, Routine Editor
-│   └── build.gradle.kts
-├── app-wear/                  # Wear OS Standalone Application (Compose for Wear OS)
-│   ├── src/main/kotlin/       # Screens: Active Workout, Rest Timer, Weight Quick-Log
-│   ├── services/              # ExerciseClient, OngoingActivityNotification, RestVibrator
-│   └── build.gradle.kts
-├── core-model/                # Shared Kotlin Data Models (Workout, Set, Exercise, BIA, Log)
-├── core-database/             # Shared Room DB entities, DAOs, and migrations
-├── core-ble/                  # BLE GATT drivers (Huawei Scale 3, Generic 0x181D)
-├── core-bia/                  # DEXA BIA Mathematical Engine ported to Kotlin
-├── core-healthconnect/        # Health Connect Read/Write Adapters (Sessions, Planned, Metrics)
-├── core-sync/                 # Wearable Data Layer Sync Engine
-├── server-mcp/                # Model Context Protocol Server for Gemini / AI routines
-├── exercises-data/            # 1,300+ Exercise dataset (JSON & animations)
-├── web/                       # Marketing & showcase web landing page (bodyforger.app)
+├── web/                       # 🌐 Showcase Landing Page (Vue 3 + Tailwind v4 for Cloudflare)
+├── app-mobile/                # 📱 Android Mobile Application (Jetpack Compose)
+├── app-wear/                  # ⌚ Wear OS Standalone Application (Compose for Wear OS)
+├── core-model/                # 🧱 Shared Kotlin Data Models (Workout, Set, Exercise, BIA, Log)
+├── core-database/             # 💾 Shared Room DB entities, DAOs, and migrations
+├── core-ble/                  # 📡 BLE GATT drivers (Huawei Scale 3, Generic 0x181D)
+├── core-bia/                  # 🧬 DEXA BIA Mathematical Engine in Kotlin
+├── core-healthconnect/        # 💓 Health Connect Read/Write Adapters
+├── core-sync/                 # 🔄 Wearable Data Layer Sync Engine
+├── server-mcp/                # 🤖 Model Context Protocol Server for Gemini / AI routines
+├── AGENTS.md                  # 📜 Development directives and CI/GH protocols
+├── PLAN.md                    # 📋 Master technical architecture
 └── README.md
 ```
 
 ---
 
-## 🚀 Development Phases & Roadmap
+## 🚀 Roadmap
 
-- [x] **Phase 0**: Architecture definition, branding, and master planning.
+- [x] **Phase 0**: Architecture & repository initialization as **BodyForger**.
 - [ ] **Phase 1**: Port BIA Engine & Scale 3 BLE Driver to Kotlin Android/Wear module.
 - [ ] **Phase 2**: Import openGym exercise database (1,300+ exercises) & workout models into `core-model`.
 - [ ] **Phase 3**: Build standalone Wear OS workout runner (Health Services HR + Ambient AOD + Haptics).
