@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,6 +62,7 @@ import app.bodyforger.mobile.ui.theme.TextMuted
 import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CatalogScreen(
     customExercises: List<Exercise> = emptyList(),
@@ -179,95 +181,93 @@ fun CatalogScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- 3. FILTRE 1 : TYPE SPÉCIAL (👤 Perso / ⇄ 1 Côté) & MATÉRIEL ---
-        LazyRow(
+        // --- 3. FILTRE 1 : TYPE SPÉCIAL (👤 Perso / ⇄ 1 Côté) & MATÉRIEL (FlowRow compact) ---
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.padding(bottom = 8.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
         ) {
             // Filtre Spécial 1 : 👤 PERSO
-            item {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (filterCustomOnly) NeonLime else SurfaceElevated)
-                        .border(1.dp, if (filterCustomOnly) NeonLime else SurfaceBorder, RoundedCornerShape(8.dp))
-                        .clickable { filterCustomOnly = !filterCustomOnly }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            tint = if (filterCustomOnly) Color.Black else NeonLime,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Perso",
-                            color = if (filterCustomOnly) Color.Black else TextPrimary,
-                            fontWeight = if (filterCustomOnly) FontWeight.Bold else FontWeight.Medium,
-                            fontSize = 11.sp
-                        )
-                    }
-                }
-            }
-
-            // Filtre Spécial 2 : ⇄ 1 CÔTÉ (Unilatéral)
-            item {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (filterUnilateralOnly) AmberGold else SurfaceElevated)
-                        .border(1.dp, if (filterUnilateralOnly) AmberGold else SurfaceBorder, RoundedCornerShape(8.dp))
-                        .clickable { filterUnilateralOnly = !filterUnilateralOnly }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.SwapHoriz,
-                            contentDescription = null,
-                            tint = if (filterUnilateralOnly) Color.Black else AmberGold,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "1 Côté",
-                            color = if (filterUnilateralOnly) Color.Black else TextPrimary,
-                            fontWeight = if (filterUnilateralOnly) FontWeight.Bold else FontWeight.Medium,
-                            fontSize = 11.sp
-                        )
-                    }
-                }
-            }
-
-            item {
-                val isAllSelected = selectedEquipment == null
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (isAllSelected) ElectricCyan else SurfaceElevated)
-                        .border(1.dp, if (isAllSelected) ElectricCyan else SurfaceBorder, RoundedCornerShape(8.dp))
-                        .clickable { selectedEquipment = null }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (filterCustomOnly) NeonLime else SurfaceElevated)
+                    .border(1.dp, if (filterCustomOnly) NeonLime else SurfaceBorder, RoundedCornerShape(8.dp))
+                    .clickable { filterCustomOnly = !filterCustomOnly }
+                    .padding(horizontal = 9.dp, vertical = 5.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = if (filterCustomOnly) Color.Black else NeonLime,
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
                     Text(
-                        text = "Tout matériel",
-                        color = if (isAllSelected) Color.Black else TextSecondary,
-                        fontWeight = if (isAllSelected) FontWeight.Bold else FontWeight.Medium,
+                        text = "Perso",
+                        color = if (filterCustomOnly) Color.Black else TextPrimary,
+                        fontWeight = if (filterCustomOnly) FontWeight.Bold else FontWeight.Medium,
                         fontSize = 11.sp
                     )
                 }
             }
 
-            items(EquipmentType.entries.filter { it != EquipmentType.OTHER }) { equip ->
+            // Filtre Spécial 2 : ⇄ 1 CÔTÉ (Unilatéral)
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (filterUnilateralOnly) AmberGold else SurfaceElevated)
+                    .border(1.dp, if (filterUnilateralOnly) AmberGold else SurfaceBorder, RoundedCornerShape(8.dp))
+                    .clickable { filterUnilateralOnly = !filterUnilateralOnly }
+                    .padding(horizontal = 9.dp, vertical = 5.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.SwapHoriz,
+                        contentDescription = null,
+                        tint = if (filterUnilateralOnly) Color.Black else AmberGold,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = "1 Côté",
+                        color = if (filterUnilateralOnly) Color.Black else TextPrimary,
+                        fontWeight = if (filterUnilateralOnly) FontWeight.Bold else FontWeight.Medium,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            // Tout matériel
+            val isAllEquipSelected = selectedEquipment == null
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isAllEquipSelected) ElectricCyan else SurfaceElevated)
+                    .border(1.dp, if (isAllEquipSelected) ElectricCyan else SurfaceBorder, RoundedCornerShape(8.dp))
+                    .clickable { selectedEquipment = null }
+                    .padding(horizontal = 9.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = "Tout matériel",
+                    color = if (isAllEquipSelected) Color.Black else TextSecondary,
+                    fontWeight = if (isAllEquipSelected) FontWeight.Bold else FontWeight.Medium,
+                    fontSize = 11.sp
+                )
+            }
+
+            EquipmentType.entries.filter { it != EquipmentType.OTHER }.forEach { equip ->
                 val isSelected = selectedEquipment == equip
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(if (isSelected) ElectricCyan else SurfaceElevated)
                         .border(1.dp, if (isSelected) ElectricCyan else SurfaceBorder, RoundedCornerShape(8.dp))
-                        .clickable { selectedEquipment = equip }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .clickable { selectedEquipment = if (isSelected) null else equip }
+                        .padding(horizontal = 9.dp, vertical = 5.dp)
                 ) {
                     Text(
                         text = equip.displayName,
@@ -279,39 +279,40 @@ fun CatalogScreen(
             }
         }
 
-        // --- 4. FILTRE 2 : GROUPE MUSCULAIRE (Pectoraux, Dos, Épaules...) ---
-        LazyRow(
+        // --- 4. FILTRE 2 : GROUPE MUSCULAIRE (FlowRow compact) ---
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.padding(bottom = 12.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 10.dp)
         ) {
-            item {
-                val isAllSelected = selectedMuscle == null
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (isAllSelected) NeonLime else SurfaceElevated)
-                        .border(1.dp, if (isAllSelected) NeonLime else SurfaceBorder, RoundedCornerShape(8.dp))
-                        .clickable { selectedMuscle = null }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Text(
-                        text = "Tous les muscles",
-                        color = if (isAllSelected) Color.Black else TextSecondary,
-                        fontWeight = if (isAllSelected) FontWeight.Bold else FontWeight.Medium,
-                        fontSize = 11.sp
-                    )
-                }
+            val isAllMuscleSelected = selectedMuscle == null
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isAllMuscleSelected) NeonLime else SurfaceElevated)
+                    .border(1.dp, if (isAllMuscleSelected) NeonLime else SurfaceBorder, RoundedCornerShape(8.dp))
+                    .clickable { selectedMuscle = null }
+                    .padding(horizontal = 9.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    text = "Tous muscles",
+                    color = if (isAllMuscleSelected) Color.Black else TextSecondary,
+                    fontWeight = if (isAllMuscleSelected) FontWeight.Bold else FontWeight.Medium,
+                    fontSize = 11.sp
+                )
             }
 
-            items(MuscleGroup.entries.filter { it != MuscleGroup.FULL_BODY }) { muscle ->
+            MuscleGroup.entries.filter { it != MuscleGroup.FULL_BODY }.forEach { muscle ->
                 val isSelected = selectedMuscle == muscle
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(if (isSelected) NeonLime else SurfaceElevated)
                         .border(1.dp, if (isSelected) NeonLime else SurfaceBorder, RoundedCornerShape(8.dp))
-                        .clickable { selectedMuscle = muscle }
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .clickable { selectedMuscle = if (isSelected) null else muscle }
+                        .padding(horizontal = 9.dp, vertical = 5.dp)
                 ) {
                     Text(
                         text = muscle.displayName,
