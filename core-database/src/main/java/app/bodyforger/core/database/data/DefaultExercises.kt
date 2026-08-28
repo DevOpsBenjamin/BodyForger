@@ -855,6 +855,86 @@ object DefaultExercises {
             type = HealthConnectExerciseType.BURPEE,
             muscle = MuscleGroup.FULL_BODY,
             equipment = EquipmentType.BODYWEIGHT
+        ),
+
+        // ==========================================
+        // 8. CARDIO, ÉCHAUFFEMENT & CONDITIONNEMENT
+        // ==========================================
+        exercise(
+            id = "bf_cardio_001",
+            name = "Vélo Elliptique",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.ELLIPTICAL,
+            muscle = MuscleGroup.FULL_BODY,
+            equipment = EquipmentType.MACHINE
+        ),
+        exercise(
+            id = "bf_cardio_002",
+            name = "Tapis de Course (Marche Inclinée)",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.TREADMILL_WALKING,
+            muscle = MuscleGroup.FULL_BODY,
+            equipment = EquipmentType.MACHINE
+        ),
+        exercise(
+            id = "bf_cardio_003",
+            name = "Tapis de Course (Course)",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.TREADMILL_RUNNING,
+            muscle = MuscleGroup.FULL_BODY,
+            equipment = EquipmentType.MACHINE
+        ),
+        exercise(
+            id = "bf_cardio_004",
+            name = "Vélo Stationnaire / Biking",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.STATIONARY_BIKING,
+            muscle = MuscleGroup.QUADRICEPS,
+            equipment = EquipmentType.MACHINE
+        ),
+        exercise(
+            id = "bf_cardio_005",
+            name = "Rameur (Rowing)",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.ROWING_MACHINE,
+            muscle = MuscleGroup.BACK,
+            equipment = EquipmentType.MACHINE
+        ),
+        exercise(
+            id = "bf_cardio_006",
+            name = "Corde à Sauter",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.HIIT,
+            muscle = MuscleGroup.CALVES,
+            equipment = EquipmentType.OTHER
+        ),
+        exercise(
+            id = "bf_cardio_007",
+            name = "StairMaster (Simulateur d'Escaliers)",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.STATIONARY_BIKING,
+            muscle = MuscleGroup.GLUTES,
+            equipment = EquipmentType.MACHINE
+        ),
+
+        // ==========================================
+        // 9. MOBILITÉ & RÉCUPÉRATION
+        // ==========================================
+        exercise(
+            id = "bf_mob_001",
+            name = "Étirements & Mobilité Globale",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.STRETCHING,
+            muscle = MuscleGroup.FULL_BODY,
+            equipment = EquipmentType.BODYWEIGHT
+        ),
+        exercise(
+            id = "bf_mob_002",
+            name = "Rouleau de Massage (Foam Roller)",
+            type = HealthConnectExerciseType.OTHER_WORKOUT,
+            category = app.bodyforger.core.model.WorkoutActivityCategory.STRETCHING,
+            muscle = MuscleGroup.FULL_BODY,
+            equipment = EquipmentType.OTHER
         )
     )
 
@@ -862,12 +942,14 @@ object DefaultExercises {
         id: String,
         name: String,
         type: HealthConnectExerciseType,
+        category: app.bodyforger.core.model.WorkoutActivityCategory = app.bodyforger.core.model.WorkoutActivityCategory.STRENGTH_TRAINING,
         muscle: MuscleGroup,
         equipment: EquipmentType,
         isUnilateral: Boolean = false
     ) = ExerciseEntity(
         id = id,
         name = name,
+        activityCategory = category.name,
         healthConnectType = type.name,
         primaryMuscleGroup = muscle.name,
         equipment = equipment.name,
