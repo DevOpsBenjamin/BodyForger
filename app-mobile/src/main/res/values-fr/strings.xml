@@ -1,0 +1,59 @@
+<resources>
+    <string name="app_name">BodyForger</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_planner">Programme</string>
+    <string name="nav_analytics">Stats</string>
+    <string name="nav_profile">Profil</string>
+
+    <!-- General Actions -->
+    <string name="action_save">ENREGISTRER</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_close">Fermer</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_edit">Modifier la routine</string>
+    <string name="action_duplicate">Dupliquer</string>
+    <string name="action_share_json">Partager (JSON)</string>
+    <string name="action_create">CRÉER</string>
+    <string name="action_start">LANCER</string>
+    <string name="action_resume">REPRENDRE</string>
+    <string name="action_add_set">AJOUTER UNE SÉRIE</string>
+    <string name="action_add_exercise">AJOUTER UN EXERCICE</string>
+    <string name="action_validate">Valider</string>
+    <string name="action_reset">Réinitialiser</string>
+
+    <!-- Routine Editor -->
+    <string name="routine_editor_new_title">NOUVELLE ROUTINE</string>
+    <string name="routine_editor_edit_title">MODIFIER ROUTINE</string>
+    <string name="routine_editor_untitled">Sans titre</string>
+    <string name="routine_editor_title_label">TITRE DE LA ROUTINE</string>
+    <string name="routine_editor_title_hint">Ex: Push Day, Séance Pecs/Épaules...</string>
+    <string name="routine_editor_notes_label">NOTES DE ROUTINE (Optionnel)</string>
+    <string name="routine_editor_notes_hint">Ex: Échauffement 5 min rameur + focus tempo 3-0-1-0</string>
+    <string name="routine_editor_no_exercises">Aucun exercice ajouté</string>
+    <string name="routine_editor_no_exercises_hint">Appuyez ci-dessous pour composer votre séance</string>
+    <string name="routine_editor_rest_prefix">Repos: </string>
+    <string name="routine_editor_col_set">SÉRIE</string>
+    <string name="routine_editor_col_kg">KG</string>
+    <string name="routine_editor_col_reps">RÉPÉTITIONS</string>
+    <string name="routine_editor_reps_to">à</string>
+    <string name="routine_editor_move_up">⬆ Déplacer vers le haut</string>
+    <string name="routine_editor_move_down">⬇ Déplacer vers le bas</string>
+    <string name="routine_editor_replace_exercise">"🔄 Remplacer l\'exercice"</string>
+    <string name="routine_editor_remove_exercise">"✕ Retirer l\'exercice"</string>
+
+    <!-- Rest Picker Dialog -->
+    <string name="dialog_rest_title">⏱️ TEMPS DE REPOS</string>
+
+    <!-- Set Type Dialog -->
+    <string name="dialog_set_options_title">⚙️ OPTIONS DE LA SÉRIE</string>
+    <string name="dialog_set_type_label">TYPE DE SÉRIE :</string>
+    <string name="dialog_set_format_label">FORMAT DES RÉPÉTITIONS :</string>
+    <string name="dialog_set_fixed_reps">Répétitions fixes</string>
+    <string name="dialog_set_rep_range">Plage (ex: 8-12)</string>
+
+    <!-- Delete Confirmation -->
+    <string name="dialog_delete_routine_title">🗑️ SUPPRIMER LA ROUTINE</string>
+    <string name="dialog_delete_routine_msg">"Êtes-vous sûr de vouloir supprimer cette routine \? Cette action est irréversible."</string>
+</resources>
