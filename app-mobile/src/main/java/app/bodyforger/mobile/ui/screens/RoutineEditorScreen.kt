@@ -1,11 +1,9 @@
 package app.bodyforger.mobile.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,19 +14,12 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,17 +42,14 @@ import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.components.RestTimePickerDialog
+import app.bodyforger.mobile.ui.components.RoutineEditorInfoCard
+import app.bodyforger.mobile.ui.components.RoutineEditorTopBar
 import app.bodyforger.mobile.ui.components.RoutineExerciseCard
 import app.bodyforger.mobile.ui.components.SetTypePickerDialog
 import app.bodyforger.mobile.ui.components.WeightUnitPickerDialog
 import app.bodyforger.mobile.ui.theme.ElectricCyan
-import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.Obsidian
-import app.bodyforger.mobile.ui.theme.SurfaceBorder
-import app.bodyforger.mobile.ui.theme.SurfaceDark
-import app.bodyforger.mobile.ui.theme.SurfaceElevated
 import app.bodyforger.mobile.ui.theme.TextMuted
-import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 import java.util.UUID
 
@@ -88,7 +75,6 @@ fun RoutineEditorScreen(
     var showingReorderScreen by remember { mutableStateOf(false) }
 
     if (showingReorderScreen) {
-        // Vue Plein Écran de réorganisation des exercices (Style Hevy avec drag & drop et bouton Terminé)
         ReorderExercisesScreen(
             initialExercises = exercises.toList(),
             onConfirm = { reorderedList ->
@@ -108,155 +94,46 @@ fun RoutineEditorScreen(
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
-            // --- 1. BARRE SUPÉRIEURE ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = onBack, // Retourne sans enregistrer
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(SurfaceElevated)
-                            .border(1.dp, SurfaceBorder, CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_cancel),
-                            tint = TextPrimary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column {
-                        Text(
-                            text = if (initialRoutine == null) {
-                                stringResource(R.string.routine_editor_new_title)
-                            } else {
-                                stringResource(R.string.routine_editor_edit_title)
+            // 1. Barre supérieure
+            RoutineEditorTopBar(
+                isNewRoutine = initialRoutine == null,
+                routineName = routineName,
+                onBack = onBack,
+                onSave = {
+                    if (routineName.isNotBlank()) {
+                        val updatedRoutine = Routine(
+                            id = initialRoutine?.id ?: UUID.randomUUID().toString(),
+                            name = routineName.trim(),
+                            notes = routineNotes.trim(),
+                            assignedDays = initialRoutine?.assignedDays ?: emptySet(),
+                            exercises = exercises.mapIndexed { index, ex ->
+                                ex.copy(orderIndex = index)
                             },
-                            color = NeonLime,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
+                            createdAtEpochMs = initialRoutine?.createdAtEpochMs ?: System.currentTimeMillis()
                         )
-                        Text(
-                            text = if (routineName.isBlank()) stringResource(R.string.routine_editor_untitled) else routineName,
-                            color = TextPrimary,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Black,
-                            maxLines = 1
-                        )
+                        onSaveRoutine(updatedRoutine)
                     }
                 }
-
-                // Bouton ENREGISTRER
-                Button(
-                    onClick = {
-                        if (routineName.isNotBlank()) {
-                            val updatedRoutine = Routine(
-                                id = initialRoutine?.id ?: UUID.randomUUID().toString(),
-                                name = routineName.trim(),
-                                notes = routineNotes.trim(),
-                                assignedDays = initialRoutine?.assignedDays ?: emptySet(),
-                                exercises = exercises.mapIndexed { index, ex ->
-                                    ex.copy(orderIndex = index)
-                                },
-                                createdAtEpochMs = initialRoutine?.createdAtEpochMs ?: System.currentTimeMillis()
-                            )
-                            onSaveRoutine(updatedRoutine)
-                        }
-                    },
-                    enabled = routineName.isNotBlank(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NeonLime,
-                        contentColor = Color.Black,
-                        disabledContainerColor = SurfaceElevated,
-                        disabledContentColor = TextMuted
-                    ),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text(text = stringResource(R.string.action_save), fontSize = 12.sp, fontWeight = FontWeight.Black)
-                }
-            }
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // --- 2. CONTENU PRINCIPAL SCROLLABLE ---
+            // 2. Contenu scrollable
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                // Section Infos Générales de la Routine
                 item {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, SurfaceBorder, RoundedCornerShape(16.dp))
-                    ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Text(
-                                text = stringResource(R.string.routine_editor_title_label),
-                                color = NeonLime,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            OutlinedTextField(
-                                value = routineName,
-                                onValueChange = { routineName = it },
-                                placeholder = { Text(stringResource(R.string.routine_editor_title_hint), color = TextMuted, fontSize = 13.sp) },
-                                singleLine = true,
-                                shape = RoundedCornerShape(10.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedContainerColor = SurfaceElevated,
-                                    unfocusedContainerColor = SurfaceElevated,
-                                    focusedBorderColor = NeonLime,
-                                    unfocusedBorderColor = SurfaceBorder,
-                                    focusedTextColor = TextPrimary,
-                                    unfocusedTextColor = TextPrimary
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Text(
-                                text = stringResource(R.string.routine_editor_notes_label),
-                                color = TextSecondary,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            OutlinedTextField(
-                                value = routineNotes,
-                                onValueChange = { routineNotes = it },
-                                placeholder = { Text(stringResource(R.string.routine_editor_notes_hint), color = TextMuted, fontSize = 12.sp) },
-                                shape = RoundedCornerShape(10.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedContainerColor = SurfaceElevated,
-                                    unfocusedContainerColor = SurfaceElevated,
-                                    focusedBorderColor = NeonLime,
-                                    unfocusedBorderColor = SurfaceBorder,
-                                    focusedTextColor = TextPrimary,
-                                    unfocusedTextColor = TextPrimary
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
+                    RoutineEditorInfoCard(
+                        routineName = routineName,
+                        onRoutineNameChange = { routineName = it },
+                        routineNotes = routineNotes,
+                        onRoutineNotesChange = { routineNotes = it }
+                    )
                 }
 
-                // Section Exercices
                 if (exercises.isEmpty()) {
                     item {
                         Box(
@@ -322,7 +199,6 @@ fun RoutineEditorScreen(
                     }
                 }
 
-                // Bouton + AJOUTER UN EXERCICE
                 item {
                     Button(
                         onClick = onOpenCatalogForAdd,
@@ -345,7 +221,7 @@ fun RoutineEditorScreen(
             }
         }
 
-        // --- MODALE DU CHRONOMÈTRE DE REPOS ---
+        // Modales
         activeRestDialogExerciseIndex?.let { exIdx ->
             val currentRest = exercises.getOrNull(exIdx)?.restTimeSeconds ?: 90
             RestTimePickerDialog(
@@ -357,7 +233,6 @@ fun RoutineEditorScreen(
             )
         }
 
-        // --- MODALE DE L'UNITÉ DE POIDS (KG vs LBS) ---
         activeWeightUnitDialogExerciseIndex?.let { exIdx ->
             val currentUnit = exercises.getOrNull(exIdx)?.weightUnit ?: WeightUnit.KG
             WeightUnitPickerDialog(
@@ -369,7 +244,6 @@ fun RoutineEditorScreen(
             )
         }
 
-        // --- MODALE DU TYPE DE SÉRIE & OPTIONS DE RÉPÉTITIONS ---
         activeSetTypeDialogIndex?.let { (exIdx, setIdx) ->
             val currentSet = exercises.getOrNull(exIdx)?.sets?.getOrNull(setIdx)
             if (currentSet != null) {
