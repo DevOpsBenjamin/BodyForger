@@ -163,3 +163,10 @@ sequenceDiagram
 | `core-healthconnect` | Adaptateur de lecture/écriture Google Health Connect (`PlannedExercise`, `ExerciseSession`, `HeartRate`). |
 | `server-mcp` | Serveur Model Context Protocol pour l'interopérabilité IA avec Gemini. |
 | `web` | Site vitrine et documentation déployé sur Cloudflare Pages (`bodyforger.app`). |
+
+---
+
+## 📑 6. Index des Décisions d'Architecture (ADR)
+
+* [**ADR 001 : Architecture de Synchronisation Hors-Ligne, Indépendance Wear OS & Stratégie Cloud Backup**](file:///Users/devops.benjamin/Work/BodyForger/docs/adr/001-offline-sync-wear-phone-cloud.md)
+
