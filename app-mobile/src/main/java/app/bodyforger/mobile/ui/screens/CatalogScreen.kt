@@ -23,7 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -322,14 +324,23 @@ fun CatalogScreen(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(4.dp))
                                             .background(NeonLime.copy(alpha = 0.2f))
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            .padding(horizontal = 5.dp, vertical = 2.dp)
                                     ) {
-                                        Text(
-                                            text = "CUSTOM",
-                                            color = NeonLime,
-                                            fontSize = 8.sp,
-                                            fontWeight = FontWeight.Black
-                                        )
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.Default.Person,
+                                                contentDescription = "Perso",
+                                                tint = NeonLime,
+                                                modifier = Modifier.size(9.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(
+                                                text = "PERSO",
+                                                color = NeonLime,
+                                                fontSize = 8.sp,
+                                                fontWeight = FontWeight.Black
+                                            )
+                                        }
                                     }
                                 }
 
@@ -338,14 +349,23 @@ fun CatalogScreen(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(4.dp))
                                             .background(AmberGold.copy(alpha = 0.2f))
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            .padding(horizontal = 5.dp, vertical = 2.dp)
                                     ) {
-                                        Text(
-                                            text = "1 BRAS/JAMBE",
-                                            color = AmberGold,
-                                            fontSize = 8.sp,
-                                            fontWeight = FontWeight.Black
-                                        )
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.Default.SwapHoriz,
+                                                contentDescription = "Unilatéral",
+                                                tint = AmberGold,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(
+                                                text = "1 CÔTÉ",
+                                                color = AmberGold,
+                                                fontSize = 8.sp,
+                                                fontWeight = FontWeight.Black
+                                            )
+                                        }
                                     }
                                 }
                             }
