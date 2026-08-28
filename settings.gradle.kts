@@ -1,0 +1,31 @@
+pluginManagement {
+    repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "BodyForger"
+
+include(":app-mobile")
+include(":app-wear")
+include(":core-model")
+include(":core-bia")
+include(":core-ble")
+include(":core-database")
+include(":core-healthconnect")
+include(":core-sync")
