@@ -42,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Person
+import app.bodyforger.core.model.Exercise
 import app.bodyforger.mobile.ui.screens.AnalyticsScreen
 import app.bodyforger.mobile.ui.screens.CatalogScreen
 import app.bodyforger.mobile.ui.screens.CreateExerciseScreen
@@ -103,19 +105,24 @@ fun MobileMainScaffold() {
     var showingCatalogScreen by remember { mutableStateOf(false) }
     var showingCreateExerciseScreen by remember { mutableStateOf(false) }
 
+    // Liste partagée des exercices personnalisés créés
+    val customExercises = remember { mutableStateListOf<Exercise>() }
+
     val navItems = listOf(NavItem.Home, NavItem.Planner, NavItem.Analytics, NavItem.Profile)
 
     if (showingCreateExerciseScreen) {
         // Vue plein écran de création d'exercice
         CreateExerciseScreen(
             onBack = { showingCreateExerciseScreen = false },
-            onExerciseCreated = {
+            onExerciseCreated = { newExercise ->
+                customExercises.add(0, newExercise)
                 showingCreateExerciseScreen = false
             }
         )
     } else if (showingCatalogScreen) {
         // Vue plein écran du catalogue d'exercices
         CatalogScreen(
+            customExercises = customExercises,
             onBack = { showingCatalogScreen = false },
             onOpenCreateExercise = { showingCreateExerciseScreen = true }
         )

@@ -79,7 +79,7 @@ fun CreateExerciseScreen(
             .background(Obsidian)
             .statusBarsPadding()
             .imePadding()
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp)
     ) {
         // --- 1. EN-TÊTE : Bouton Retour + Titre + Bouton Enregistrer ---
         Row(

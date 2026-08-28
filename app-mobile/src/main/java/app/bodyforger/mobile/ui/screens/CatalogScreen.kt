@@ -33,7 +33,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,6 +61,7 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 
 @Composable
 fun CatalogScreen(
+    customExercises: List<Exercise> = emptyList(),
     onBack: () -> Unit = {},
     onOpenCreateExercise: () -> Unit = {},
     onSelectExercise: (Exercise) -> Unit = {}
@@ -70,14 +70,12 @@ fun CatalogScreen(
     var selectedMuscle by remember { mutableStateOf<MuscleGroup?>(null) }
     var selectedEquipment by remember { mutableStateOf<EquipmentType?>(null) }
 
-    // Liste des exercices (les 105 de base + les ajouts custom)
-    val exerciseList = remember {
-        mutableStateListOf<Exercise>().apply {
-            addAll(DefaultExercises.all.map { it.toDomain() })
-        }
+    // Liste complète : Exercices personnalisés en premier, puis catalogue d'élite par défaut
+    val allExercises = remember(customExercises.size) {
+        customExercises + DefaultExercises.all.map { it.toDomain() }
     }
 
-    val filteredExercises = exerciseList.filter { exercise ->
+    val filteredExercises = allExercises.filter { exercise ->
         (selectedMuscle == null || exercise.primaryMuscleGroup == selectedMuscle) &&
                 (selectedEquipment == null || exercise.equipment == selectedEquipment) &&
                 (searchQuery.isEmpty() || exercise.name.contains(searchQuery, ignoreCase = true) || exercise.healthConnectType.canonicalNameEn.contains(searchQuery, ignoreCase = true))
@@ -88,7 +86,7 @@ fun CatalogScreen(
             .fillMaxSize()
             .background(Obsidian)
             .statusBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp)
     ) {
         // --- 1. EN-TÊTE : Bouton Retour + Titre + Bouton Créer ---
         Row(
@@ -289,16 +287,37 @@ fun CatalogScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            // Ligne 1 : Nom complet de l'exercice
+                            Text(
+                                text = exercise.name,
+                                color = TextPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            // Ligne 2 : Métadonnées et Badges (Muscle • Matériel + Badges)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
                                 Text(
-                                    text = exercise.name,
-                                    color = TextPrimary,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
+                                    text = exercise.primaryMuscleGroup.displayName,
+                                    color = ElectricCyan,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+
+                                Text(text = "•", color = TextMuted, fontSize = 11.sp)
+
+                                Text(
+                                    text = exercise.equipment.displayName,
+                                    color = TextMuted,
+                                    fontSize = 11.sp
                                 )
 
                                 if (exercise.isCustom) {
-                                    Spacer(modifier = Modifier.width(6.dp))
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(4.dp))
@@ -315,7 +334,6 @@ fun CatalogScreen(
                                 }
 
                                 if (exercise.isUnilateral) {
-                                    Spacer(modifier = Modifier.width(6.dp))
                                     Box(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(4.dp))
@@ -323,30 +341,13 @@ fun CatalogScreen(
                                             .padding(horizontal = 6.dp, vertical = 2.dp)
                                     ) {
                                         Text(
-                                            text = "1 BRAS / JAMBE",
+                                            text = "1 BRAS/JAMBE",
                                             color = AmberGold,
                                             fontSize = 8.sp,
                                             fontWeight = FontWeight.Black
                                         )
                                     }
                                 }
-                            }
-
-                            Spacer(modifier = Modifier.height(3.dp))
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = exercise.primaryMuscleGroup.displayName,
-                                    color = ElectricCyan,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(text = " • ", color = TextMuted, fontSize = 11.sp)
-                                Text(
-                                    text = exercise.equipment.displayName,
-                                    color = TextMuted,
-                                    fontSize = 11.sp
-                                )
                             }
                         }
 
