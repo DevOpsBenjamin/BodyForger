@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,8 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,6 +63,7 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 import java.util.UUID
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CreateExerciseScreen(
     onBack: () -> Unit,
@@ -72,11 +73,12 @@ fun CreateExerciseScreen(
 
     var name by remember { mutableStateOf("") }
     var selectedMuscle by remember { mutableStateOf(MuscleGroup.CHEST) }
+    var selectedSecondaryMuscles by remember { mutableStateOf(setOf<MuscleGroup>()) }
     var selectedEquipment by remember { mutableStateOf(EquipmentType.BARBELL) }
     var selectedHealthConnectType by remember { mutableStateOf(HealthConnectExerciseType.BENCH_PRESS) }
     var isUnilateral by remember { mutableStateOf(false) }
 
-    // Liste des types Google pertinents pour le muscle sélectionné (+ type Autre/Générique)
+    // Liste des types Google pertinents pour le muscle principal sélectionné
     val availableHealthConnectTypes = remember(selectedMuscle) {
         val matching = HealthConnectExerciseType.entries.filter {
             it.primaryMuscleGroup == selectedMuscle && it != HealthConnectExerciseType.REST
@@ -147,6 +149,7 @@ fun CreateExerciseScreen(
                             name = name.trim(),
                             healthConnectType = selectedHealthConnectType,
                             primaryMuscleGroup = selectedMuscle,
+                            secondaryMuscleGroups = selectedSecondaryMuscles.toList(),
                             equipment = selectedEquipment,
                             isUnilateral = isUnilateral,
                             isCustom = true
@@ -172,7 +175,7 @@ fun CreateExerciseScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        // --- CONTENU DU FORMULAIRE DÉROULANT ---
+        // --- CONTENU DÉROULANT VERTICAL DU FORMULAIRE ---
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -190,7 +193,7 @@ fun CreateExerciseScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                placeholder = { Text(text = "Ex: Développé Convergent Prise Neutre", color = TextMuted, fontSize = 14.sp) },
+                placeholder = { Text(text = "Ex: Développé Incliné Prise Neutre", color = TextMuted, fontSize = 14.sp) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -206,17 +209,21 @@ fun CreateExerciseScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 2. Groupe Musculaire Principal
+            // 2. Groupe Musculaire Principal (FlowRow : tout visible d'un coup)
             Text(
-                text = "GROUPE MUSCULAIRE PRINCIPAL",
+                text = "🎯 GROUPE MUSCULAIRE PRINCIPAL (Cible 100%)",
                 color = TextSecondary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(MuscleGroup.entries.filter { it != MuscleGroup.FULL_BODY }) { muscle ->
+            Spacer(modifier = Modifier.height(10.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                MuscleGroup.entries.filter { it != MuscleGroup.FULL_BODY }.forEach { muscle ->
                     val isSelected = selectedMuscle == muscle
                     Box(
                         modifier = Modifier
@@ -225,11 +232,11 @@ fun CreateExerciseScreen(
                             .border(1.dp, if (isSelected) NeonLime else SurfaceBorder, RoundedCornerShape(10.dp))
                             .clickable {
                                 selectedMuscle = muscle
-                                // Auto-suggestion du type Google approprié
+                                selectedSecondaryMuscles = selectedSecondaryMuscles - muscle // Retirer des secondaires si sélectionné en principal
                                 val firstMatching = HealthConnectExerciseType.entries.firstOrNull { it.primaryMuscleGroup == muscle }
                                 selectedHealthConnectType = firstMatching ?: HealthConnectExerciseType.OTHER_WORKOUT
                             }
-                            .padding(horizontal = 14.dp, vertical = 9.dp)
+                            .padding(horizontal = 13.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = muscle.displayName,
@@ -243,17 +250,82 @@ fun CreateExerciseScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 3. Matériel / Équipement
+            // 3. Muscles Secondaires / Synergistes (Multi-sélection facultative en FlowRow)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "⚡ MUSCLES SECONDAIRES / SYNERGISTES (Optionnel)",
+                    color = ElectricCyan,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp
+                )
+            }
             Text(
-                text = "MATÉRIEL & ÉQUIPEMENT REQUIS",
+                text = "Comptabilisés à 50% du volume dans votre Heatmap et vos stats de récupération",
+                color = TextMuted,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
+            )
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                MuscleGroup.entries.filter { it != MuscleGroup.FULL_BODY && it != selectedMuscle }.forEach { muscle ->
+                    val isSelected = selectedSecondaryMuscles.contains(muscle)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isSelected) ElectricCyan.copy(alpha = 0.25f) else SurfaceElevated)
+                            .border(1.dp, if (isSelected) ElectricCyan else SurfaceBorder, RoundedCornerShape(10.dp))
+                            .clickable {
+                                selectedSecondaryMuscles = if (isSelected) {
+                                    selectedSecondaryMuscles - muscle
+                                } else {
+                                    selectedSecondaryMuscles + muscle
+                                }
+                            }
+                            .padding(horizontal = 12.dp, vertical = 7.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = ElectricCyan,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
+                            Text(
+                                text = muscle.displayName,
+                                color = if (isSelected) ElectricCyan else TextSecondary,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 4. Matériel / Équipement (FlowRow)
+            Text(
+                text = "🏋️ MATÉRIEL & ÉQUIPEMENT REQUIS",
                 color = TextSecondary,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(EquipmentType.entries.filter { it != EquipmentType.OTHER }) { equip ->
+            Spacer(modifier = Modifier.height(10.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                EquipmentType.entries.filter { it != EquipmentType.OTHER }.forEach { equip ->
                     val isSelected = selectedEquipment == equip
                     Box(
                         modifier = Modifier
@@ -261,7 +333,7 @@ fun CreateExerciseScreen(
                             .background(if (isSelected) ElectricCyan else SurfaceElevated)
                             .border(1.dp, if (isSelected) ElectricCyan else SurfaceBorder, RoundedCornerShape(10.dp))
                             .clickable { selectedEquipment = equip }
-                            .padding(horizontal = 14.dp, vertical = 9.dp)
+                            .padding(horizontal = 13.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = equip.displayName,
@@ -275,7 +347,7 @@ fun CreateExerciseScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 4. SÉLECTION DU TYPE CANONIQUE GOOGLE HEALTH CONNECT (La Combo de Choix !)
+            // 5. Synchronisation Google Health Connect (FlowRow avec noms français clairs)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Sync,
@@ -293,14 +365,18 @@ fun CreateExerciseScreen(
                 )
             }
             Text(
-                text = "Famille standard reconnue lors de l'export vers Google Fit & Samsung Health",
+                text = "Mouvement reconnu lors de la synchronisation vers Google Fit & Samsung Health",
                 color = TextMuted,
                 fontSize = 11.sp,
                 modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
             )
 
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(availableHealthConnectTypes) { hcType ->
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                availableHealthConnectTypes.forEach { hcType ->
                     val isSelected = selectedHealthConnectType == hcType
                     Box(
                         modifier = Modifier
@@ -308,7 +384,7 @@ fun CreateExerciseScreen(
                             .background(if (isSelected) AmberGold else SurfaceElevated)
                             .border(1.dp, if (isSelected) AmberGold else SurfaceBorder, RoundedCornerShape(10.dp))
                             .clickable { selectedHealthConnectType = hcType }
-                            .padding(horizontal = 14.dp, vertical = 9.dp)
+                            .padding(horizontal = 13.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = hcType.canonicalNameFr,
@@ -322,7 +398,7 @@ fun CreateExerciseScreen(
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            // 5. Switch Exercice Unilatéral
+            // 6. Switch Exercice Unilatéral
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -364,7 +440,7 @@ fun CreateExerciseScreen(
 
             Spacer(modifier = Modifier.height(26.dp))
 
-            // 6. Bouton Principal du bas
+            // 7. Bouton Principal du bas
             Button(
                 onClick = {
                     if (name.isNotBlank()) {
@@ -373,6 +449,7 @@ fun CreateExerciseScreen(
                             name = name.trim(),
                             healthConnectType = selectedHealthConnectType,
                             primaryMuscleGroup = selectedMuscle,
+                            secondaryMuscleGroups = selectedSecondaryMuscles.toList(),
                             equipment = selectedEquipment,
                             isUnilateral = isUnilateral,
                             isCustom = true
