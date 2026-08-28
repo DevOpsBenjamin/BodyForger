@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -17,8 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.theme.ElectricCyan
-import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceDark
 import app.bodyforger.mobile.ui.theme.SurfaceElevated
@@ -53,7 +48,7 @@ fun WeightUnitPickerDialog(
         containerColor = SurfaceDark,
         title = {
             Text(
-                text = "⚖️ UNITÉ DE CHARGE DU POIDS",
+                text = stringResource(R.string.dialog_weight_unit_title),
                 color = ElectricCyan,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Black
@@ -62,7 +57,7 @@ fun WeightUnitPickerDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = "Saisissez le poids comme indiqué sur votre équipement (ex: plaques graduées en lbs à Basic Fit ou haltères en kg) :",
+                    text = stringResource(R.string.dialog_weight_unit_desc),
                     color = TextMuted,
                     fontSize = 12.sp
                 )
@@ -91,7 +86,11 @@ fun WeightUnitPickerDialog(
                                 fontSize = 14.sp
                             )
                             Text(
-                                text = if (unit == WeightUnit.KG) "Unité standard métrique" else "Plaques à broches & machines US",
+                                text = if (unit == WeightUnit.KG) {
+                                    stringResource(R.string.dialog_weight_unit_kg_sub)
+                                } else {
+                                    stringResource(R.string.dialog_weight_unit_lbs_sub)
+                                },
                                 color = TextMuted,
                                 fontSize = 11.sp
                             )

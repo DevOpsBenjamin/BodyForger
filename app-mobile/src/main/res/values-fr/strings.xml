@@ -61,4 +61,10 @@
     <string name="planner_assign_title">"📅 PLANIFIER LE %1$s"</string>
     <string name="planner_assign_btn">+ AFFECTER UNE ROUTINE</string>
     <string name="planner_unassign_btn">Retirer de ce jour</string>
+
+    <!-- Weight Unit Dialog -->
+    <string name="dialog_weight_unit_title">"⚖️ UNITÉ DE CHARGE DU POIDS"</string>
+    <string name="dialog_weight_unit_desc">"Saisissez la charge comme indiquée sur votre équipement (ex: plaques de machines graduées en lbs ou poids libres en kg) :"</string>
+    <string name="dialog_weight_unit_kg_sub">Poids libres, barres et haltères standards</string>
+    <string name="dialog_weight_unit_lbs_sub">Machines guidées et colonnes de charges</string>
 </resources>

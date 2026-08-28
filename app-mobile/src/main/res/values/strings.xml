@@ -61,4 +61,10 @@
     <string name="planner_assign_title">📅 PLAN FOR %1$s</string>
     <string name="planner_assign_btn">+ ASSIGN A ROUTINE</string>
     <string name="planner_unassign_btn">Remove from day</string>
+
+    <!-- Weight Unit Dialog -->
+    <string name="dialog_weight_unit_title">⚖️ WEIGHT LOAD UNIT</string>
+    <string name="dialog_weight_unit_desc">Enter the weight as indicated on your equipment (e.g. machine weight stacks in lbs or free weights in kg):</string>
+    <string name="dialog_weight_unit_kg_sub">Standard metric plates, barbells and dumbbells</string>
+    <string name="dialog_weight_unit_lbs_sub">Pin-loaded weight stack machines</string>
 </resources>
