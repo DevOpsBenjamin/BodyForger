@@ -14,6 +14,7 @@ import app.bodyforger.core.database.entity.RoutineEntity
 import app.bodyforger.core.database.entity.RoutineExerciseEntity
 import app.bodyforger.core.database.entity.RoutineSetEntity
 import app.bodyforger.core.database.entity.WorkoutSessionEntity
+import app.bodyforger.core.database.entity.WorkoutSetEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
     entities = [
         ExerciseEntity::class,
         WorkoutSessionEntity::class,
+        WorkoutSetEntity::class,
         BodyLogEntity::class,
         RoutineEntity::class,
         RoutineExerciseEntity::class,

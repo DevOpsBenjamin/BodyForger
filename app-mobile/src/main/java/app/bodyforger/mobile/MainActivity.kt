@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import app.bodyforger.core.model.Exercise
 import app.bodyforger.core.model.Routine
+import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.data.DebugSampleRoutines
 import app.bodyforger.mobile.navigation.NavItem
 import app.bodyforger.mobile.ui.components.ActiveWorkoutMiniBar
@@ -58,6 +59,7 @@ fun BodyForgerApp() {
 
     var isLiveWorkoutRunning by remember { mutableStateOf(false) }
     var showingLiveWorkoutScreen by remember { mutableStateOf(false) }
+    var activeWorkoutRoutine by remember { mutableStateOf<Routine?>(null) }
 
     val customExercises = remember { mutableStateListOf<Exercise>() }
     val routines = remember {
@@ -65,6 +67,7 @@ fun BodyForgerApp() {
             addAll(DebugSampleRoutines.list)
         }
     }
+    val completedSessions = remember { mutableStateListOf<WorkoutSession>() }
 
     val navItems = listOf(NavItem.Home, NavItem.Planner, NavItem.Analytics, NavItem.Profile)
 
@@ -135,11 +138,24 @@ fun BodyForgerApp() {
         )
     } else if (showingLiveWorkoutScreen) {
         WorkoutScreen(
+            initialRoutine = activeWorkoutRoutine,
             onMinimize = { showingLiveWorkoutScreen = false },
-            onFinishWorkout = {
+            onOpenCatalogForAdd = {
+                isCatalogForRoutineSelection = true
+                catalogReplaceExerciseIndex = null
+                showingCatalogScreen = true
+            },
+            onOpenCatalogForReplace = { exIndex ->
+                isCatalogForRoutineSelection = true
+                catalogReplaceExerciseIndex = exIndex
+                showingCatalogScreen = true
+            },
+            onFinishWorkout = { finishedSession ->
+                completedSessions.add(0, finishedSession)
                 isLiveWorkoutRunning = false
                 showingLiveWorkoutScreen = false
-                selectedTabIndex = 1
+                activeWorkoutRoutine = null
+                selectedTabIndex = 1 // Retour au planner
             }
         )
     } else {
@@ -150,6 +166,7 @@ fun BodyForgerApp() {
                 Column {
                     ActiveWorkoutMiniBar(
                         isVisible = isLiveWorkoutRunning,
+                        workoutTitle = "${activeWorkoutRoutine?.name ?: "Séance Active"}",
                         onClick = { showingLiveWorkoutScreen = true }
                     )
 
@@ -169,6 +186,7 @@ fun BodyForgerApp() {
                 when (selectedTabIndex) {
                     0 -> HomeScreen(
                         onNavigateToWorkout = {
+                            activeWorkoutRoutine = routines.firstOrNull()
                             isLiveWorkoutRunning = true
                             showingLiveWorkoutScreen = true
                         },
@@ -178,6 +196,7 @@ fun BodyForgerApp() {
                     1 -> PlannerScreen(
                         routines = routines,
                         onStartWorkout = {
+                            activeWorkoutRoutine = routines.firstOrNull()
                             isLiveWorkoutRunning = true
                             showingLiveWorkoutScreen = true
                         },

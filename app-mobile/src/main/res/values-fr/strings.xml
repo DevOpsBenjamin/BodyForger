@@ -67,4 +67,29 @@
     <string name="dialog_weight_unit_desc">"Saisissez la charge comme indiquée sur votre équipement (ex: plaques de machines graduées en lbs ou poids libres en kg) :"</string>
     <string name="dialog_weight_unit_kg_sub">Poids libres, barres et haltères standards</string>
     <string name="dialog_weight_unit_lbs_sub">Machines guidées et colonnes de charges</string>
+
+    <!-- Live Workout -->
+    <string name="workout_live_title">SÉANCE EN DIRECT</string>
+    <string name="workout_live_finish_btn">TERMINER LA SÉANCE</string>
+    <string name="workout_live_discard_btn">Abandonner la séance</string>
+    <string name="workout_live_validate_set">VALIDER LA SÉRIE</string>
+    <string name="workout_live_rest_timer">CHRONOMÈTRE DE REPOS</string>
+    <string name="workout_live_skip_rest">PASSER</string>
+    <string name="workout_live_add_30s">+30s</string>
+    <string name="workout_live_minus_15s">-15s</string>
+    <string name="workout_live_col_set">SÉRIE</string>
+    <string name="workout_live_col_previous">PRÉC.</string>
+    <string name="workout_live_col_weight">KG</string>
+    <string name="workout_live_col_reps">REPS</string>
+    <string name="workout_live_unilateral_warning">Enchaîner Côté Gauche puis Côté Droit avant le repos</string>
+
+    <!-- Workout Summary -->
+    <string name="workout_summary_title">🎉 SÉANCE VALIDÉE !</string>
+    <string name="workout_summary_subtitle">Superbe séance ! Voici le résumé de tes performances :</string>
+    <string name="workout_summary_duration">Durée</string>
+    <string name="workout_summary_volume">Tonnage Total</string>
+    <string name="workout_summary_sets_completed">Séries Validées</string>
+    <string name="workout_summary_muscle_volume">FATIGUE &amp; VOLUME PAR MUSCLE</string>
+    <string name="workout_summary_segments_title">SEGMENTS GOOGLE HEALTH CONNECT</string>
+    <string name="workout_summary_save_btn">ENREGISTRER ET QUITTER</string>
 </resources>

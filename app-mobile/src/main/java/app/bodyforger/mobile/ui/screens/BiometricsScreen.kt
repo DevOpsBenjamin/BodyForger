@@ -17,10 +17,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -129,7 +129,7 @@ fun BiometricsScreen() {
                                 fontWeight = FontWeight.Black
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Icon(imageVector = Icons.Default.TrendingDown, contentDescription = null, tint = NeonLime, modifier = Modifier.size(18.dp))
+                            Icon(imageVector = Icons.AutoMirrored.Filled.TrendingDown, contentDescription = null, tint = NeonLime, modifier = Modifier.size(18.dp))
                         }
                     }
                 }

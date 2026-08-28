@@ -67,4 +67,29 @@
     <string name="dialog_weight_unit_desc">Enter the weight as indicated on your equipment (e.g. machine weight stacks in lbs or free weights in kg):</string>
     <string name="dialog_weight_unit_kg_sub">Standard metric plates, barbells and dumbbells</string>
     <string name="dialog_weight_unit_lbs_sub">Pin-loaded weight stack machines</string>
+
+    <!-- Live Workout -->
+    <string name="workout_live_title">LIVE WORKOUT</string>
+    <string name="workout_live_finish_btn">FINISH WORKOUT</string>
+    <string name="workout_live_discard_btn">Discard Workout</string>
+    <string name="workout_live_validate_set">VALIDATE SET</string>
+    <string name="workout_live_rest_timer">REST TIMER</string>
+    <string name="workout_live_skip_rest">SKIP</string>
+    <string name="workout_live_add_30s">+30s</string>
+    <string name="workout_live_minus_15s">-15s</string>
+    <string name="workout_live_col_set">SET</string>
+    <string name="workout_live_col_previous">PREV</string>
+    <string name="workout_live_col_weight">KG</string>
+    <string name="workout_live_col_reps">REPS</string>
+    <string name="workout_live_unilateral_warning">Complete Left side then Right side before rest</string>
+
+    <!-- Workout Summary -->
+    <string name="workout_summary_title">🎉 WORKOUT COMPLETED</string>
+    <string name="workout_summary_subtitle">Awesome job! Here is your performance summary:</string>
+    <string name="workout_summary_duration">Duration</string>
+    <string name="workout_summary_volume">Total Tonnage</string>
+    <string name="workout_summary_sets_completed">Completed Sets</string>
+    <string name="workout_summary_muscle_volume">MUSCLE FATIGUE &amp; VOLUME</string>
+    <string name="workout_summary_segments_title">HEALTH CONNECT SEGMENTS</string>
+    <string name="workout_summary_save_btn">DONE &amp; SAVE</string>
 </resources>
