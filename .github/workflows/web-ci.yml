@@ -11,6 +11,7 @@ on:
     paths:
       - 'web/**'
       - '.github/workflows/web-ci.yml'
+  workflow_dispatch:
 
 jobs:
   build-and-test:
