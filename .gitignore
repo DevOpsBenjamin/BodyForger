@@ -1,5 +1,22 @@
+# Node / Web
+web/node_modules
+web/dist
 node_modules
 dist
-.DS_Store
-*.local
 .env
+*.local
+
+# macOS
+.DS_Store
+
+# Android / Gradle (for upcoming native modules)
+.gradle
+build/
+app-mobile/build/
+app-wear/build/
+core-*/build/
+*.apk
+*.aab
+.idea/
+*.iml
+local.properties
