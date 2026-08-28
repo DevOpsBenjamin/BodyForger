@@ -48,7 +48,6 @@ import app.bodyforger.core.database.entity.toDomain
 import app.bodyforger.core.model.EquipmentType
 import app.bodyforger.core.model.Exercise
 import app.bodyforger.core.model.MuscleGroup
-import app.bodyforger.mobile.ui.components.CreateExerciseBottomSheet
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
@@ -63,12 +62,12 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 @Composable
 fun CatalogScreen(
     onBack: () -> Unit = {},
+    onOpenCreateExercise: () -> Unit = {},
     onSelectExercise: (Exercise) -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedMuscle by remember { mutableStateOf<MuscleGroup?>(null) }
     var selectedEquipment by remember { mutableStateOf<EquipmentType?>(null) }
-    var showCreateSheet by remember { mutableStateOf(false) }
 
     // Liste des exercices (les 105 de base + les ajouts custom)
     val exerciseList = remember {
@@ -81,16 +80,6 @@ fun CatalogScreen(
         (selectedMuscle == null || exercise.primaryMuscleGroup == selectedMuscle) &&
                 (selectedEquipment == null || exercise.equipment == selectedEquipment) &&
                 (searchQuery.isEmpty() || exercise.name.contains(searchQuery, ignoreCase = true) || exercise.healthConnectType.canonicalNameEn.contains(searchQuery, ignoreCase = true))
-    }
-
-    if (showCreateSheet) {
-        CreateExerciseBottomSheet(
-            onDismiss = { showCreateSheet = false },
-            onExerciseCreated = { newExercise ->
-                exerciseList.add(0, newExercise) // Ajouté en haut de la liste
-                showCreateSheet = false
-            }
-        )
     }
 
     Column(
@@ -146,7 +135,7 @@ fun CatalogScreen(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
                     .background(NeonLime)
-                    .clickable { showCreateSheet = true }
+                    .clickable { onOpenCreateExercise() }
                     .padding(horizontal = 12.dp, vertical = 7.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

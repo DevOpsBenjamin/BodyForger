@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
@@ -159,19 +160,29 @@ fun PlannerScreen(
                 )
             }
 
-            IconButton(
-                onClick = onOpenCatalog,
+            // Bouton CATALOGUE avec icône Livre
+            Row(
                 modifier = Modifier
-                    .size(42.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(SurfaceElevated)
-                    .border(1.dp, SurfaceBorder, RoundedCornerShape(12.dp))
+                    .border(1.dp, NeonLime.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .clickable { onOpenCatalog() }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Search,
+                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
                     contentDescription = "Catalogue d'exercices",
                     tint = NeonLime,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "CATALOGUE",
+                    color = NeonLime,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 0.5.sp
                 )
             }
         }
