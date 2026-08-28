@@ -50,6 +50,7 @@ import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSet
 import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.mobile.R
+import app.bodyforger.mobile.ui.components.ReorderExercisesDialog
 import app.bodyforger.mobile.ui.components.RestTimePickerDialog
 import app.bodyforger.mobile.ui.components.RoutineExerciseCard
 import app.bodyforger.mobile.ui.components.SetTypePickerDialog
@@ -82,6 +83,7 @@ fun RoutineEditorScreen(
 
     var activeRestDialogExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var activeSetTypeDialogIndex by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var showingReorderDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -98,7 +100,7 @@ fun RoutineEditorScreen(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
-                    onClick = onBack,
+                    onClick = onBack, // Retourne sans enregistrer
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
@@ -269,18 +271,7 @@ fun RoutineEditorScreen(
                         exerciseIndex = exIndex,
                         totalExercises = exercises.size,
                         exercise = exItem,
-                        onMoveUp = {
-                            if (exIndex > 0) {
-                                val item = exercises.removeAt(exIndex)
-                                exercises.add(exIndex - 1, item)
-                            }
-                        },
-                        onMoveDown = {
-                            if (exIndex < exercises.size - 1) {
-                                val item = exercises.removeAt(exIndex)
-                                exercises.add(exIndex + 1, item)
-                            }
-                        },
+                        onOpenReorder = { showingReorderDialog = true },
                         onReplace = { onOpenCatalogForReplace(exIndex) },
                         onRemove = { exercises.removeAt(exIndex) },
                         onOpenRestPicker = { activeRestDialogExerciseIndex = exIndex },
@@ -369,6 +360,18 @@ fun RoutineEditorScreen(
                 onDismiss = { activeSetTypeDialogIndex = null }
             )
         }
+    }
+
+    // --- MODALE DE RÉORGANISATION DES EXERCICES (STYLE HEVY) ---
+    if (showingReorderDialog) {
+        ReorderExercisesDialog(
+            initialExercises = exercises.toList(),
+            onReorderConfirmed = { reorderedList ->
+                exercises.clear()
+                exercises.addAll(reorderedList)
+            },
+            onDismiss = { showingReorderDialog = false }
+        )
     }
 }
 

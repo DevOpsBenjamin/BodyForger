@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSet
-import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.CrimsonRed
@@ -60,8 +59,7 @@ fun RoutineExerciseCard(
     exerciseIndex: Int,
     totalExercises: Int,
     exercise: RoutineExercise,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
+    onOpenReorder: () -> Unit,
     onReplace: () -> Unit,
     onRemove: () -> Unit,
     onOpenRestPicker: () -> Unit,
@@ -143,24 +141,13 @@ fun RoutineExerciseCard(
                         onDismissRequest = { menuExpanded = false },
                         modifier = Modifier.background(SurfaceElevated)
                     ) {
-                        if (exerciseIndex > 0) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.routine_editor_move_up), color = TextPrimary) },
-                                onClick = {
-                                    menuExpanded = false
-                                    onMoveUp()
-                                }
-                            )
-                        }
-                        if (exerciseIndex < totalExercises - 1) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.routine_editor_move_down), color = TextPrimary) },
-                                onClick = {
-                                    menuExpanded = false
-                                    onMoveDown()
-                                }
-                            )
-                        }
+                        DropdownMenuItem(
+                            text = { Text("⇅ Réorganiser les exercices", color = TextPrimary) },
+                            onClick = {
+                                menuExpanded = false
+                                onOpenReorder()
+                            }
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.routine_editor_replace_exercise), color = ElectricCyan) },
                             onClick = {
