@@ -313,22 +313,12 @@ fun PlannerScreen(
                             }
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Button(
-                                    onClick = { onStartWorkout(routine.id) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = NeonLime, contentColor = Color.Black),
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.height(32.dp)
-                                ) {
-                                    Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(14.dp))
-                                    Spacer(modifier = Modifier.width(3.dp))
-                                    Text(text = "LANCER", fontSize = 10.sp, fontWeight = FontWeight.Black)
-                                }
-
-                                Spacer(modifier = Modifier.width(6.dp))
-
                                 IconButton(
                                     onClick = { onToggleRoutineDay(routine.id, selectedDayIndex) },
-                                    modifier = Modifier.size(28.dp)
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(SurfaceDark)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
