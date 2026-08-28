@@ -20,3 +20,4 @@ core-*/build/
 .idea/
 *.iml
 local.properties
+appscreen/

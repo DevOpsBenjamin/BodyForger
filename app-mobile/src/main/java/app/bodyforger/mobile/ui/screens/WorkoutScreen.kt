@@ -71,7 +71,10 @@ data class LiveSetItem(
 )
 
 @Composable
-fun WorkoutScreen() {
+fun WorkoutScreen(
+    onMinimize: () -> Unit = {},
+    onFinishWorkout: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
 
     // États de la séance
@@ -109,12 +112,23 @@ fun WorkoutScreen() {
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
-        // Barre supérieure avec Cardio en direct & Durée
+        // Barre supérieure avec Réduire + Cardio en direct & Durée
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(SurfaceElevated)
+                    .border(1.dp, SurfaceBorder, CircleShape)
+                    .clickable { onMinimize() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "▼", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
@@ -372,7 +386,7 @@ fun WorkoutScreen() {
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedButton(
-            onClick = { /* Stop workout */ },
+            onClick = { onFinishWorkout() },
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = CrimsonRed
             ),
