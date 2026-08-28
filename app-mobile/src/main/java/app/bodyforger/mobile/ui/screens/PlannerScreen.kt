@@ -160,30 +160,41 @@ fun PlannerScreen(
                 )
             }
 
-            // Bouton CATALOGUE avec icône Livre
+            // Bouton CATALOGUE D'EXERCICES (2 lignes) avec icône Livre
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(SurfaceElevated)
                     .border(1.dp, NeonLime.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                     .clickable { onOpenCatalog() }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.MenuBook,
                     contentDescription = "Catalogue d'exercices",
                     tint = NeonLime,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "CATALOGUE",
-                    color = NeonLime,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 0.5.sp
-                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "CATALOGUE",
+                        color = NeonLime,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.5.sp,
+                        lineHeight = 12.sp
+                    )
+                    Text(
+                        text = "D'EXERCICES",
+                        color = NeonLime,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp,
+                        lineHeight = 11.sp
+                    )
+                }
             }
         }
 
