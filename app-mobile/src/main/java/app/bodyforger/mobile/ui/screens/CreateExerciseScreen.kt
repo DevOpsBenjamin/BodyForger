@@ -308,21 +308,14 @@ fun CreateExerciseScreen(
                             .background(if (isSelected) AmberGold else SurfaceElevated)
                             .border(1.dp, if (isSelected) AmberGold else SurfaceBorder, RoundedCornerShape(10.dp))
                             .clickable { selectedHealthConnectType = hcType }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                            .padding(horizontal = 14.dp, vertical = 9.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = hcType.name,
-                                color = if (isSelected) Color.Black else TextPrimary,
-                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
-                                fontSize = 11.sp
-                            )
-                            Text(
-                                text = hcType.canonicalNameFr,
-                                color = if (isSelected) Color(0xFF1E1E1E) else TextMuted,
-                                fontSize = 10.sp
-                            )
-                        }
+                        Text(
+                            text = hcType.canonicalNameFr,
+                            color = if (isSelected) Color.Black else TextSecondary,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
