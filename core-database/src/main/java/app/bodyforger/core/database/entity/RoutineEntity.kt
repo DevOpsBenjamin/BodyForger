@@ -13,6 +13,7 @@ import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSet
 import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.core.model.WeightUnit
+import app.bodyforger.core.model.WorkoutActivityCategory
 import java.util.UUID
 
 @Entity(tableName = "routines")
@@ -41,6 +42,7 @@ data class RoutineExerciseEntity(
     val routineId: String,
     val exerciseId: String,
     val exerciseName: String,
+    val activityCategory: String = "STRENGTH_TRAINING",
     val primaryMuscle: String,
     val equipment: String,
     val isUnilateral: Boolean = false,
@@ -109,6 +111,7 @@ fun RoutineExercise.toEntity(parentRoutineId: String): RoutineExerciseEntity = R
     routineId = parentRoutineId,
     exerciseId = exerciseId,
     exerciseName = exerciseName,
+    activityCategory = activityCategory.name,
     primaryMuscle = primaryMuscle.name,
     equipment = equipment.name,
     isUnilateral = isUnilateral,
@@ -156,11 +159,18 @@ fun RoutineWithExercises.toDomain(): Routine {
                     )
                 }
 
+            val category = try {
+                WorkoutActivityCategory.valueOf(ex.activityCategory)
+            } catch (e: Exception) {
+                WorkoutActivityCategory.STRENGTH_TRAINING
+            }
+
             RoutineExercise(
                 id = ex.id,
                 routineId = ex.routineId,
                 exerciseId = ex.exerciseId,
                 exerciseName = ex.exerciseName,
+                activityCategory = category,
                 primaryMuscle = try { MuscleGroup.valueOf(ex.primaryMuscle) } catch (e: Exception) { MuscleGroup.FULL_BODY },
                 equipment = try { EquipmentType.valueOf(ex.equipment) } catch (e: Exception) { EquipmentType.BODYWEIGHT },
                 isUnilateral = ex.isUnilateral,

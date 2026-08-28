@@ -398,6 +398,7 @@ fun Exercise.toRoutineExercise(routineId: String = ""): RoutineExercise = Routin
     routineId = routineId,
     exerciseId = id,
     exerciseName = name,
+    activityCategory = activityCategory,
     primaryMuscle = primaryMuscleGroup,
     equipment = equipment,
     isUnilateral = isUnilateral,

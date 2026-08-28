@@ -13,6 +13,7 @@ import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSet
 import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.core.model.WeightUnit
+import app.bodyforger.core.model.WorkoutActivityCategory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -75,6 +76,7 @@ class RoutineMappingTest {
                     primaryMuscle = MuscleGroup.SHOULDERS,
                     equipment = EquipmentType.CABLE,
                     isUnilateral = true,
+                    activityCategory = WorkoutActivityCategory.STATIONARY_BIKING,
                     weightUnit = WeightUnit.LBS,
                     orderIndex = 1,
                     restTimeSeconds = 60,
@@ -154,6 +156,7 @@ class RoutineMappingTest {
         // Exercice 2 vérification
         val ex2 = restoredDomain.exercises[1]
         assertTrue(ex2.isUnilateral)
+        assertEquals(WorkoutActivityCategory.STATIONARY_BIKING, ex2.activityCategory)
         assertEquals(WeightUnit.LBS, ex2.weightUnit)
         assertEquals(RoutineSetType.DROPSET, ex2.sets[1].type)
         assertEquals("ss_arms_1", ex2.supersetGroupId)

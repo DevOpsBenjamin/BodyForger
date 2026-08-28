@@ -31,6 +31,7 @@ data class RoutineExercise(
     val routineId: String = "",
     val exerciseId: String,
     val exerciseName: String,
+    val activityCategory: WorkoutActivityCategory = WorkoutActivityCategory.STRENGTH_TRAINING,
     val primaryMuscle: MuscleGroup,
     val equipment: EquipmentType,
     val isUnilateral: Boolean = false,
