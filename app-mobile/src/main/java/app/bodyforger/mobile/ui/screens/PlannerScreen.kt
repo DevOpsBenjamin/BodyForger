@@ -23,6 +23,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
@@ -34,7 +36,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,10 +48,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.Routine
+import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.CrimsonRed
 import app.bodyforger.mobile.ui.theme.ElectricCyan
@@ -72,12 +75,14 @@ fun PlannerScreen(
     onEditRoutine: (Routine) -> Unit = {},
     onDuplicateRoutine: (Routine) -> Unit = {},
     onDeleteRoutine: (Routine) -> Unit = {},
+    onToggleRoutineDay: (routineId: String, dayInt: Int) -> Unit = { _, _ -> },
     onOpenCatalog: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     var selectedDayIndex by remember { mutableIntStateOf(1) } // 1 = Lundi par défaut
     var routineToShareJson by remember { mutableStateOf<Routine?>(null) }
     var routineToDelete by remember { mutableStateOf<Routine?>(null) }
+    var showingAssignDialog by remember { mutableStateOf(false) }
 
     val daysOfWeek = listOf(
         1 to Pair("LUN", "Lundi"),
@@ -226,7 +231,7 @@ fun PlannerScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- 3. CARTE DU JOUR SÉLECTIONNÉ ---
+        // --- 3. CARTE DU JOUR SÉLECTIONNÉ AVEC GESTION DES ROUTINES ---
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -235,15 +240,40 @@ fun PlannerScreen(
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "${selectedDayPair.second} • ${if (currentDayRoutines.isEmpty()) "Jour de Repos" else "${currentDayRoutines.size} séance(s) planifiée(s)"}",
-                    color = if (currentDayRoutines.isEmpty()) TextMuted else ElectricCyan,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${selectedDayPair.second.uppercase()} • ${if (currentDayRoutines.isEmpty()) "JOUR DE REPOS" else "${currentDayRoutines.size} SÉANCE(S)"}",
+                        color = if (currentDayRoutines.isEmpty()) TextMuted else ElectricCyan,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    // Petit bouton + AFFECTER
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(SurfaceElevated)
+                            .clickable { showingAssignDialog = true }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = NeonLime, modifier = Modifier.size(13.dp))
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text(
+                            text = "AFFECTER",
+                            color = NeonLime,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                    }
+                }
 
                 if (currentDayRoutines.isEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = "Repos & Récupération Musculaire",
                         color = TextPrimary,
@@ -252,15 +282,19 @@ fun PlannerScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Idéal pour une pesée BIA ou de la mobilité douce.",
+                        text = "Aucune routine assignée. Appuyez sur AFFECTER pour ajouter votre entraînement du jour.",
                         color = TextMuted,
                         fontSize = 12.sp
                     )
                 } else {
-                    currentDayRoutines.forEachIndexed { idx, routine ->
-                        Spacer(modifier = Modifier.height(10.dp))
+                    currentDayRoutines.forEachIndexed { _, routine ->
+                        Spacer(modifier = Modifier.height(12.dp))
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(SurfaceElevated)
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -268,7 +302,7 @@ fun PlannerScreen(
                                 Text(
                                     text = routine.name,
                                     color = TextPrimary,
-                                    fontSize = 16.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Black
                                 )
                                 Text(
@@ -278,15 +312,31 @@ fun PlannerScreen(
                                 )
                             }
 
-                            Button(
-                                onClick = { onStartWorkout(routine.id) },
-                                colors = ButtonDefaults.buttonColors(containerColor = NeonLime, contentColor = Color.Black),
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.height(36.dp)
-                            ) {
-                                Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(text = "LANCER", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Button(
+                                    onClick = { onStartWorkout(routine.id) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = NeonLime, contentColor = Color.Black),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.height(32.dp)
+                                ) {
+                                    Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text(text = "LANCER", fontSize = 10.sp, fontWeight = FontWeight.Black)
+                                }
+
+                                Spacer(modifier = Modifier.width(6.dp))
+
+                                IconButton(
+                                    onClick = { onToggleRoutineDay(routine.id, selectedDayIndex) },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Retirer du jour",
+                                        tint = TextMuted,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -389,7 +439,7 @@ fun PlannerScreen(
                                                     .clip(RoundedCornerShape(6.dp))
                                                     .background(SurfaceElevated)
                                                     .border(1.dp, SurfaceBorder, RoundedCornerShape(6.dp))
-                                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
                                             ) {
                                                 Text(
                                                     text = muscle,
@@ -419,28 +469,28 @@ fun PlannerScreen(
                                     modifier = Modifier.background(SurfaceElevated)
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("✏️ Modifier la routine", color = TextPrimary) },
+                                        text = { Text(stringResource(R.string.action_edit), color = TextPrimary) },
                                         onClick = {
                                             menuExpanded = false
                                             onEditRoutine(routine)
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("📋 Dupliquer", color = ElectricCyan) },
+                                        text = { Text(stringResource(R.string.action_duplicate), color = ElectricCyan) },
                                         onClick = {
                                             menuExpanded = false
                                             onDuplicateRoutine(routine)
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("📤 Partager (JSON)", color = AmberGold) },
+                                        text = { Text(stringResource(R.string.action_share_json), color = AmberGold) },
                                         onClick = {
                                             menuExpanded = false
                                             routineToShareJson = routine
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("🗑️ Supprimer", color = CrimsonRed) },
+                                        text = { Text(stringResource(R.string.action_delete), color = CrimsonRed) },
                                         onClick = {
                                             menuExpanded = false
                                             routineToDelete = routine
@@ -500,6 +550,91 @@ fun PlannerScreen(
         }
     }
 
+    // --- MODALE AFFECTATION DE ROUTINES AU JOUR SÉLECTIONNÉ ---
+    if (showingAssignDialog) {
+        AlertDialog(
+            onDismissRequest = { showingAssignDialog = false },
+            containerColor = SurfaceDark,
+            title = {
+                Text(
+                    text = "📅 PLANIFIER LE ${selectedDayPair.second.uppercase()}",
+                    color = ElectricCyan,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Black
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Sélectionnez les routines à réaliser le ${selectedDayPair.second} :",
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
+
+                    if (routines.isEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "Aucune routine enregistrée.", color = TextSecondary, fontSize = 12.sp)
+                    } else {
+                        routines.forEach { routine ->
+                            val isAssigned = routine.assignedDays.contains(selectedDayIndex)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isAssigned) NeonLime.copy(alpha = 0.15f) else SurfaceElevated)
+                                    .border(1.dp, if (isAssigned) NeonLime else SurfaceBorder, RoundedCornerShape(10.dp))
+                                    .clickable { onToggleRoutineDay(routine.id, selectedDayIndex) }
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = routine.name,
+                                        color = if (isAssigned) NeonLime else TextPrimary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp
+                                    )
+                                    Text(
+                                        text = "${routine.exercises.size} exercices",
+                                        color = TextMuted,
+                                        fontSize = 10.sp
+                                    )
+                                }
+
+                                if (isAssigned) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .clip(CircleShape)
+                                            .background(NeonLime),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = Color.Black,
+                                            modifier = Modifier.size(13.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showingAssignDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = NeonLime, contentColor = Color.Black),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = stringResource(R.string.action_validate), fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
     // --- MODALE EXPORT / PARTAGE JSON ---
     routineToShareJson?.let { routine ->
         val jsonString = """
@@ -553,7 +688,7 @@ fun PlannerScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = AmberGold, contentColor = Color.Black),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(text = "Fermer", fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.action_close), fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -566,7 +701,7 @@ fun PlannerScreen(
             containerColor = SurfaceDark,
             title = {
                 Text(
-                    text = "🗑️ SUPPRIMER LA ROUTINE",
+                    text = stringResource(R.string.dialog_delete_routine_title),
                     color = CrimsonRed,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Black
@@ -574,7 +709,7 @@ fun PlannerScreen(
             },
             text = {
                 Text(
-                    text = "Êtes-vous sûr de vouloir supprimer la routine « ${routine.name} » ? Cette action est irréversible.",
+                    text = stringResource(R.string.dialog_delete_routine_msg),
                     color = TextPrimary,
                     fontSize = 13.sp
                 )
@@ -588,12 +723,12 @@ fun PlannerScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = CrimsonRed, contentColor = Color.White),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(text = "Supprimer", fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.action_delete), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { routineToDelete = null }) {
-                    Text(text = "Annuler", color = TextSecondary)
+                    Text(text = stringResource(R.string.action_cancel), color = TextSecondary)
                 }
             }
         )

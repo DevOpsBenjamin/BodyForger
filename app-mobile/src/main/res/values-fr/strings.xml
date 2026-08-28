@@ -56,4 +56,9 @@
     <!-- Delete Confirmation -->
     <string name="dialog_delete_routine_title">🗑️ SUPPRIMER LA ROUTINE</string>
     <string name="dialog_delete_routine_msg">"Êtes-vous sûr de vouloir supprimer cette routine \? Cette action est irréversible."</string>
+
+    <!-- Planner Day Assignment -->
+    <string name="planner_assign_title">"📅 PLANIFIER LE %1$s"</string>
+    <string name="planner_assign_btn">+ AFFECTER UNE ROUTINE</string>
+    <string name="planner_unassign_btn">Retirer de ce jour</string>
 </resources>

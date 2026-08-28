@@ -482,6 +482,18 @@ fun MobileMainScaffold() {
                         onDeleteRoutine = { routineToDel ->
                             routines.remove(routineToDel)
                         },
+                        onToggleRoutineDay = { routineId, dayInt ->
+                            val routineIndex = routines.indexOfFirst { it.id == routineId }
+                            if (routineIndex != -1) {
+                                val current = routines[routineIndex]
+                                val updatedDays = if (current.assignedDays.contains(dayInt)) {
+                                    current.assignedDays - dayInt
+                                } else {
+                                    current.assignedDays + dayInt
+                                }
+                                routines[routineIndex] = current.copy(assignedDays = updatedDays)
+                            }
+                        },
                         onOpenCatalog = {
                             isCatalogForRoutineSelection = false
                             showingCatalogScreen = true

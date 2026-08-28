@@ -56,4 +56,9 @@
     <!-- Delete Confirmation -->
     <string name="dialog_delete_routine_title">🗑️ DELETE ROUTINE</string>
     <string name="dialog_delete_routine_msg">Are you sure you want to delete this routine? This action cannot be undone.</string>
+
+    <!-- Planner Day Assignment -->
+    <string name="planner_assign_title">📅 PLAN FOR %1$s</string>
+    <string name="planner_assign_btn">+ ASSIGN A ROUTINE</string>
+    <string name="planner_unassign_btn">Remove from day</string>
 </resources>
