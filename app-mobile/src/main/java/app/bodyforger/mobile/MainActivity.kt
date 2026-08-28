@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Person
 import app.bodyforger.mobile.ui.screens.AnalyticsScreen
+import app.bodyforger.mobile.ui.screens.CatalogScreen
 import app.bodyforger.mobile.ui.screens.HomeScreen
 import app.bodyforger.mobile.ui.screens.PlannerScreen
 import app.bodyforger.mobile.ui.screens.ProfileScreen
@@ -98,10 +99,16 @@ fun MobileMainScaffold() {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var isLiveWorkoutRunning by remember { mutableStateOf(false) }
     var showingLiveWorkoutScreen by remember { mutableStateOf(false) }
+    var showingCatalogScreen by remember { mutableStateOf(false) }
 
     val navItems = listOf(NavItem.Home, NavItem.Planner, NavItem.Analytics, NavItem.Profile)
 
-    if (showingLiveWorkoutScreen) {
+    if (showingCatalogScreen) {
+        // Vue plein écran du catalogue d'exercices
+        CatalogScreen(
+            onBack = { showingCatalogScreen = false }
+        )
+    } else if (showingLiveWorkoutScreen) {
         // Vue plein écran de la séance active
         WorkoutScreen(
             onMinimize = {
@@ -232,6 +239,9 @@ fun MobileMainScaffold() {
                         onStartWorkout = {
                             isLiveWorkoutRunning = true
                             showingLiveWorkoutScreen = true
+                        },
+                        onOpenCatalog = {
+                            showingCatalogScreen = true
                         }
                     )
                     2 -> AnalyticsScreen()

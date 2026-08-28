@@ -74,7 +74,8 @@ data class RoutineItem(
 @Composable
 fun PlannerScreen(
     onStartWorkout: (routineId: String?) -> Unit,
-    onCreateNewRoutine: () -> Unit = {}
+    onCreateNewRoutine: () -> Unit = {},
+    onOpenCatalog: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
     var selectedDayIndex by remember { mutableIntStateOf(4) } // Vendredi par défaut
@@ -135,7 +136,7 @@ fun PlannerScreen(
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
-        // --- 1. EN-TÊTE : Titre + Recherche ---
+        // --- 1. EN-TÊTE : Titre + Bouton Catalogue d'Exercices ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -159,7 +160,7 @@ fun PlannerScreen(
             }
 
             IconButton(
-                onClick = {},
+                onClick = onOpenCatalog,
                 modifier = Modifier
                     .size(42.dp)
                     .clip(RoundedCornerShape(12.dp))
@@ -168,8 +169,8 @@ fun PlannerScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Rechercher une routine",
-                    tint = TextSecondary,
+                    contentDescription = "Catalogue d'exercices",
+                    tint = NeonLime,
                     modifier = Modifier.size(20.dp)
                 )
             }
