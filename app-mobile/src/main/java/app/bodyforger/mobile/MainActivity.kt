@@ -254,6 +254,156 @@ fun MobileMainScaffold() {
                         )
                     )
                 )
+            ),
+            Routine(
+                id = "r_upper_1",
+                name = "Upper Body Express (45 min)",
+                notes = "Séance rapide haut du corps pour les journées chargées",
+                assignedDays = emptySet(),
+                exercises = listOf(
+                    RoutineExercise(
+                        id = UUID.randomUUID().toString(),
+                        routineId = "r_upper_1",
+                        exerciseId = "bf_bench_press",
+                        exerciseName = "Développé Couché",
+                        primaryMuscle = MuscleGroup.CHEST,
+                        equipment = EquipmentType.BARBELL,
+                        orderIndex = 0,
+                        restTimeSeconds = 90,
+                        sets = listOf(
+                            RoutineSet(setIndex = 1, type = RoutineSetType.NORMAL, reps = 8, targetWeightKg = 80.0),
+                            RoutineSet(setIndex = 2, type = RoutineSetType.NORMAL, reps = 8, targetWeightKg = 80.0)
+                        )
+                    ),
+                    RoutineExercise(
+                        id = UUID.randomUUID().toString(),
+                        routineId = "r_upper_1",
+                        exerciseId = "bf_lat_pulldown",
+                        exerciseName = "Tirage Vertical Poitrine",
+                        primaryMuscle = MuscleGroup.BACK,
+                        equipment = EquipmentType.CABLE,
+                        orderIndex = 1,
+                        restTimeSeconds = 90,
+                        sets = listOf(
+                            RoutineSet(setIndex = 1, type = RoutineSetType.NORMAL, reps = 10, targetWeightKg = 65.0),
+                            RoutineSet(setIndex = 2, type = RoutineSetType.NORMAL, reps = 10, targetWeightKg = 65.0)
+                        )
+                    )
+                )
+            ),
+            Routine(
+                id = "r_lower_iso_1",
+                name = "Lower Body Focus Ischios",
+                notes = "Travail ciblé chaîne postérieure et fessiers",
+                assignedDays = emptySet(),
+                exercises = listOf(
+                    RoutineExercise(
+                        id = UUID.randomUUID().toString(),
+                        routineId = "r_lower_iso_1",
+                        exerciseId = "bf_deadlift_romanian",
+                        exerciseName = "Soulevé de Terre Roumain",
+                        primaryMuscle = MuscleGroup.HAMSTRINGS,
+                        equipment = EquipmentType.BARBELL,
+                        orderIndex = 0,
+                        restTimeSeconds = 120,
+                        sets = listOf(
+                            RoutineSet(setIndex = 1, type = RoutineSetType.NORMAL, reps = 10, targetWeightKg = 90.0),
+                            RoutineSet(setIndex = 2, type = RoutineSetType.NORMAL, reps = 10, targetWeightKg = 90.0)
+                        )
+                    )
+                )
+            ),
+            Routine(
+                id = "r_arms_1",
+                name = "Épaules & Bras (Arm Day)",
+                notes = "Supersets biceps / triceps et deltoïdes latéraux",
+                assignedDays = setOf(6), // Samedi
+                exercises = listOf(
+                    RoutineExercise(
+                        id = UUID.randomUUID().toString(),
+                        routineId = "r_arms_1",
+                        exerciseId = "bf_lateral_raise_cable",
+                        exerciseName = "Élévations Latérales Poulie",
+                        primaryMuscle = MuscleGroup.SHOULDERS,
+                        equipment = EquipmentType.CABLE,
+                        orderIndex = 0,
+                        restTimeSeconds = 60,
+                        sets = listOf(
+                            RoutineSet(setIndex = 1, type = RoutineSetType.NORMAL, reps = 15, targetWeightKg = 10.0),
+                            RoutineSet(setIndex = 2, type = RoutineSetType.NORMAL, reps = 15, targetWeightKg = 10.0)
+                        )
+                    ),
+                    RoutineExercise(
+                        id = UUID.randomUUID().toString(),
+                        routineId = "r_arms_1",
+                        exerciseId = "bf_incline_dumbbell_curl",
+                        exerciseName = "Curl Biceps Incliné",
+                        primaryMuscle = MuscleGroup.BICEPS,
+                        equipment = EquipmentType.DUMBBELL,
+                        orderIndex = 1,
+                        restTimeSeconds = 60,
+                        sets = listOf(
+                            RoutineSet(setIndex = 1, type = RoutineSetType.NORMAL, reps = 12, targetWeightKg = 14.0),
+                            RoutineSet(setIndex = 2, type = RoutineSetType.DROPSET, reps = 12, targetWeightKg = 14.0)
+                        )
+                    )
+                )
+            ),
+            Routine(
+                id = "r_full_body_1",
+                name = "Full Body Athlétique",
+                notes = "Conditioning général et mouvements polyarticulaires",
+                assignedDays = emptySet(),
+                exercises = listOf(
+                    RoutineExercise(
+                        id = UUID.randomUUID().toString(),
+                        routineId = "r_full_body_1",
+                        exerciseId = "bf_squat_barbell",
+                        exerciseName = "Squat Barre Arrière",
+                        primaryMuscle = MuscleGroup.QUADRICEPS,
+                        equipment = EquipmentType.BARBELL,
+                        orderIndex = 0,
+                        restTimeSeconds = 120,
+                        sets = listOf(
+                            RoutineSet(setIndex = 1, type = RoutineSetType.NORMAL, reps = 8, targetWeightKg = 100.0)
+                        )
+                    ),
+                    RoutineExercise(
+                        id = UUID.randomUUID().toString(),
+                        routineId = "r_full_body_1",
+                        exerciseId = "bf_bench_press",
+                        exerciseName = "Développé Couché",
+                        primaryMuscle = MuscleGroup.CHEST,
+                        equipment = EquipmentType.BARBELL,
+                        orderIndex = 1,
+                        restTimeSeconds = 120,
+                        sets = listOf(
+                            RoutineSet(setIndex = 1, type = RoutineSetType.NORMAL, reps = 8, targetWeightKg = 80.0)
+                        )
+                    )
+                )
+            ),
+            Routine(
+                id = "r_cardio_core_1",
+                name = "Cardio & Core Hiit",
+                notes = "Gainage abdominal, obliques et mobilité active",
+                assignedDays = emptySet(),
+                exercises = listOf(
+                    RoutineExercise(
+                        id = UUID.randomUUID().toString(),
+                        routineId = "r_cardio_core_1",
+                        exerciseId = "bf_plank",
+                        exerciseName = "Gainage Planche Ventrale",
+                        primaryMuscle = MuscleGroup.ABS,
+                        equipment = EquipmentType.BODYWEIGHT,
+                        orderIndex = 0,
+                        restTimeSeconds = 45,
+                        sets = listOf(
+                            RoutineSet(setIndex = 1, type = RoutineSetType.NORMAL, reps = 60),
+                            RoutineSet(setIndex = 2, type = RoutineSetType.NORMAL, reps = 60)
+                        )
+                    )
+                )
             )
         )
     }
