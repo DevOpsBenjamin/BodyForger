@@ -15,79 +15,79 @@ enum class HealthConnectExerciseType(
     val defaultEquipment: EquipmentType
 ) {
     // --- PECTORAUX / CHEST ---
-    BENCH_PRESS(29, "Bench Press", "Développé Couché (Barre)", MuscleGroup.CHEST, EquipmentType.BARBELL),
-    INCLINE_BENCH_PRESS(30, "Incline Bench Press", "Développé Incliné (Barre)", MuscleGroup.CHEST, EquipmentType.BARBELL),
-    DUMBBELL_BENCH_PRESS(31, "Dumbbell Bench Press", "Développé Couché (Haltères)", MuscleGroup.CHEST, EquipmentType.DUMBBELL),
-    DUMBBELL_INCLINE_BENCH_PRESS(32, "Incline Dumbbell Bench Press", "Développé Incliné (Haltères)", MuscleGroup.CHEST, EquipmentType.DUMBBELL),
-    CHEST_PRESS(33, "Chest Press Machine", "Développé Assis (Machine)", MuscleGroup.CHEST, EquipmentType.MACHINE),
-    CHEST_FLY(34, "Chest Fly", "Écarté Couché / Pec Deck", MuscleGroup.CHEST, EquipmentType.CABLE),
-    DIP(35, "Chest Dip", "Dips aux Barres Parallèles", MuscleGroup.CHEST, EquipmentType.BODYWEIGHT),
-    PUSH_UP(36, "Push Up", "Pompes au Sol", MuscleGroup.CHEST, EquipmentType.BODYWEIGHT),
+    BENCH_PRESS(29, "Bench Press", "Développé Couché", MuscleGroup.CHEST, EquipmentType.BARBELL),
+    INCLINE_BENCH_PRESS(30, "Incline Bench Press", "Développé Incliné", MuscleGroup.CHEST, EquipmentType.BARBELL),
+    DUMBBELL_BENCH_PRESS(31, "Dumbbell Bench Press", "Couché Haltères", MuscleGroup.CHEST, EquipmentType.DUMBBELL),
+    DUMBBELL_INCLINE_BENCH_PRESS(32, "Incline Dumbbell Bench Press", "Incliné Haltères", MuscleGroup.CHEST, EquipmentType.DUMBBELL),
+    CHEST_PRESS(33, "Chest Press Machine", "Presse Pectoraux", MuscleGroup.CHEST, EquipmentType.MACHINE),
+    CHEST_FLY(34, "Chest Fly", "Pec Deck / Écarté", MuscleGroup.CHEST, EquipmentType.CABLE),
+    DIP(35, "Chest Dip", "Dips", MuscleGroup.CHEST, EquipmentType.BODYWEIGHT),
+    PUSH_UP(36, "Push Up", "Pompes", MuscleGroup.CHEST, EquipmentType.BODYWEIGHT),
 
     // --- DOS / BACK ---
     DEADLIFT(37, "Deadlift", "Soulevé de Terre", MuscleGroup.BACK, EquipmentType.BARBELL),
-    ROMANIAN_DEADLIFT(38, "Romanian Deadlift", "Soulevé de Terre Roumain", MuscleGroup.HAMSTRINGS, EquipmentType.BARBELL),
-    LAT_PULLDOWN(39, "Lat Pulldown", "Tirage Vertical (Poulie Haute)", MuscleGroup.BACK, EquipmentType.CABLE),
-    SEATED_CABLE_ROW(40, "Seated Cable Row", "Tirage Horizontal (Poulie Basse)", MuscleGroup.BACK, EquipmentType.CABLE),
-    BENT_OVER_ROW(41, "Bent Over Row", "Rowing Buste Penché (Barre)", MuscleGroup.BACK, EquipmentType.BARBELL),
-    PULL_UP(42, "Pull Up", "Tractions Pronation", MuscleGroup.BACK, EquipmentType.BODYWEIGHT),
-    CHIN_UP(43, "Chin Up", "Tractions Supination", MuscleGroup.BACK, EquipmentType.BODYWEIGHT),
-    BACK_EXTENSION(44, "Back Extension", "Extensions Lombaires (Banc)", MuscleGroup.BACK, EquipmentType.BODYWEIGHT),
+    ROMANIAN_DEADLIFT(38, "Romanian Deadlift", "Soulevé Roumain", MuscleGroup.HAMSTRINGS, EquipmentType.BARBELL),
+    LAT_PULLDOWN(39, "Lat Pulldown", "Tirage Vertical", MuscleGroup.BACK, EquipmentType.CABLE),
+    SEATED_CABLE_ROW(40, "Seated Cable Row", "Tirage Horizontal", MuscleGroup.BACK, EquipmentType.CABLE),
+    BENT_OVER_ROW(41, "Bent Over Row", "Rowing Barre", MuscleGroup.BACK, EquipmentType.BARBELL),
+    PULL_UP(42, "Pull Up", "Tractions", MuscleGroup.BACK, EquipmentType.BODYWEIGHT),
+    CHIN_UP(43, "Chin Up", "Tractions Supi", MuscleGroup.BACK, EquipmentType.BODYWEIGHT),
+    BACK_EXTENSION(44, "Back Extension", "Banc Lombaires", MuscleGroup.BACK, EquipmentType.BODYWEIGHT),
 
     // --- ÉPAULES / SHOULDERS ---
-    SHOULDER_PRESS(45, "Shoulder Press", "Développé Épaules (Haltères/Machine)", MuscleGroup.SHOULDERS, EquipmentType.DUMBBELL),
-    OVERHEAD_PRESS(46, "Overhead Press (OHP)", "Développé Militaire (Barre)", MuscleGroup.SHOULDERS, EquipmentType.BARBELL),
+    SHOULDER_PRESS(45, "Shoulder Press", "Développé Épaules", MuscleGroup.SHOULDERS, EquipmentType.DUMBBELL),
+    OVERHEAD_PRESS(46, "Overhead Press (OHP)", "Développé Militaire", MuscleGroup.SHOULDERS, EquipmentType.BARBELL),
     LATERAL_RAISE(47, "Lateral Raise", "Élévations Latérales", MuscleGroup.SHOULDERS, EquipmentType.DUMBBELL),
     FRONT_RAISE(48, "Front Raise", "Élévations Frontales", MuscleGroup.SHOULDERS, EquipmentType.DUMBBELL),
-    REVERSE_FLY(49, "Reverse Fly / Face Pull", "Oiseau / Face Pull (Arrière d'Épaules)", MuscleGroup.SHOULDERS, EquipmentType.CABLE),
+    REVERSE_FLY(49, "Reverse Fly / Face Pull", "Oiseau / Face Pull", MuscleGroup.SHOULDERS, EquipmentType.CABLE),
 
     // --- BRAS : BICEPS & TRICEPS ---
-    BARBELL_CURL(50, "Barbell Curl", "Curl Biceps (Barre)", MuscleGroup.BICEPS, EquipmentType.BARBELL),
-    DUMBBELL_CURL(51, "Dumbbell Curl", "Curl Biceps (Haltères)", MuscleGroup.BICEPS, EquipmentType.DUMBBELL),
-    HAMMER_CURL(52, "Hammer Curl", "Curl Marteau (Prise Neutre)", MuscleGroup.BICEPS, EquipmentType.DUMBBELL),
-    TRICEPS_EXTENSION(53, "Triceps Pushdown", "Extension Triceps (Poulie)", MuscleGroup.TRICEPS, EquipmentType.CABLE),
-    TRICEPS_DIP(54, "Triceps Bench Dip", "Dips Triceps (Banc)", MuscleGroup.TRICEPS, EquipmentType.BODYWEIGHT),
-    SKULL_CRUSHER(55, "Skull Crusher", "Barre au Front (Triceps)", MuscleGroup.TRICEPS, EquipmentType.BARBELL),
+    BARBELL_CURL(50, "Barbell Curl", "Curl Barre", MuscleGroup.BICEPS, EquipmentType.BARBELL),
+    DUMBBELL_CURL(51, "Dumbbell Curl", "Curl Haltères", MuscleGroup.BICEPS, EquipmentType.DUMBBELL),
+    HAMMER_CURL(52, "Hammer Curl", "Curl Marteau", MuscleGroup.BICEPS, EquipmentType.DUMBBELL),
+    TRICEPS_EXTENSION(53, "Triceps Pushdown", "Poulie Triceps", MuscleGroup.TRICEPS, EquipmentType.CABLE),
+    TRICEPS_DIP(54, "Triceps Bench Dip", "Dips Banc", MuscleGroup.TRICEPS, EquipmentType.BODYWEIGHT),
+    SKULL_CRUSHER(55, "Skull Crusher", "Barre au Front", MuscleGroup.TRICEPS, EquipmentType.BARBELL),
 
     // --- JAMBES & FESSIERS / LEGS ---
-    SQUAT(56, "Back Squat", "Squat Arrière (Barre)", MuscleGroup.QUADRICEPS, EquipmentType.BARBELL),
-    FRONT_SQUAT(57, "Front Squat", "Front Squat (Barre)", MuscleGroup.QUADRICEPS, EquipmentType.BARBELL),
-    LEG_PRESS(58, "Leg Press", "Presse à Cuisses", MuscleGroup.QUADRICEPS, EquipmentType.MACHINE),
-    LEG_EXTENSION(59, "Leg Extension", "Leg Extension (Quadriceps)", MuscleGroup.QUADRICEPS, EquipmentType.MACHINE),
-    LEG_CURL(60, "Leg Curl", "Leg Curl (Ischios-Jambiers)", MuscleGroup.HAMSTRINGS, EquipmentType.MACHINE),
-    LUNGE(61, "Lunge", "Fentes Avant / Arrière", MuscleGroup.QUADRICEPS, EquipmentType.DUMBBELL),
-    HIP_THRUST(62, "Hip Thrust", "Hip Thrust (Fessiers)", MuscleGroup.GLUTES, EquipmentType.BARBELL),
-    CALF_RAISE(63, "Calf Raise", "Élévations Mollets (Debout/Assis)", MuscleGroup.CALVES, EquipmentType.MACHINE),
+    SQUAT(56, "Back Squat", "Squat", MuscleGroup.QUADRICEPS, EquipmentType.BARBELL),
+    FRONT_SQUAT(57, "Front Squat", "Front Squat", MuscleGroup.QUADRICEPS, EquipmentType.BARBELL),
+    LEG_PRESS(58, "Leg Press", "Presse Cuisses", MuscleGroup.QUADRICEPS, EquipmentType.MACHINE),
+    LEG_EXTENSION(59, "Leg Extension", "Leg Extension", MuscleGroup.QUADRICEPS, EquipmentType.MACHINE),
+    LEG_CURL(60, "Leg Curl", "Leg Curl", MuscleGroup.HAMSTRINGS, EquipmentType.MACHINE),
+    LUNGE(61, "Lunge", "Fentes", MuscleGroup.QUADRICEPS, EquipmentType.DUMBBELL),
+    HIP_THRUST(62, "Hip Thrust", "Hip Thrust", MuscleGroup.GLUTES, EquipmentType.BARBELL),
+    CALF_RAISE(63, "Calf Raise", "Mollets", MuscleGroup.CALVES, EquipmentType.MACHINE),
 
     // --- ABDOMINAUX & CORE ---
-    PLANK(64, "Plank", "Gainage Planche", MuscleGroup.ABS, EquipmentType.BODYWEIGHT),
-    CRUNCH(65, "Crunch", "Crunch Abdominaux", MuscleGroup.ABS, EquipmentType.BODYWEIGHT),
-    LEG_RAISE(66, "Leg Raise", "Relevés de Jambes Suspendu", MuscleGroup.ABS, EquipmentType.BODYWEIGHT),
-    RUSSIAN_TWIST(67, "Russian Twist", "Russian Twist (Obliques)", MuscleGroup.ABS, EquipmentType.BODYWEIGHT),
-    AB_WHEEL_ROLLOUT(68, "Ab Wheel Rollout", "Roue Abdominale", MuscleGroup.ABS, EquipmentType.OTHER),
+    PLANK(64, "Plank", "Gainage", MuscleGroup.ABS, EquipmentType.BODYWEIGHT),
+    CRUNCH(65, "Crunch", "Crunch", MuscleGroup.ABS, EquipmentType.BODYWEIGHT),
+    LEG_RAISE(66, "Leg Raise", "Relevés de Jambes", MuscleGroup.ABS, EquipmentType.BODYWEIGHT),
+    RUSSIAN_TWIST(67, "Russian Twist", "Russian Twist", MuscleGroup.ABS, EquipmentType.BODYWEIGHT),
+    AB_WHEEL_ROLLOUT(68, "Ab Wheel Rollout", "Roue Abdo", MuscleGroup.ABS, EquipmentType.OTHER),
 
     // --- CONDITIONNEMENT & OLYMPIQUE ---
-    KETTLEBELL_SWING(69, "Kettlebell Swing", "Kettlebell Swing", MuscleGroup.GLUTES, EquipmentType.KETTLEBELL),
+    KETTLEBELL_SWING(69, "Kettlebell Swing", "Swing", MuscleGroup.GLUTES, EquipmentType.KETTLEBELL),
     BURPEE(70, "Burpee", "Burpees", MuscleGroup.FULL_BODY, EquipmentType.BODYWEIGHT),
     CLEAN_AND_JERK(71, "Clean and Jerk", "Épaulé-Jeté", MuscleGroup.FULL_BODY, EquipmentType.BARBELL),
     SNATCH(72, "Snatch", "Arraché", MuscleGroup.FULL_BODY, EquipmentType.BARBELL),
 
     // --- SEGMENT SPÉCIAL & PERSONNALISÉ ---
     REST(0, "Rest Period", "Temps de Repos", MuscleGroup.FULL_BODY, EquipmentType.OTHER),
-    OTHER_WORKOUT(999, "Custom / Other", "Exercice Personnalisé", MuscleGroup.FULL_BODY, EquipmentType.OTHER);
+    OTHER_WORKOUT(999, "Custom / Other", "Personnalisé / Autre", MuscleGroup.FULL_BODY, EquipmentType.OTHER);
 }
 
 enum class MuscleGroup(val displayName: String) {
     CHEST("Pectoraux"),
-    BACK("Dos & Grand Dorsal"),
-    SHOULDERS("Épaules (Deltoïdes)"),
+    BACK("Dos"),
+    SHOULDERS("Épaules"),
     BICEPS("Biceps"),
     TRICEPS("Triceps"),
     QUADRICEPS("Quadriceps"),
-    HAMSTRINGS("Ischios-Jambiers"),
+    HAMSTRINGS("Ischios"),
     GLUTES("Fessiers"),
     CALVES("Mollets"),
-    ABS("Abdominaux & Core"),
+    ABS("Abdos"),
     FULL_BODY("Corps Complet")
 }
 
@@ -95,9 +95,9 @@ enum class EquipmentType(val displayName: String) {
     BARBELL("Barre"),
     DUMBBELL("Haltères"),
     CABLE("Poulie"),
-    MACHINE("Machine Guidée"),
-    MACHINE_CONVERGENT("Machine Convergente"),
-    BODYWEIGHT("Poids du Corps"),
+    MACHINE("Machine"),
+    MACHINE_CONVERGENT("Convergente"),
+    BODYWEIGHT("Poids du corps"),
     KETTLEBELL("Kettlebell"),
     OTHER("Autre")
 }
