@@ -1,36 +1,36 @@
 package app.bodyforger.core.model
 
-enum class SetPhase {
-    WARMUP,
-    WORK
+import java.util.UUID
+
+enum class UnilateralSide(val displayName: String, val shortBadge: String) {
+    NONE("Bilatéral", ""),
+    LEFT("Côté Gauche", "G"),
+    RIGHT("Côté Droit", "D")
 }
 
-enum class SetType {
-    STRAIGHT,
-    DROPSET,
-    RESTPAUSE
+enum class WorkoutSessionStatus {
+    ACTIVE,
+    COMPLETED,
+    DISCARDED
 }
-
-data class DropSubSet(
-    val weightKg: Double,
-    val reps: Int
-)
-
-data class ClusterSubSet(
-    val reps: Int,
-    val restSeconds: Int = 15
-)
 
 data class WorkoutSet(
-    val id: String,
+    val id: String = UUID.randomUUID().toString(),
+    val sessionId: String = "",
     val exerciseId: String,
-    val phase: SetPhase = SetPhase.WORK,
-    val type: SetType = SetType.STRAIGHT,
-    val weightKg: Double,
-    val reps: Int,
+    val exerciseName: String = "",
+    val primaryMuscle: MuscleGroup = MuscleGroup.CHEST,
+    val equipment: EquipmentType = EquipmentType.BARBELL,
+    val activityCategory: WorkoutActivityCategory = WorkoutActivityCategory.STRENGTH_TRAINING,
+    val orderIndex: Int = 0,
+    val setIndex: Int = 1,
+    val type: RoutineSetType = RoutineSetType.NORMAL,
+    val weightKg: Double = 0.0,
+    val weightUnit: WeightUnit = WeightUnit.KG,
+    val reps: Int = 0,
     val rpe: Double? = null,
     val isCompleted: Boolean = false,
-    val drops: List<DropSubSet> = emptyList(),
-    val clusters: List<ClusterSubSet> = emptyList(),
+    val side: UnilateralSide = UnilateralSide.NONE,
+    val restTimeSeconds: Int = 90,
     val completedAtEpochMs: Long? = null
 )

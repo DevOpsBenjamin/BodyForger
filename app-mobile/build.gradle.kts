@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 android {
@@ -9,7 +11,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "app.bodyforger.mobile"
+        applicationId = "app.bodyforger"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
@@ -48,6 +50,13 @@ dependencies {
     implementation(project(":core-database"))
     implementation(project(":core-healthconnect"))
     implementation(project(":core-sync"))
+
+    // Firebase (Mobile Only)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

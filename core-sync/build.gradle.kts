@@ -28,4 +28,5 @@ dependencies {
     implementation(libs.play.services.wearable)
     implementation(libs.kotlinx.coroutines.play.services)
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20240303")
 }
