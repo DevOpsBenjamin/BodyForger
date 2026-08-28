@@ -71,6 +71,8 @@ fun CatalogScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedMuscle by remember { mutableStateOf<MuscleGroup?>(null) }
     var selectedEquipment by remember { mutableStateOf<EquipmentType?>(null) }
+    var filterCustomOnly by remember { mutableStateOf(false) }
+    var filterUnilateralOnly by remember { mutableStateOf(false) }
 
     // Liste complète : Exercices personnalisés en premier, puis catalogue d'élite par défaut
     val allExercises = remember(customExercises.size) {
@@ -80,6 +82,8 @@ fun CatalogScreen(
     val filteredExercises = allExercises.filter { exercise ->
         (selectedMuscle == null || exercise.primaryMuscleGroup == selectedMuscle) &&
                 (selectedEquipment == null || exercise.equipment == selectedEquipment) &&
+                (!filterCustomOnly || exercise.isCustom) &&
+                (!filterUnilateralOnly || exercise.isUnilateral) &&
                 (searchQuery.isEmpty() || exercise.name.contains(searchQuery, ignoreCase = true) || exercise.healthConnectType.canonicalNameEn.contains(searchQuery, ignoreCase = true))
     }
 
@@ -132,7 +136,7 @@ fun CatalogScreen(
                 }
             }
 
-            // Bouton + NOUVEAU
+            // Bouton + CRÉER
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
@@ -175,11 +179,67 @@ fun CatalogScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- 3. FILTRE 1 : MATÉRIEL / ÉQUIPEMENT (Barre, Haltères, Poulie, Machine...) ---
+        // --- 3. FILTRE 1 : TYPE SPÉCIAL (👤 Perso / ⇄ 1 Côté) & MATÉRIEL ---
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier.padding(bottom = 8.dp)
         ) {
+            // Filtre Spécial 1 : 👤 PERSO
+            item {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (filterCustomOnly) NeonLime else SurfaceElevated)
+                        .border(1.dp, if (filterCustomOnly) NeonLime else SurfaceBorder, RoundedCornerShape(8.dp))
+                        .clickable { filterCustomOnly = !filterCustomOnly }
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = if (filterCustomOnly) Color.Black else NeonLime,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Perso",
+                            color = if (filterCustomOnly) Color.Black else TextPrimary,
+                            fontWeight = if (filterCustomOnly) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+            }
+
+            // Filtre Spécial 2 : ⇄ 1 CÔTÉ (Unilatéral)
+            item {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (filterUnilateralOnly) AmberGold else SurfaceElevated)
+                        .border(1.dp, if (filterUnilateralOnly) AmberGold else SurfaceBorder, RoundedCornerShape(8.dp))
+                        .clickable { filterUnilateralOnly = !filterUnilateralOnly }
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.SwapHoriz,
+                            contentDescription = null,
+                            tint = if (filterUnilateralOnly) Color.Black else AmberGold,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "1 Côté",
+                            color = if (filterUnilateralOnly) Color.Black else TextPrimary,
+                            fontWeight = if (filterUnilateralOnly) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+            }
+
             item {
                 val isAllSelected = selectedEquipment == null
                 Box(
@@ -289,7 +349,7 @@ fun CatalogScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            // Ligne 1 : Nom complet de l'exercice
+                            // Ligne 1 : Nom de l'exercice
                             Text(
                                 text = exercise.name,
                                 color = TextPrimary,
@@ -299,7 +359,7 @@ fun CatalogScreen(
 
                             Spacer(modifier = Modifier.height(4.dp))
 
-                            // Ligne 2 : Métadonnées et Badges (Muscle • Matériel + Badges)
+                            // Ligne 2 : Métadonnées et Icônes pures (Muscle • Matériel + 👤 / ⇄)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -319,53 +379,39 @@ fun CatalogScreen(
                                     fontSize = 11.sp
                                 )
 
+                                // Icône Pure : 👤 Perso
                                 if (exercise.isCustom) {
                                     Box(
                                         modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(NeonLime.copy(alpha = 0.2f))
-                                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                                            .size(18.dp)
+                                            .clip(CircleShape)
+                                            .background(NeonLime.copy(alpha = 0.2f)),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(
-                                                imageVector = Icons.Default.Person,
-                                                contentDescription = "Perso",
-                                                tint = NeonLime,
-                                                modifier = Modifier.size(9.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(2.dp))
-                                            Text(
-                                                text = "PERSO",
-                                                color = NeonLime,
-                                                fontSize = 8.sp,
-                                                fontWeight = FontWeight.Black
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = "Exercice Personnalisé",
+                                            tint = NeonLime,
+                                            modifier = Modifier.size(10.dp)
+                                        )
                                     }
                                 }
 
+                                // Icône Pure : ⇄ 1 Côté
                                 if (exercise.isUnilateral) {
                                     Box(
                                         modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(AmberGold.copy(alpha = 0.2f))
-                                            .padding(horizontal = 5.dp, vertical = 2.dp)
+                                            .size(18.dp)
+                                            .clip(CircleShape)
+                                            .background(AmberGold.copy(alpha = 0.2f)),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(
-                                                imageVector = Icons.Default.SwapHoriz,
-                                                contentDescription = "Unilatéral",
-                                                tint = AmberGold,
-                                                modifier = Modifier.size(10.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(2.dp))
-                                            Text(
-                                                text = "1 CÔTÉ",
-                                                color = AmberGold,
-                                                fontSize = 8.sp,
-                                                fontWeight = FontWeight.Black
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = Icons.Default.SwapHoriz,
+                                            contentDescription = "Exercice Unilatéral",
+                                            tint = AmberGold,
+                                            modifier = Modifier.size(11.dp)
+                                        )
                                     }
                                 }
                             }
