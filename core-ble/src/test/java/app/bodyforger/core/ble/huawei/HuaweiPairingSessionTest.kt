@@ -105,6 +105,15 @@ class HuaweiPairingSessionTest {
     }
 
     @Test
+    fun `un statut de refus n'est jamais lu comme une tare`() = runTest {
+        // Sans cette verification, l'octet de statut se melait a la moitie basse du poids et
+        // produisait une tare absurde que rien ne signalait.
+        val states = session(FakeScale(statusByte = 1), tareTimeoutMs = 50)
+            .run(address, "Pro", huid, profile).toList()
+        assertEquals(SessionFailure.TIMED_OUT, (states.last() as PairingState.Failed).reason)
+    }
+
+    @Test
     fun `une tare nulle est une absence de pesee, pas une tare`() = runTest {
         val states = session(FakeScale(tareHundredths = 0), tareTimeoutMs = 50)
             .run(address, "Pro", huid, profile).toList()
@@ -152,7 +161,8 @@ class HuaweiPairingSessionTest {
         private val authenticates: Boolean = true,
         private val sendsTare: Boolean = true,
         private val sendsValidation: Boolean = true,
-        private val tareHundredths: Int = 8125
+        private val tareHundredths: Int = 8125,
+        private val statusByte: Int = 0
     ) : ScaleTransport {
 
         val journal = mutableListOf<String>()
@@ -199,7 +209,12 @@ class HuaweiPairingSessionTest {
                     val key = sessionKey ?: return true
                     engravedHuid = HuaweiCrypto.decrypt(key, payload)?.toString(Charsets.US_ASCII)
                     if (sendsTare) {
-                        val tare = byteArrayOf((tareHundredths and 0xFF).toByte(), (tareHundredths shr 8).toByte())
+                        // Octet de statut, puis le poids en centiemes : la structure reelle.
+                        val tare = byteArrayOf(
+                            statusByte.toByte(),
+                            (tareHundredths and 0xFF).toByte(),
+                            (tareHundredths shr 8).toByte()
+                        )
                         val iv = ByteArray(HuaweiCrypto.IV_BYTES) { 0x22 }
                         emit(characteristic, HuaweiCrypto.encrypt(key, iv, tare))
                         // La trame de validation suit, pendant la meme montee.

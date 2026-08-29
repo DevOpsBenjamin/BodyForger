@@ -1,5 +1,6 @@
 package app.bodyforger.core.ble.huawei
 
+import android.util.Log
 import app.bodyforger.core.ble.PairingState
 import app.bodyforger.core.ble.ScaleNotification
 import app.bodyforger.core.ble.ScaleTransport
@@ -187,8 +188,18 @@ class HuaweiPairingSession(
         }
 
         val clear = HuaweiCrypto.decrypt(sessionKey, notification.payload) ?: return null
-        if (clear.size < 2) return null
-        val hundredths = (clear[0].toInt() and 0xFF) or ((clear[1].toInt() and 0xFF) shl 8)
+        if (clear.size < STATUS_BYTES + WEIGHT_BYTES) return null
+
+        // La réponse s'ouvre sur un octet de statut, et le poids ne vient qu'ensuite. Le lire
+        // dès le premier octet mêlait le statut à la moitié basse du poids, ce qui donnait une
+        // tare absurde sans que rien ne le signale.
+        val status = clear[0].toInt() and 0xFF
+        if (status != STATUS_OK) {
+            Log.w(TAG, "gravure refusée par la balance (statut $status)")
+            return null
+        }
+
+        val hundredths = (clear[1].toInt() and 0xFF) or ((clear[2].toInt() and 0xFF) shl 8)
         // Un zéro n'est pas une tare : c'est l'absence de pesée.
         return (hundredths / 100.0).takeIf { it > 0.0 }
     }
@@ -203,6 +214,13 @@ class HuaweiPairingSession(
     }
 
     companion object {
+        private const val TAG = "BodyForgerBle"
+
+        /** La réponse s'ouvre sur un octet de statut ; zéro vaut acceptation. */
+        private const val STATUS_BYTES = 1
+        private const val WEIGHT_BYTES = 2
+        private const val STATUS_OK = 0
+
         /** Champ HUID de la trame de gravure : trente octets, complétés de zéros. */
         const val HUID_FIELD_BYTES = 30
 
