@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.bodyforger.core.ble.AthleteInstruction
 import app.bodyforger.core.ble.DiscoveredScale
 import app.bodyforger.core.ble.SessionFailure
 import app.bodyforger.mobile.scale.ScaleUiState
@@ -32,10 +31,9 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
 /**
- * La section Balance des paramètres : associer un matériel, puis peser.
+ * The Scale section of the settings: associate a device, then weigh in.
  *
- * L'appairage se fait **une seule fois**. Tant qu'une Association existe, la pesée s'y
- * rattache directement — c'est le Mode 2 acté en #7, et l'appairage ne se rejoue jamais.
+ * Pairing happens once; as long as an association exists, weigh-ins use it directly.
  */
 @Composable
 fun ScaleSettingsSection(
@@ -69,7 +67,6 @@ fun ScaleSettingsSection(
                 Text("Pesée relevée, sans composition", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text("%.2f kg".format(massKg), color = ElectricCyan, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 Text(
-                    // Ce n'est pas une panne : sans la poignée, la balance ne mesure que la masse.
                     "La balance n'a pas relevé d'impédance — la poignée n'a pas été saisie. " +
                         "Le relevé attend une saisie du taux de masse grasse avant d'être conservé.",
                     color = TextSecondary,
@@ -144,8 +141,6 @@ private fun Scanning(
 
         if (others.isNotEmpty()) {
             Text(
-                // Montrés pour que l'on voie ce qui s'annonce vraiment : une balance présente
-                // sous un nom inattendu se repère ici, et nulle part ailleurs.
                 "Autres appareils détectés",
                 color = TextSecondary,
                 fontSize = 11.sp,
@@ -162,10 +157,10 @@ private fun Scanning(
 }
 
 /**
- * L'appairage en cours.
+ * Pairing in progress.
  *
- * ⚠️ La gravure du profil dans la mémoire de la balance a lieu **avant** que l'athlète ne
- * monte, et consomme un emplacement définitivement. L'écran le dit plutôt que de le taire.
+ * ⚠️ Engraving happens **before** the athlete steps on, and consumes a memory slot for good.
+ * The screen says so rather than hiding it.
  */
 @Composable
 private fun Pairing(state: ScaleUiState) {
@@ -195,10 +190,10 @@ private fun Pairing(state: ScaleUiState) {
 }
 
 /**
- * Une ligne d'appareil.
+ * One device row.
  *
- * Un appareil non reconnu s'affiche sans être cliquable : le montrer aide au diagnostic,
- * mais tenter une gravure dessus reviendrait à écrire au hasard dans un matériel inconnu.
+ * An unrecognised device shows but is not clickable: without a driver, engraving on it would
+ * mean writing at random into unknown hardware.
  */
 @Composable
 private fun DeviceRow(scale: DiscoveredScale, onClick: (() -> Unit)?) {
@@ -298,23 +293,4 @@ private fun Card(content: @Composable androidx.compose.foundation.layout.ColumnS
             .padding(16.dp),
         content = content
     )
-}
-
-/** Les consignes viennent du vocabulaire commun : l'interface se contente de les rendre. */
-private fun instructionLabel(instruction: AthleteInstruction): String = when (instruction) {
-    AthleteInstruction.TAP_SCALE_TO_WAKE -> "Tapotez la balance du pied"
-    AthleteInstruction.STAY_OFF_PLATFORM -> "Restez hors du plateau"
-    AthleteInstruction.STEP_ON -> "Montez sur la balance"
-    AthleteInstruction.STEP_ON_BAREFOOT -> "Montez pieds nus sur la balance"
-    AthleteInstruction.GRIP_HANDLE -> "Saisissez la poignée des deux mains"
-    AthleteInstruction.STEP_OFF -> "Descendez du plateau"
-}
-
-private fun failureLabel(failure: SessionFailure): String = when (failure) {
-    SessionFailure.DEVICE_NOT_FOUND -> "Balance introuvable. Tapotez-la pour la réveiller."
-    SessionFailure.CONNECTION_LOST -> "Liaison perdue en cours de séquence."
-    SessionFailure.REJECTED_BY_DEVICE -> "La balance a refusé la connexion."
-    SessionFailure.TIMED_OUT -> "Aucune mesure : la pesée n'a pas abouti à temps."
-    SessionFailure.NOT_ASSOCIATED -> "Aucune balance associée."
-    SessionFailure.DEVICE_ERROR -> "La balance a signalé une erreur."
 }

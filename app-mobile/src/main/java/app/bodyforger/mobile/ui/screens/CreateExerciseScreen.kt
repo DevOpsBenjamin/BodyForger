@@ -109,7 +109,6 @@ fun CreateExerciseScreen(
             .imePadding()
             .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp)
     ) {
-        // 1. En-tête
         CreateExerciseTopBar(
             isSaveEnabled = name.isNotBlank(),
             onBack = onBack,

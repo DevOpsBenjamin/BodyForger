@@ -60,7 +60,6 @@ fun WearHomeScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Action 1: Lancer Séance
             Button(
                 onClick = onStartWorkout,
                 colors = ButtonDefaults.buttonColors(
@@ -89,7 +88,6 @@ fun WearHomeScreen(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // Action 2: Pesée BLE
             Button(
                 onClick = onStartWeighIn,
                 colors = ButtonDefaults.buttonColors(

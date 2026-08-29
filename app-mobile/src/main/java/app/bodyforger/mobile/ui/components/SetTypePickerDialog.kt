@@ -107,7 +107,6 @@ fun SetTypePickerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Option 1 : Répétitions fixes
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -126,7 +125,6 @@ fun SetTypePickerDialog(
                         )
                     }
 
-                    // Option 2 : Plage de répétitions (ex: 8-12)
                     Box(
                         modifier = Modifier
                             .weight(1f)

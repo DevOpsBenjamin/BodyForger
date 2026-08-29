@@ -95,7 +95,6 @@ fun HistoryWorkoutCard(
                 maxLines = 1
             )
 
-            // Badge Record Personnel si battu pendant la séance
             if (item.personalRecordHighlight != null) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(

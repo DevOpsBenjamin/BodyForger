@@ -79,7 +79,6 @@ fun WearLiveWorkoutScreen(
             contentAlignment = Alignment.Center
         ) {
             if (isResting) {
-                // Vue Chronomètre de Repos Circulaire
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -141,7 +140,6 @@ fun WearLiveWorkoutScreen(
                     }
                 }
             } else {
-                // Vue Série Active Wrist-First
                 Column(
                     modifier = Modifier
                         .fillMaxSize()

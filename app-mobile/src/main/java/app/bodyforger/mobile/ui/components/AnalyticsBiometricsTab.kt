@@ -73,7 +73,6 @@ fun AnalyticsBiometricsTab(modifier: Modifier = Modifier) {
             profile = profile,
             impedances = DebugSampleBia.dualFrequencyReading
         )
-        // Sans impédances relevées, il n'y a pas de composition à montrer : le moteur rend
         // `null` plutôt que d'inventer un chiffre.
     } ?: return
 
@@ -149,7 +148,6 @@ fun AnalyticsBiometricsTab(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Répartition Segmentaire 5 Zones
         Text(
             text = "ANALYSE SEGMENTAIRE 5 ZONES",
             color = TextSecondary,
@@ -220,7 +218,6 @@ fun AnalyticsBiometricsTab(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        // Bouton Pesée BLE Huawei Scale 3
         Button(
             onClick = {
                 userMassKg = if (userMassKg == 78.5) 78.2 else 78.5

@@ -102,7 +102,6 @@ fun CatalogScreen(
             .statusBarsPadding()
             .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp)
     ) {
-        // --- 1. EN-TÊTE : Bouton Retour + Titre + Bouton Créer ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

@@ -83,7 +83,6 @@ fun CatalogFilterBar(
             }
         }
 
-        // Filtre 2 : ⇄ 1 Côté (Unilatéral)
         item {
             Box(
                 modifier = Modifier
@@ -111,7 +110,6 @@ fun CatalogFilterBar(
             }
         }
 
-        // Filtre 3 : 🎯 Menu Déroulant Muscles
         item {
             val hasMuscleFilter = selectedMuscles.isNotEmpty()
             val muscleLabel = when {
@@ -147,7 +145,6 @@ fun CatalogFilterBar(
             }
         }
 
-        // Filtre 4 : 🏋️ Menu Déroulant Matériel
         item {
             val hasEquipFilter = selectedEquipments.isNotEmpty()
             val equipLabel = when {

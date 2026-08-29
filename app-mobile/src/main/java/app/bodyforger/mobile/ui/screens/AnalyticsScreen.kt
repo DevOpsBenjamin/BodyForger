@@ -46,7 +46,6 @@ fun AnalyticsScreen() {
             .background(Obsidian)
             .padding(top = 20.dp)
     ) {
-        // En-tête avec Sélecteur à 2 Onglets (Swipable)
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             Text(
                 text = "STATISTIQUES & ANALYSES",
@@ -63,7 +62,6 @@ fun AnalyticsScreen() {
                 modifier = Modifier.padding(top = 2.dp, bottom = 14.dp)
             )
 
-            // Sélecteur Swipable Tabs
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

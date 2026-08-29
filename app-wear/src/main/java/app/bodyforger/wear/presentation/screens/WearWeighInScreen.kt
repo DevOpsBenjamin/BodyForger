@@ -55,7 +55,6 @@ fun WearWeighInScreen(
 ) {
     var step by remember { mutableStateOf(WearWeighInStep.SCANNING) }
 
-    // Simulation progressive du flux de pesée BLE
     LaunchedEffect(step) {
         when (step) {
             WearWeighInStep.SCANNING -> {
@@ -75,7 +74,6 @@ fun WearWeighInScreen(
                 step = WearWeighInStep.COMPLETED
             }
             WearWeighInStep.COMPLETED -> {
-                // Reste sur l'écran des résultats
             }
         }
     }
