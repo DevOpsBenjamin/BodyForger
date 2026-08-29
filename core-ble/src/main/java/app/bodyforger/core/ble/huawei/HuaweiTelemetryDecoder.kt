@@ -1,0 +1,119 @@
+package app.bodyforger.core.ble.huawei
+
+import app.bodyforger.core.ble.BiaTelemetry
+import app.bodyforger.core.model.ImpedancePath
+import app.bodyforger.core.model.ImpedanceReading
+import app.bodyforger.core.model.RawImpedances
+import java.time.LocalDateTime
+
+/**
+ * Une trame de télémétrie Haige décodée, avec le champ propre à la famille que le modèle
+ * générique ne porte pas.
+ */
+data class HuaweiTelemetryFrame(
+    val telemetry: BiaTelemetry,
+    /**
+     * Octet 11 de la trame. Sur la Scale 3 Pro c'est le jour ISO de la semaine (1 = lundi),
+     * vérifié sur deux jours distincts. La seule capture `M00D` connue y porte `0xa0`, que
+     * cette lecture n'explique pas : le champ est donc exposé brut, sans interprétation.
+     */
+    val statusByte: Int
+)
+
+/**
+ * Décodeur de la trame de bio-impédance temps réel (`0x97`) de la famille Haige.
+ *
+ * Disposition (`TECH.md` §6.2), identique sur les deux longueurs de trame :
+ * ```
+ * 0..2   poids            uint16_le / 100      kg
+ * 2..4   masse grasse     uint16_le / 10       %
+ * 4..11  horodatage       année, mois, jour, heure, minute, seconde
+ * 11     statut           uint8
+ * 12..24 six trajets      uint16_le            basse fréquence, à l'échelle du modèle
+ * 24..26 rythme cardiaque uint16_le            bpm
+ * 26..38 six trajets      uint16_le            haute fréquence — absents d'une trame courte
+ * ```
+ */
+object HuaweiTelemetryDecoder {
+
+    /** Longueur minimale : en deçà, la trame ne porte même pas le bloc basse fréquence. */
+    const val MIN_FRAME_BYTES = 26
+
+    /** Longueur à partir de laquelle le bloc haute fréquence est présent. */
+    const val DUAL_FREQUENCY_FRAME_BYTES = 38
+
+    private const val LOW_FREQUENCY_BLOCK_OFFSET = 12
+    private const val HIGH_FREQUENCY_BLOCK_OFFSET = 26
+    private const val HEART_RATE_OFFSET = 24
+    private const val STATUS_BYTE_OFFSET = 11
+
+    /** Plage plausible d'un rythme cardiaque ; hors d'elle, la valeur est tenue pour absente. */
+    private val PLAUSIBLE_HEART_RATE = 1..240
+
+    /**
+     * Décode une trame déchiffrée.
+     *
+     * Le [model] est requis parce que le facteur d'échelle des résistances est une propriété
+     * du matériel, pas du protocole : `TECH.md` §6.2 avertit qu'il n'est pas universel dans
+     * la gamme Huawei.
+     *
+     * @return la trame décodée, ou `null` si elle est trop courte pour être interprétée.
+     */
+    fun decode(payload: ByteArray, model: HuaweiScaleModel): HuaweiTelemetryFrame? {
+        if (payload.size < MIN_FRAME_BYTES) return null
+
+        val readings = buildMap {
+            putBlock(payload, LOW_FREQUENCY_BLOCK_OFFSET, ImpedanceReading.LOW_FREQUENCY_KHZ, model)
+            if (payload.size >= DUAL_FREQUENCY_FRAME_BYTES) {
+                putBlock(payload, HIGH_FREQUENCY_BLOCK_OFFSET, ImpedanceReading.HIGH_FREQUENCY_KHZ, model)
+            }
+        }
+
+        return HuaweiTelemetryFrame(
+            telemetry = BiaTelemetry(
+                massKg = u16(payload, 0) / 100.0,
+                bodyFatPercentage = u16(payload, 2).takeIf { it > 0 }?.let { it / 10.0 },
+                heartRateBpm = u16(payload, HEART_RATE_OFFSET).takeIf { it in PLAUSIBLE_HEART_RATE },
+                measuredAt = readTimestamp(payload),
+                rawImpedances = RawImpedances.of(readings)
+            ),
+            statusByte = payload[STATUS_BYTE_OFFSET].toInt() and 0xFF
+        )
+    }
+
+    /**
+     * Lit les six trajets d'un bloc. Un compteur nul signifie « non mesuré » : l'entrée est
+     * omise plutôt que portée à zéro.
+     */
+    private fun MutableMap<ImpedanceReading, Double>.putBlock(
+        payload: ByteArray,
+        offset: Int,
+        frequencyKHz: Int,
+        model: HuaweiScaleModel
+    ) {
+        for (path in ImpedancePath.BY_WIRE_INDEX) {
+            val raw = u16(payload, offset + path.wireIndex * 2)
+            if (raw > 0) {
+                put(ImpedanceReading(path, frequencyKHz), raw / model.impedanceOhmDivisor)
+            }
+        }
+    }
+
+    private fun readTimestamp(payload: ByteArray): LocalDateTime? {
+        val year = u16(payload, 4)
+        if (year < 2000) return null
+        return runCatching {
+            LocalDateTime.of(
+                year,
+                payload[6].toInt() and 0xFF,
+                payload[7].toInt() and 0xFF,
+                payload[8].toInt() and 0xFF,
+                payload[9].toInt() and 0xFF,
+                payload[10].toInt() and 0xFF
+            )
+        }.getOrNull()
+    }
+
+    private fun u16(payload: ByteArray, offset: Int): Int =
+        (payload[offset].toInt() and 0xFF) or ((payload[offset + 1].toInt() and 0xFF) shl 8)
+}
