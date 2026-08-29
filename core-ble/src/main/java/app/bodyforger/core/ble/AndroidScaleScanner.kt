@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.callbackFlow
 @SuppressLint("MissingPermission")
 class AndroidScaleScanner(private val context: Context) : ScaleScanner {
 
-    override fun scan(driver: ScaleDriver): Flow<DiscoveredScale> = callbackFlow {
+    override fun scan(identifier: ScaleIdentifier): Flow<DiscoveredScale> = callbackFlow {
         val manager = context.getSystemService(BluetoothManager::class.java)
         val scanner = manager?.adapter?.bluetoothLeScanner
         if (scanner == null) {
@@ -36,7 +36,7 @@ class AndroidScaleScanner(private val context: Context) : ScaleScanner {
                 // `scanRecord.deviceName` est le nom **annoncé**, celui qui porte le modèle.
                 // `result.device.name` est le nom GAP, générique sur cette famille.
                 val advertised = result.scanRecord?.deviceName ?: return
-                val recognised = driver.identify(advertised) ?: return
+                val recognised = identifier.identify(advertised) ?: return
                 trySend(
                     DiscoveredScale(
                         deviceAddress = result.device.address,

@@ -27,6 +27,9 @@ import app.bodyforger.mobile.ui.screens.CatalogScreen
 import app.bodyforger.mobile.ui.screens.CreateExerciseScreen
 import app.bodyforger.mobile.ui.screens.HomeScreen
 import app.bodyforger.mobile.ui.screens.PlannerScreen
+import app.bodyforger.mobile.ui.screens.SettingsScreen
+import app.bodyforger.core.model.BiaProfile
+import app.bodyforger.core.model.BiologicalSex
 import app.bodyforger.mobile.ui.screens.ProfileScreen
 import app.bodyforger.mobile.ui.screens.RoutineEditorScreen
 import app.bodyforger.mobile.ui.screens.WorkoutScreen
@@ -58,6 +61,7 @@ fun BodyForgerApp() {
 
     var isLiveWorkoutRunning by remember { mutableStateOf(false) }
     var showingLiveWorkoutScreen by remember { mutableStateOf(false) }
+    var showingSettingsScreen by remember { mutableStateOf(false) }
 
     val customExercises = remember { mutableStateListOf<Exercise>() }
     val routines = remember {
@@ -75,6 +79,12 @@ fun BodyForgerApp() {
                 customExercises.add(0, newExercise)
                 showingCreateExerciseScreen = false
             }
+        )
+    } else if (showingSettingsScreen) {
+        SettingsScreen(
+            // Profil de démonstration : la saisie du profil athlète reste à câbler.
+            profile = BiaProfile(BiologicalSex.MALE, ageYears = 30, heightCm = 180.0),
+            onBack = { showingSettingsScreen = false }
         )
     } else if (showingCatalogScreen) {
         CatalogScreen(
@@ -173,7 +183,7 @@ fun BodyForgerApp() {
                             showingLiveWorkoutScreen = true
                         },
                         onNavigateToBiometrics = { selectedTabIndex = 2 },
-                        onOpenSettings = { selectedTabIndex = 3 }
+                        onOpenSettings = { showingSettingsScreen = true }
                     )
                     1 -> PlannerScreen(
                         routines = routines,
@@ -218,7 +228,7 @@ fun BodyForgerApp() {
                         }
                     )
                     2 -> AnalyticsScreen()
-                    3 -> ProfileScreen()
+                    3 -> ProfileScreen(onOpenSettings = { showingSettingsScreen = true })
                 }
             }
         }

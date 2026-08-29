@@ -24,13 +24,24 @@ data class DiscoveredScale(
  * portant un nom GAP générique (`HaigeBLE`). Se fier au second empêcherait de reconnaître le
  * modèle — c'est ce qui a été établi en #24.
  */
+/**
+ * Le strict nécessaire pour trier un scan : reconnaître une balance à son nom annoncé.
+ *
+ * Contrat volontairement plus étroit que [ScaleDriver] : scanner n'exige pas de savoir
+ * appairer ni peser, et le demander obligerait à écrire un pilote complet avant d'avoir
+ * repéré le premier appareil.
+ */
+fun interface ScaleIdentifier {
+    fun identify(advertisedName: String?): RecognisedScale?
+}
+
 interface ScaleScanner {
 
     /**
-     * Émet les balances reconnues par [driver] tant que le flux est collecté.
+     * Émet les balances reconnues par [identifier] tant que le flux est collecté.
      *
      * Le même appareil peut être émis plusieurs fois : une balance s'annonce en boucle, et sa
      * puissance reçue varie. C'est à l'appelant de dédupliquer par adresse.
      */
-    fun scan(driver: ScaleDriver): Flow<DiscoveredScale>
+    fun scan(identifier: ScaleIdentifier): Flow<DiscoveredScale>
 }
