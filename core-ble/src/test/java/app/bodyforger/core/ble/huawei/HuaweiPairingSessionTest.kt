@@ -161,6 +161,12 @@ class HuaweiPairingSessionTest {
         override suspend fun connect() = true
         override suspend fun subscribe(characteristic: HuaweiCharacteristic) = true
         override suspend fun unsubscribe(characteristic: HuaweiCharacteristic) = true
+        override suspend fun writeRaw(
+            characteristic: HuaweiCharacteristic,
+            frame: ByteArray,
+            withResponse: Boolean
+        ): Boolean = write(characteristic, frame, withResponse)
+
         override fun close() = Unit
 
         override suspend fun write(

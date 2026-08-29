@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import app.bodyforger.core.ble.huawei.HuaweiCharacteristic
 import app.bodyforger.core.ble.huawei.HuaweiFrameMagic
 import app.bodyforger.core.ble.huawei.HuaweiFrameReassembler
@@ -78,6 +79,7 @@ class AndroidGattTransport(
     override suspend fun connect(): Boolean {
         repeat(CONNECTION_ATTEMPTS) { attempt ->
             if (attemptConnect()) return true
+            Log.w(TAG, "tentative de connexion ${attempt + 1}/$CONNECTION_ATTEMPTS échouée")
             closeInternal()
             // Laisser la pile Bluetooth se libérer avant de réessayer : enchaîner
             // immédiatement reproduit le même échec.
@@ -92,14 +94,19 @@ class AndroidGattTransport(
         val connected = CompletableDeferred<Boolean>().also { connection = it }
         val discovered = CompletableDeferred<Boolean>().also { services = it }
 
+        Log.d(TAG, "connexion à ${device.address}")
         gatt = device.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
         if (withTimeoutOrNull(CONNECTION_TIMEOUT_MS) { connected.await() } != true) {
+            Log.w(TAG, "connexion refusée ou expirée")
             return@withLock false
         }
         if (gatt?.discoverServices() != true) {
+            Log.w(TAG, "découverte des services non démarrée")
             return@withLock false
         }
-        withTimeoutOrNull(CONNECTION_TIMEOUT_MS) { discovered.await() } == true
+        val ready = withTimeoutOrNull(CONNECTION_TIMEOUT_MS) { discovered.await() } == true
+        Log.d(TAG, if (ready) "services découverts" else "découverte des services échouée")
+        ready
     }
 
     override suspend fun subscribe(characteristic: HuaweiCharacteristic): Boolean =
@@ -112,9 +119,17 @@ class AndroidGattTransport(
         characteristic: HuaweiCharacteristic,
         enabled: Boolean
     ): Boolean = gattLock.withLock {
-        val target = resolve(characteristic) ?: return@withLock false
+        val target = resolve(characteristic)
+        if (target == null) {
+            // Caractéristique absente : l'hypothèse de profil GATT ne tient pas sur ce modèle.
+            Log.w(TAG, "caractéristique introuvable : $characteristic")
+            return@withLock false
+        }
         val connected = gatt ?: return@withLock false
-        if (!connected.setCharacteristicNotification(target, enabled)) return@withLock false
+        if (!connected.setCharacteristicNotification(target, enabled)) {
+            Log.w(TAG, "abonnement refusé : $characteristic")
+            return@withLock false
+        }
 
         // Activer les notifications côté Android ne suffit pas : il faut aussi le dire à la
         // balance, en écrivant dans le descripteur de configuration client.
@@ -161,12 +176,22 @@ class AndroidGattTransport(
         return true
     }
 
+    override suspend fun writeRaw(
+        characteristic: HuaweiCharacteristic,
+        frame: ByteArray,
+        withResponse: Boolean
+    ): Boolean = writeFrame(characteristic, frame, withResponse)
+
     private suspend fun writeFrame(
         characteristic: HuaweiCharacteristic,
         frame: ByteArray,
         withResponse: Boolean
     ): Boolean = gattLock.withLock {
-        val target = resolve(characteristic) ?: return@withLock false
+        val target = resolve(characteristic)
+        if (target == null) {
+            Log.w(TAG, "caractéristique introuvable à l'écriture : $characteristic")
+            return@withLock false
+        }
         val connected = gatt ?: return@withLock false
         val writeType = if (withResponse) {
             BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
@@ -185,9 +210,14 @@ class AndroidGattTransport(
             @Suppress("DEPRECATION")
             connected.writeCharacteristic(target)
         }
-        if (!started) return@withLock false
+        if (!started) {
+            Log.w(TAG, "écriture non démarrée : $characteristic")
+            return@withLock false
+        }
 
-        withTimeoutOrNull(operationTimeoutMs) { acknowledged.await() } == true
+        val ok = withTimeoutOrNull(operationTimeoutMs) { acknowledged.await() } == true
+        Log.d(TAG, "écriture $characteristic (${frame.size} o) : ${if (ok) "ok" else "ÉCHEC"}")
+        ok
     }
 
     override fun close() = closeInternal()
@@ -212,9 +242,13 @@ class AndroidGattTransport(
 
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             when (newState) {
-                BluetoothProfile.STATE_CONNECTED ->
+                BluetoothProfile.STATE_CONNECTED -> {
+                    // Le statut 133 est l'échec générique d'Android : il ne dit rien de plus.
+                    Log.d(TAG, "connecté (statut $status)")
                     connection?.complete(status == BluetoothGatt.GATT_SUCCESS)
+                }
                 BluetoothProfile.STATE_DISCONNECTED -> {
+                    Log.d(TAG, "déconnecté (statut $status)")
                     connection?.complete(false)
                     services?.complete(false)
                     // Une déconnexion en vol laisserait une opération suspendue jusqu'au délai.
@@ -267,7 +301,12 @@ class AndroidGattTransport(
     private fun deliver(uuid: UUID, frame: ByteArray) {
         val characteristic = profile.characteristicOf(uuid) ?: return
         val reassembler = reassemblers.getOrPut(characteristic) { HuaweiFrameReassembler() }
-        val payload = reassembler.feed(frame) ?: return
+        val payload = reassembler.feed(frame)
+        if (payload == null) {
+            Log.v(TAG, "trame partielle ou écartée sur $characteristic (${frame.size} o)")
+            return
+        }
+        Log.d(TAG, "reçu $characteristic : ${payload.size} o")
         notifications.tryEmit(
             ScaleNotification(
                 characteristic = characteristic,
@@ -278,6 +317,9 @@ class AndroidGattTransport(
     }
 
     companion object {
+        /** Filtre de journal pour suivre une session : `adb logcat -s BodyForgerBle`. */
+        const val TAG = "BodyForgerBle"
+
         const val DEFAULT_OPERATION_TIMEOUT_MS = 5_000L
         const val CONNECTION_TIMEOUT_MS = 15_000L
 

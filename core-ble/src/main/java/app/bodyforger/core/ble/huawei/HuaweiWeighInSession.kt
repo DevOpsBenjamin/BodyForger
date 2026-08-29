@@ -80,6 +80,11 @@ class HuaweiWeighInSession(
             emit(WeighInState.Failed(SessionFailure.CONNECTION_LOST))
             return@flow
         }
+        // S'abonner ne suffit pas : la balance n'émet rien tant que le flux n'est pas armé.
+        if (!transport.writeRaw(HuaweiCharacteristic.BIA_STREAM, HuaweiCommands.QUERY)) {
+            emit(WeighInState.Failed(SessionFailure.CONNECTION_LOST))
+            return@flow
+        }
 
         advance() // Balance prête : l'athlète peut monter
 

@@ -144,6 +144,12 @@ class HuaweiHandshakeTest {
             return true
         }
 
+        override suspend fun writeRaw(
+            characteristic: HuaweiCharacteristic,
+            frame: ByteArray,
+            withResponse: Boolean
+        ): Boolean = write(characteristic, frame, withResponse)
+
         override fun close() = Unit
 
         private fun emit(characteristic: HuaweiCharacteristic, payload: ByteArray) {

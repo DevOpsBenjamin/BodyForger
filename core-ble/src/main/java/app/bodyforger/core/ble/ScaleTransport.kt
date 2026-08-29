@@ -41,6 +41,21 @@ interface ScaleTransport {
         withResponse: Boolean = true
     ): Boolean
 
+    /**
+     * Écrit des octets **tels quels**, sans les encadrer.
+     *
+     * Le protocole mêle deux sortes d'écritures, et les confondre fait tout échouer. Les
+     * charges applicatives — profil, horloge, HUID — sont découpées et encadrées par
+     * [write]. Mais certaines commandes fixes sont **déjà des trames complètes**, magique et
+     * CRC compris : les repasser dans l'encadrement produirait une trame contenant une
+     * trame, que la balance rejette sans un mot.
+     */
+    suspend fun writeRaw(
+        characteristic: HuaweiCharacteristic,
+        frame: ByteArray,
+        withResponse: Boolean = true
+    ): Boolean
+
     /** Ferme la connexion et libère les ressources. Idempotent. */
     fun close()
 }

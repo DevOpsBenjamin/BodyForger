@@ -12,6 +12,14 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    testOptions {
+        unitTests {
+            // `android.util.Log` n'existe pas hors appareil : sans cela, la moindre trace de
+            // journal ferait échouer un test qui n'a rien à voir.
+            isReturnDefaultValues = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21

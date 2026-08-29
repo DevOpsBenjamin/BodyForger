@@ -110,6 +110,8 @@ class HuaweiPairingSession(
 
         advance() // Armement du flux BIA — l'athlète est toujours sur la balance
         transport.subscribe(HuaweiCharacteristic.BIA_STREAM)
+        // S'abonner ne suffit pas : le flux doit être armé pour que la balance émette.
+        transport.writeRaw(HuaweiCharacteristic.BIA_STREAM, HuaweiCommands.QUERY)
 
         advance() // Relevé de validation, puis acquittement
         // ⚠️ Attente **courte** et volontairement distincte de celle de la tare : cette trame
