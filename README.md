@@ -8,7 +8,7 @@
 [![Status: WIP](https://img.shields.io/badge/Status-Work%20In%20Progress-yellow.svg)](#)
 [![Android](https://img.shields.io/badge/Platform-Native%20Android%20%7C%20Wear%20OS-3DDC84.svg?logo=android&logoColor=white)](#)
 [![Health Connect](https://img.shields.io/badge/Google-Health%20Connect-34A853.svg?logo=google&logoColor=white)](#)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](#)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
 
