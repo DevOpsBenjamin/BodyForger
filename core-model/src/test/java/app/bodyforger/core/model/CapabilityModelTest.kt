@@ -12,7 +12,6 @@ class CapabilityModelTest {
     fun `le plafond majore, il ne constate pas`() {
         val pro = ScaleCapability(ElectrodeCount.EIGHT, listOf(50, 250))
 
-        // Une Pro dont l'athlète ne saisit pas la poignée produit légitimement l'ensemble vide.
         val obtained = RawImpedances.NONE
 
         assertEquals(12, pro.measurableReadings.size)

@@ -1,9 +1,10 @@
 package app.bodyforger.core.model
 
 /**
- * Modèle d'exercice universel partagé entre Mobile, Wear OS et Database.
- * Chaque exercice est nativement lié à son type canonique Google Health Connect
- * et à sa catégorie d'activité globale (Musculation, Elliptique, Rameur, etc.).
+ * The universal exercise model, shared by mobile, Wear OS and the database.
+ *
+ * Every exercise carries its canonical Google Health Connect type and its overall activity
+ * category.
  */
 data class Exercise(
     val id: String,

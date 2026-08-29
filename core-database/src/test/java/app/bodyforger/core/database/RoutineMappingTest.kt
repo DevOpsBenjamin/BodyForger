@@ -101,7 +101,6 @@ class RoutineMappingTest {
             )
         )
 
-        // Conversion vers Entités
         val routineEntity = routine.toEntity()
         assertEquals("routine_push_1", routineEntity.id)
         assertEquals("Push Day Alpha", routineEntity.name)
@@ -141,7 +140,6 @@ class RoutineMappingTest {
         assertEquals(routine.assignedDays, restoredDomain.assignedDays)
         assertEquals(2, restoredDomain.exercises.size)
 
-        // Exercice 1 vérification
         val ex1 = restoredDomain.exercises[0]
         assertEquals("Développé Couché", ex1.exerciseName)
         assertEquals(120, ex1.restTimeSeconds)
@@ -153,7 +151,6 @@ class RoutineMappingTest {
         assertEquals(8, ex1.sets[1].minReps)
         assertEquals(12, ex1.sets[1].maxReps)
 
-        // Exercice 2 vérification
         val ex2 = restoredDomain.exercises[1]
         assertTrue(ex2.isUnilateral)
         assertEquals(WorkoutActivityCategory.STATIONARY_BIKING, ex2.activityCategory)

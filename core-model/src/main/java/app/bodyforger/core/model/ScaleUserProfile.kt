@@ -1,14 +1,14 @@
 package app.bodyforger.core.model
 
 /**
- * Le profil transmis à la balance pour ses propres calculs de bio-impédance.
+ * The profile handed to the scale for its own bio-impedance computations.
  *
- * Distinct du [BiaProfile] qu'utilise notre moteur : c'est la même physiologie, mais envoyée
- * au matériel, avec le dernier poids connu qui aide certaines balances à cadrer leur mesure.
+ * Distinct from [BiaProfile], which feeds our engine: same physiology, sent to the hardware
+ * along with the last known weight that helps it frame its measurement.
  */
 data class ScaleUserProfile(
     val physiology: BiaProfile,
     val lastWeightKg: Double? = null,
-    /** Mode invité : mesure ponctuelle sans occuper un emplacement mémoire de la balance. */
+    /** Guest mode: a one-off reading that occupies no memory slot on the scale. */
     val isGuest: Boolean = false
 )

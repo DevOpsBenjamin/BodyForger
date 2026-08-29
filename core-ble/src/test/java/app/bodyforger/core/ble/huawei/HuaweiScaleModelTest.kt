@@ -31,7 +31,6 @@ class HuaweiScaleModelTest {
 
     @Test
     fun `le nom GAP ne designe que la famille, sans plafond`() {
-        // `HaigeBLE` est ce que remonte CoreBluetooth ; il ne distingue aucun modèle.
         val model = requireNotNull(HuaweiScaleModel.identify("HaigeBLE"))
 
         assertEquals(HuaweiScaleModel.HAIGE_FAMILY, model)
@@ -69,8 +68,6 @@ class HuaweiScaleModelTest {
 
     @Test
     fun `le facteur d'echelle des resistances est porte par le modele`() {
-        // TECH.md §6.2 : le dixième d'ohm n'est pas universel dans la gamme Huawei.
-        // Le facteur appartient donc au matériel, pas au décodeur — un modèle futur
         // l'ajuste sans toucher au protocole.
         for (model in HuaweiScaleModel.entries) {
             assertEquals(HuaweiScaleModel.HAIGE_OHM_DIVISOR, model.impedanceOhmDivisor, 1e-9)

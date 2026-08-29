@@ -27,7 +27,6 @@ class HuaweiWeighInSequenceTest {
             listOf(AthleteInstruction.STEP_ON_BAREFOOT, AthleteInstruction.GRIP_HANDLE),
             stepOn.instructions
         )
-        // Une étape distincte ferait relâcher la poignée avant la mesure.
         assertEquals(1, pro.count { AthleteInstruction.GRIP_HANDLE in it.instructions })
     }
 
@@ -43,7 +42,6 @@ class HuaweiWeighInSequenceTest {
     fun `la poignee n'est pas demandee a un materiel qui n'en a pas`() {
         assertFalse(plain.any { AthleteInstruction.GRIP_HANDLE in it.instructions })
         assertTrue(plain.any { AthleteInstruction.STEP_ON_BAREFOOT in it.instructions })
-        // Le découpage reste le même : seule la consigne diffère.
         assertEquals(pro.size, plain.size)
     }
 

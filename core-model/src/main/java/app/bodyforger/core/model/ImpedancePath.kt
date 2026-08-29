@@ -1,15 +1,12 @@
 package app.bodyforger.core.model
 
 /**
- * Un trajet anatomique le long duquel une balance mesure une résistance électrique.
+ * An anatomical path along which a scale measures a resistance.
  *
- * Un trajet n'est **pas** une zone du corps : les six traversent à la fois les membres
- * et le tronc. La composition segmentaire s'en déduit par les lois de Kirchhoff, elle ne
- * s'y lit pas directement.
+ * A path is **not** a body zone: all six cross both the limbs and the trunk. Segmental
+ * composition follows from Kirchhoff's laws — `docs/BIA_ENGINE.md` §2.
  *
- * [wireIndex] est la position du trajet dans la trame de télémétrie, identique aux deux
- * fréquences. Ordre confirmé par trois sources indépendantes (décodeur de production,
- * `HUAWEI_SCALE_3_BIA_ALGORITHMS.md` §3, base locale de Huawei Health).
+ * [wireIndex] is the path's position in the telemetry frame, identical at both frequencies.
  */
 enum class ImpedancePath(val wireIndex: Int, val involvesHands: Boolean) {
     LEFT_FOOT_TO_RIGHT_FOOT(0, involvesHands = false),
@@ -20,20 +17,20 @@ enum class ImpedancePath(val wireIndex: Int, val involvesHands: Boolean) {
     RIGHT_HAND_TO_RIGHT_FOOT(5, involvesHands = true);
 
     companion object {
-        /** Les six trajets, dans l'ordre où la trame les transporte. */
+        /** The six paths, in the order the frame carries them. */
         val BY_WIRE_INDEX: List<ImpedancePath> = entries.sortedBy { it.wireIndex }
     }
 }
 
 /**
- * Une résistance identifiée par son trajet et sa fréquence d'excitation.
+ * A resistance identified by its path and excitation frequency.
  *
- * La fréquence est portée en kilohertz plutôt que par un drapeau « bi-fréquence » : un
- * appareil tri-fréquence ne doit pas imposer de refonte du modèle.
+ * Frequency is carried in kilohertz rather than as a dual-frequency flag, so a three-frequency
+ * device would not force a redesign.
  */
 data class ImpedanceReading(val path: ImpedancePath, val frequencyKHz: Int) {
     init {
-        require(frequencyKHz > 0) { "Fréquence invalide : $frequencyKHz kHz" }
+        require(frequencyKHz > 0) { "Invalid frequency: $frequencyKHz kHz" }
     }
 
     companion object {
