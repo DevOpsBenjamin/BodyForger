@@ -27,20 +27,12 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.util.UUID
 
 /**
- * Le transport Bluetooth réel, au-dessus de la pile GATT d'Android.
+ * The real Bluetooth transport, above Android's GATT stack.
  *
- * Deux contraintes de la plateforme dictent cette conception, et les ignorer donne un code
- * qui marche en démonstration puis échoue en vrai :
+ * Platform constraints that shape it — one operation at a time, answers as notifications,
+ * error 133 — are described in `docs/BLE_PROTOCOL.md` §7.
  *
- * * **Android n'accepte qu'une opération GATT à la fois.** Écrire pendant qu'une écriture est
- *   en vol fait échouer silencieusement la seconde. Tout passe donc par un verrou, et chaque
- *   opération attend son rappel avant que la suivante ne parte.
- * * **Les réponses n'arrivent presque jamais en retour d'écriture** mais par notification, sur
- *   la même caractéristique. Il faut s'y abonner avant d'écrire, sinon la balance répond dans
- *   le vide.
- *
- * Les trames sont recollées ici : le pilote reçoit des charges complètes, jamais des
- * fragments. Un recolleur par caractéristique, puisque plusieurs peuvent émettre en parallèle.
+ * Frames are reassembled here: a driver receives whole payloads, never fragments.
  */
 @SuppressLint("MissingPermission")
 class AndroidGattTransport(
@@ -57,7 +49,7 @@ class AndroidGattTransport(
     )
     override val incoming: Flow<ScaleNotification> = notifications.asSharedFlow()
 
-    /** Android n'admet qu'une opération GATT en vol : ce verrou les met en file. */
+    /** Android allows one GATT operation in flight; this queues them. */
     private val gattLock = Mutex()
 
     private var gatt: BluetoothGatt? = null
@@ -68,21 +60,12 @@ class AndroidGattTransport(
 
     private val reassemblers = mutableMapOf<HuaweiCharacteristic, HuaweiFrameReassembler>()
 
-    /**
-     * Établit la connexion et découvre les services, avec reprise.
-     *
-     * ⚠️ Une première tentative échoue couramment sur Android sans que rien ne soit anormal —
-     * c'est l'échec 133, bien connu, qui frappe surtout un appareil jamais appairé ou dont le
-     * scan vient à peine de s'arrêter. Réessayer suffit presque toujours. Sans cette reprise,
-     * un appairage parfaitement légitime paraît refusé.
-     */
+    /** Connects and discovers services, retrying: error 133 commonly hits the first try. */
     override suspend fun connect(): Boolean {
         repeat(CONNECTION_ATTEMPTS) { attempt ->
             if (attemptConnect()) return true
             Log.w(TAG, "tentative de connexion ${attempt + 1}/$CONNECTION_ATTEMPTS échouée")
             closeInternal()
-            // Laisser la pile Bluetooth se libérer avant de réessayer : enchaîner
-            // immédiatement reproduit le même échec.
             delay(RETRY_DELAY_MS)
         }
         return false
@@ -122,7 +105,6 @@ class AndroidGattTransport(
     ): Boolean = gattLock.withLock {
         val target = resolve(characteristic)
         if (target == null) {
-            // Caractéristique absente : l'hypothèse de profil GATT ne tient pas sur ce modèle.
             Log.w(TAG, "caractéristique introuvable : $characteristic")
             return@withLock false
         }
@@ -132,20 +114,11 @@ class AndroidGattTransport(
             return@withLock false
         }
 
-        // Activer les notifications côté Android ne suffit pas : il faut aussi le dire à la
-        // balance, en écrivant dans le descripteur de configuration client.
         val descriptor = target.getDescriptor(HuaweiGattProfile.CLIENT_CONFIG_DESCRIPTOR)
         if (descriptor == null) {
-            // Sans descripteur de configuration, la balance ne peut pas être avertie qu'on
-            // écoute. Certaines caractéristiques n'en ont pas et ne notifient jamais.
             Log.w(TAG, "pas de descripteur de notification sur $characteristic")
             return@withLock false
         }
-        // ⚠️ Notification et indication ne s'activent pas avec la même valeur, et écrire
-        // l'une pour l'autre fait rejeter le descripteur. La famille Haige emploie
-        // massivement l'**indication** — l'acquittement que la notification n'a pas — et une
-        // seule de ses caractéristiques notifie vraiment. Le choix se lit donc dans les
-        // propriétés de chaque caractéristique, jamais supposé.
         val indicates = target.properties and BluetoothGattCharacteristic.PROPERTY_INDICATE != 0
         val notifies = target.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0
         if (!indicates && !notifies) {
@@ -191,8 +164,6 @@ class AndroidGattTransport(
         } else {
             HuaweiFrameMagic.HOST_ENCRYPTED
         }
-        // Chaque trame part séparément et attend son acquittement : la pile Android ne
-        // tolère pas deux écritures simultanées.
         for (frame in HuaweiFraming.split(payload, magic)) {
             if (!writeFrame(characteristic, frame, withResponse)) return false
         }
@@ -256,12 +227,7 @@ class AndroidGattTransport(
         pendingDescriptor = null
     }
 
-    /**
-     * Journalise ce que la balance expose réellement.
-     *
-     * La carte GATT n'a été relevée que sur un modèle : c'est ici que l'on voit si elle tient
-     * sur un autre matériel, plutôt que de le déduire d'un échec muet.
-     */
+    /** Logs the profile the device actually announces, to test our map against it. */
     private fun dumpProfile() {
         val services = gatt?.services ?: return
         Log.d(TAG, "--- profil GATT annoncé par l'appareil ---")
@@ -293,7 +259,6 @@ class AndroidGattTransport(
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
-                    // Le statut 133 est l'échec générique d'Android : il ne dit rien de plus.
                     Log.d(TAG, "connecté (statut $status)")
                     connection?.complete(status == BluetoothGatt.GATT_SUCCESS)
                 }
@@ -301,7 +266,6 @@ class AndroidGattTransport(
                     Log.d(TAG, "déconnecté (statut $status)")
                     connection?.complete(false)
                     services?.complete(false)
-                    // Une déconnexion en vol laisserait une opération suspendue jusqu'au délai.
                     pendingWrite?.complete(false)
                     pendingDescriptor?.complete(false)
                 }
@@ -342,12 +306,7 @@ class AndroidGattTransport(
         ) = deliver(characteristic.uuid, characteristic.value ?: ByteArray(0))
     }
 
-    /**
-     * Recolle la trame reçue et n'émet que lorsqu'une charge est complète.
-     *
-     * `tryEmit` plutôt qu'une émission suspendue : on est dans un rappel de la pile
-     * Bluetooth, qu'il ne faut jamais bloquer.
-     */
+    /** Reassembles, emitting only complete payloads. Never blocks the Bluetooth callback. */
     private fun deliver(uuid: UUID, frame: ByteArray) {
         val characteristic = profile.characteristicOf(uuid) ?: return
         val reassembler = reassemblers.getOrPut(characteristic) { HuaweiFrameReassembler() }
@@ -357,12 +316,8 @@ class AndroidGattTransport(
             if (why == null) {
                 Log.v(TAG, "trame intermédiaire sur $characteristic (${frame.size} o)")
             } else if (characteristic == HuaweiCharacteristic.CAPABILITIES_RESPONSE) {
-                // Cette caractéristique répond dans son propre format, hors de la couche de
-                // trame : son rejet est attendu et rien n'en dépend.
                 Log.v(TAG, "réponse de capacités hors trame (${frame.size} o)")
             } else {
-                // Le contenu brut est indispensable : sans lui, un défaut de recollage se
-                // devine au lieu de se lire.
                 Log.w(TAG, "trame écartée sur $characteristic — $why — ${frame.toHex()}")
             }
             return
@@ -381,13 +336,13 @@ class AndroidGattTransport(
         take(limit).joinToString("") { "%02x".format(it) } + if (size > limit) "…" else ""
 
     companion object {
-        /** Filtre de journal pour suivre une session : `adb logcat -s BodyForgerBle`. */
+        /** Log tag: `adb logcat -s BodyForgerBle`. */
         const val TAG = "BodyForgerBle"
 
         const val DEFAULT_OPERATION_TIMEOUT_MS = 5_000L
         const val CONNECTION_TIMEOUT_MS = 15_000L
 
-        /** Trois essais : l'échec 133 frappe la première tentative, rarement la troisième. */
+        /** Error 133 hits the first attempt, rarely the third. */
         const val CONNECTION_ATTEMPTS = 3
         const val RETRY_DELAY_MS = 600L
     }

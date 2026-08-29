@@ -5,23 +5,15 @@ import app.bodyforger.core.ble.SessionPhase
 import app.bodyforger.core.model.ElectrodeCount
 
 /**
- * La séquence de pesée **Mode 2** de la famille Haige, jouée à chaque pesée une fois
- * l'Association établie.
- *
- * Multi-étapes au même titre que l'appairage : la balance doit être réveillée, authentifiée
- * et configurée avant que l'athlète puisse monter.
- *
- * Séquence tirée de `TECH.md` §5 et de l'implémentation de référence `scale3.py`.
+ * The Haige weigh-in sequence, mode 2 — `docs/BLE_PROTOCOL.md` §6.
  */
 object HuaweiWeighInSequence {
 
     /**
-     * Les étapes pour un modèle donné.
+     * Steps for a given model.
      *
-     * Monter et saisir la poignée forment **une seule étape** : ce sont deux gestes
-     * simultanés, et les séparer ferait relâcher la poignée avant la mesure. La poignée n'est
-     * demandée qu'à un matériel à huit électrodes ; sans elle la pesée aboutit quand même,
-     * avec la seule masse.
+     * Stepping on and gripping the handle form one step: separating them would have the
+     * handle released before the reading.
      */
     fun stepsFor(model: HuaweiScaleModel): List<HuaweiSessionStep> = buildList {
         add(
@@ -50,10 +42,7 @@ object HuaweiWeighInSequence {
         )
     }
 
-    /**
-     * Ce que l'athlète doit faire au moment de monter — la poignée n'ayant de sens que sur un
-     * matériel qui en possède une.
-     */
+    /** What the athlete does when stepping on; the handle only where there is one. */
     fun stepOnInstructions(model: HuaweiScaleModel): List<AthleteInstruction> = buildList {
         add(AthleteInstruction.STEP_ON_BAREFOOT)
         if (model.capability?.electrodeCount == ElectrodeCount.EIGHT) {

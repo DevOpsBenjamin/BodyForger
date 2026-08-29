@@ -6,15 +6,9 @@ import app.bodyforger.core.model.ImpedanceReading
 import app.bodyforger.core.model.ScaleCapability
 
 /**
- * Un modèle de balance reconnu, et le plafond de capacité qu'il déclare.
+ * A recognised model of the Haige family.
  *
- * Le modèle se lit dans le **nom annoncé** de l'advertisement BLE, avant toute connexion —
- * pas dans le nom GAP. Les deux diffèrent sur cette famille : le nom GAP vaut `HaigeBLE`
- * pour toute la gamme, tandis que l'advertisement porte `HUAWEI Scale 3 Pro-467`.
- *
- * Seuls les modèles dont les deux axes sont **documentés** portent une [capability]. Les
- * autres membres de la famille sont reconnus — même protocole, même handshake, même trame —
- * mais leur capacité est déduite de ce que la trame livre réellement, jamais supposée.
+ * Recognition, key material and GATT map: `docs/BLE_PROTOCOL.md`.
  */
 enum class HuaweiScaleModel(
     private val nameFragments: List<String>,
@@ -31,19 +25,10 @@ enum class HuaweiScaleModel(
      * propres constantes.
      */
     val keyMaterial: HuaweiKeyMaterial = HuaweiKeyMaterial.SCALE_3_PRO,
-    /**
-     * La carte des caractéristiques GATT employée pour ce modèle.
-     *
-     * ⚠️ Relevée sur la Pro seule, et appliquée aux autres comme hypothèse — douze de ses
-     * quinze UUID sont propriétaires. Une caractéristique absente à la découverte des
-     * services réfute l'hypothèse, et se diagnostique, elle.
-     */
+    /** GATT map used for this model — `docs/BLE_PROTOCOL.md` §4. */
     val gattProfile: HuaweiGattProfile = HuaweiGattProfile.SCALE_3_PRO
 ) {
-    /**
-     * `M00F` / `HAGRID-B29` — poignée rétractable, huit électrodes, bande haute fréquence.
-     * Trame de 38 octets. Documenté dans `TECH.md`.
-     */
+    /** `M00F` — retractable handle, eight electrodes, dual frequency. */
     HUAWEI_SCALE_3_PRO(
         nameFragments = listOf("scale 3 pro"),
         displayName = "HUAWEI Scale 3 Pro",
@@ -57,10 +42,7 @@ enum class HuaweiScaleModel(
         // Seul modèle sur lequel le matériel de clés a été effectivement relevé.
     ),
 
-    /**
-     * `M00D` / `HEM-B19` — quatre électrodes au plateau, basse fréquence seule.
-     * Trame de 26 octets. Documenté dans `TECH.md`.
-     */
+    /** `M00D` — four plate electrodes, low frequency only. */
     HUAWEI_SCALE_3(
         nameFragments = listOf("scale 3"),
         displayName = "HUAWEI Scale 3",
@@ -73,11 +55,10 @@ enum class HuaweiScaleModel(
     ),
 
     /**
-     * Membre reconnu de la famille Haige dont les axes ne sont pas documentés — Scale 2 Pro,
-     * HONOR Scale 2, ou un modèle non répertorié.
+     * A recognised Haige device whose axes are undocumented.
      *
-     * Volontairement sans plafond : le nombre d'électrodes de ces modèles n'est établi par
-     * aucune source en notre possession. La capacité se révèle à la première pesée.
+     * Deliberately capped at nothing: an invented ceiling would be worth less than none, and
+     * the capability reveals itself on the first reading.
      */
     HAIGE_FAMILY(
         nameFragments = listOf("haigeble", "hagrid", "huawei scale", "honor scale"),
@@ -98,11 +79,9 @@ enum class HuaweiScaleModel(
          *
          * `TECH.md` §6.2 avertit que ce n'est pas universel dans la gamme Huawei — d'où un
          * facteur porté par le modèle plutôt qu'en constante du décodeur. Nos deux captures
-         * réelles le confirment sur `M00F` comme sur `M00D` (compteur 5098 → 509,8 Ω).
          *
          * openScale désambiguïse par magnitude (`1..3999` lus en ohms, `4000..39999` divisés
          * par dix) parce qu'il couvre cinquante-huit balances. Cette heuristique se trompe
-         * sur nos relevés : elle rendrait un compteur de 4150 en 4150 Ω.
          */
         const val HAIGE_OHM_DIVISOR: Double = 10.0
 
@@ -121,7 +100,7 @@ enum class HuaweiScaleModel(
             return entries.firstOrNull { it.matches(advertisedName) }
         }
 
-        /** Point d'entrée du pilote : reconnaît une balance sans exposer l'énumération. */
+        /** Driver entry point: recognises a scale without exposing the enumeration. */
         fun recognise(advertisedName: String?): RecognisedScale? =
             identify(advertisedName)?.toRecognisedScale()
     }

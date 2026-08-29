@@ -5,11 +5,9 @@ import app.bodyforger.core.model.ScaleUserProfile
 import java.time.LocalDateTime
 
 /**
- * Les charges utiles que la balance attend, construites octet par octet.
+ * The payloads the scale expects, built byte by byte.
  *
- * Ces structures sont **positionnelles et de taille fixe** : un champ décalé d'un octet ne
- * produit pas une erreur mais une valeur absurde acceptée sans broncher. Rien ici n'est
- * inféré ni arrondi au hasard.
+ * Layouts: `docs/BLE_PROTOCOL.md` §9.
  */
 object HuaweiPayloads {
 
@@ -18,31 +16,17 @@ object HuaweiPayloads {
     private const val UID_BYTES = 32
     private const val UID_OFFSET = 30
 
-    /** Le type de profil : mesure courante, ou acquittement d'une mesure obtenue. */
+    /** Profile kind: routine configuration, or acknowledgement of a completed reading. */
     enum class ProfileKind(val code: Int) {
-        /** Configuration avant pesée. */
         ROUTINE(0),
 
-        /** Validation envoyée une fois la trame reçue : la balance clôt alors la session. */
         MEASUREMENT_COMMIT(2)
     }
 
     /**
-     * Le profil utilisateur, 69 octets en clair avant chiffrement.
+     * The user profile, 69 bytes in the clear.
      *
-     * ```
-     * 0..29   HUID, ASCII complété de zéros
-     * 30..61  UID secondaire, facultatif — laissé à zéro
-     * 62      sexe : 1 homme, 0 femme
-     * 63      âge en années
-     * 64..65  taille en cm, petit-boutiste
-     * 66..67  poids × 100, petit-boutiste
-     * 68      type de profil
-     * ```
-     *
-     * Le poids transmis est le **dernier connu**, qui aide la balance à cadrer sa mesure. Il
-     * est laissé à zéro lorsqu'aucun n'est disponible : mieux vaut ne rien dire qu'annoncer
-     * un poids inventé, que la balance graverait dans sa calibration.
+     * [weightKg] is the last known weight, left at zero when there is none.
      */
     fun userProfile(
         huid: String,
@@ -51,15 +35,14 @@ object HuaweiPayloads {
         weightKg: Double? = profile.lastWeightKg
     ): ByteArray {
         val huidBytes = huid.toByteArray(Charsets.US_ASCII)
-        require(huidBytes.size <= HUID_BYTES) { "HUID de ${huidBytes.size} octets, $HUID_BYTES au plus" }
+        require(huidBytes.size <= HUID_BYTES) { "HUID of ${huidBytes.size} bytes, $HUID_BYTES at most" }
 
         val physiology = profile.physiology
-        require(physiology.ageYears in 0..255) { "Âge hors bornes : ${physiology.ageYears}" }
-        require(physiology.heightCm > 0) { "Taille invalide : ${physiology.heightCm}" }
+        require(physiology.ageYears in 0..255) { "Age out of range: ${physiology.ageYears}" }
+        require(physiology.heightCm > 0) { "Invalid height: ${physiology.heightCm}" }
 
         val payload = ByteArray(PROFILE_BYTES)
         huidBytes.copyInto(payload)
-        // Les octets 30..61 restent nuls : l'UID secondaire est facultatif.
         payload[UID_OFFSET + UID_BYTES] = if (physiology.sex == BiologicalSex.MALE) 1 else 0
         payload[63] = physiology.ageYears.toByte()
         payload.putUInt16LittleEndian(64, physiology.heightCm.toInt())
@@ -68,12 +51,7 @@ object HuaweiPayloads {
         return payload
     }
 
-    /**
-     * L'heure courante au format standard Bluetooth *Current Time*.
-     *
-     * Caractéristique du SIG, donc identique sur tout matériel : dix octets, année en tête.
-     * Le jour de la semaine suit la convention ISO, lundi valant 1.
-     */
+    /** Current time in the standard Bluetooth SIG format. */
     fun currentTime(now: LocalDateTime): ByteArray {
         val payload = ByteArray(10)
         payload.putUInt16LittleEndian(0, now.year)
@@ -88,7 +66,7 @@ object HuaweiPayloads {
         return payload
     }
 
-    /** Armement (`0x01`) ou désarmement (`0x00`) du mode association. */
+    /** Arms or disarms binding mode. */
     fun bindingControl(armed: Boolean): ByteArray = byteArrayOf(if (armed) 1 else 0)
 
     private fun ByteArray.putUInt16LittleEndian(offset: Int, value: Int) {

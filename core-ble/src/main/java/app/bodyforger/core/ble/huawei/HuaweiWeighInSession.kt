@@ -15,14 +15,9 @@ import java.security.SecureRandom
 import java.time.LocalDateTime
 
 /**
- * Une pesée de bout en bout, du réveil de la balance à la trame de télémétrie.
+ * A weigh-in from waking the scale to the telemetry frame — `docs/BLE_PROTOCOL.md` §6.
  *
- * Le flux émet la progression pas à pas, puis se termine sur [WeighInState.Completed] ou
- * [WeighInState.Failed]. Il n'émet jamais rien après l'un des deux.
- *
- * L'attente de l'athlète est bien plus longue que les autres : il doit se déshabiller,
- * monter, se stabiliser. Un délai calqué sur les échanges protocolaires échouerait sur une
- * personne simplement lente.
+ * The flow ends on [WeighInState.Completed] or [WeighInState.Failed], and emits nothing after.
  */
 class HuaweiWeighInSession(
     private val transport: ScaleTransport,
@@ -55,8 +50,6 @@ class HuaweiWeighInSession(
         advance() // Handshake
         val sessionKey = HuaweiHandshake(transport, model, random).negotiate(association.deviceAddress)
         if (sessionKey == null) {
-            // Un refus n'est pas diagnosticable : clé racine fausse, appareil usurpé ou
-            // liaison perdue se ressemblent tous.
             emit(WeighInState.Failed(SessionFailure.REJECTED_BY_DEVICE))
             return@coroutineScope
         }
@@ -86,17 +79,11 @@ class HuaweiWeighInSession(
 
         advance() // Balance prête : l'athlète peut monter
 
-        // ⚠️ On **reste** sur cette étape tant que la trame n'est pas là. Enchaîner tout de
-        // suite sur l'étape de mesure effacerait l'invitation en quelques microsecondes, et
-        // l'athlète attendrait devant un écran qui ne lui demande plus rien.
         //
-        // Écouter avant d'armer : le flux des notifications n'a pas de tampon, et une trame
-        // émise avant qu'un collecteur ne s'abonne serait perdue pour tout le monde.
         val frame = run {
             val awaited = async {
                 transport.incoming.first { it.characteristic == HuaweiCharacteristic.BIA_STREAM }
             }
-            // S'abonner ne suffit pas : la balance n'émet rien tant que le flux n'est pas armé.
             if (!transport.writeRaw(HuaweiCharacteristic.BIA_STREAM, HuaweiCommands.QUERY)) {
                 awaited.cancel()
                 return@run null
@@ -108,7 +95,6 @@ class HuaweiWeighInSession(
             return@coroutineScope
         }
 
-        // La trame est là : l'athlète est monté, la mesure est en cours de dépouillement.
         advance()
 
         val clear = HuaweiCrypto.decrypt(sessionKey, frame.payload)
@@ -118,8 +104,6 @@ class HuaweiWeighInSession(
             return@coroutineScope
         }
 
-        // La balance attend son acquittement pour clore la session ; sans lui elle reste
-        // armée et l'athlète devra attendre son extinction avant la pesée suivante.
         writeSealed(
             sessionKey,
             HuaweiCharacteristic.USER_PROFILE,
@@ -145,10 +129,7 @@ class HuaweiWeighInSession(
     }
 
     companion object {
-        /**
-         * Se déshabiller, monter, se stabiliser : deux minutes ne sont pas de trop. Un délai
-         * calqué sur les échanges protocolaires échouerait sur une personne simplement lente.
-         */
+        /** Undressing and stabilising takes minutes, not protocol milliseconds. */
         const val DEFAULT_ATHLETE_TIMEOUT_MS = 120_000L
     }
 }
