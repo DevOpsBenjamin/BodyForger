@@ -35,13 +35,17 @@ class AndroidScaleScanner(private val context: Context) : ScaleScanner {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 // `scanRecord.deviceName` est le nom **annoncé**, celui qui porte le modèle.
                 // `result.device.name` est le nom GAP, générique sur cette famille.
+                // Un appareil sans nom annoncé n'apprend rien à personne : ni reconnaissable,
+                // ni identifiable à l'œil.
                 val advertised = result.scanRecord?.deviceName ?: return
-                val recognised = identifier.identify(advertised) ?: return
                 trySend(
                     DiscoveredScale(
                         deviceAddress = result.device.address,
                         advertisedName = advertised,
-                        recognised = recognised,
+                        // Un appareil inconnu est émis quand même : c'est ce qui permet de
+                        // voir qu'une balance est là sous un nom que le pilote ne sait pas
+                        // encore reconnaître.
+                        recognised = identifier.identify(advertised),
                         signalStrengthDbm = result.rssi
                     )
                 )

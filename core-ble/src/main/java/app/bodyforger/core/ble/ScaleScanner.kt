@@ -11,10 +11,19 @@ import kotlinx.coroutines.flow.Flow
 data class DiscoveredScale(
     val deviceAddress: String,
     val advertisedName: String,
-    val recognised: RecognisedScale,
+    /**
+     * Ce qu'un pilote a reconnu, ou `null` pour un appareil inconnu.
+     *
+     * Les inconnus sont montrés plutôt que masqués : voir le nom réellement annoncé est le
+     * seul moyen de comprendre qu'une balance est bien là mais que notre filtre la rate. Un
+     * scan qui ne montre que ce qu'il reconnaît ne peut jamais dire qu'il s'est trompé.
+     */
+    val recognised: RecognisedScale?,
     /** Puissance reçue, en dBm — utile pour proposer la plus proche quand plusieurs répondent. */
     val signalStrengthDbm: Int
-)
+) {
+    val isCompatible: Boolean get() = recognised != null
+}
 
 /**
  * La découverte des balances alentour.
@@ -38,7 +47,7 @@ fun interface ScaleIdentifier {
 interface ScaleScanner {
 
     /**
-     * Émet les balances reconnues par [identifier] tant que le flux est collecté.
+     * Émet les appareils qui s'annoncent tant que le flux est collecté, reconnus ou non.
      *
      * Le même appareil peut être émis plusieurs fois : une balance s'annonce en boucle, et sa
      * puissance reçue varie. C'est à l'appelant de dédupliquer par adresse.

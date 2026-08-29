@@ -112,28 +112,29 @@ private fun Scanning(
         }
         if (discovered.isEmpty()) {
             Text(
-                "Aucune balance pour l'instant. Tapotez-la du pied : elle ne s'annonce que quelques secondes.",
+                "Aucun appareil pour l'instant. Tapotez la balance du pied : elle ne s'annonce que quelques secondes.",
                 color = TextSecondary,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
-        discovered.forEach { scale ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-                    .clickable { onAssociate(scale) },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(scale.recognised.displayName, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    Text(scale.advertisedName, color = TextSecondary, fontSize = 11.sp)
-                }
-                Text("${scale.signalStrengthDbm} dBm", color = ElectricCyan, fontSize = 12.sp)
-            }
+        val (compatible, others) = discovered.partition { it.isCompatible }
+
+        compatible.forEach { scale -> DeviceRow(scale, onClick = { onAssociate(scale) }) }
+
+        if (others.isNotEmpty()) {
+            Text(
+                // Montrés pour que l'on voie ce qui s'annonce vraiment : une balance présente
+                // sous un nom inattendu se repère ici, et nulle part ailleurs.
+                "Autres appareils détectés",
+                color = TextSecondary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 16.dp, bottom = 2.dp)
+            )
+            others.forEach { scale -> DeviceRow(scale, onClick = null) }
         }
+
         OutlinedButton(onClick = onStopScan, modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
             Text("Arrêter", color = TextSecondary)
         }
@@ -169,6 +170,43 @@ private fun Pairing(state: ScaleUiState) {
             color = TextSecondary,
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+}
+
+/**
+ * Une ligne d'appareil.
+ *
+ * Un appareil non reconnu s'affiche sans être cliquable : le montrer aide au diagnostic,
+ * mais tenter une gravure dessus reviendrait à écrire au hasard dans un matériel inconnu.
+ */
+@Composable
+private fun DeviceRow(scale: DiscoveredScale, onClick: (() -> Unit)?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = scale.recognised?.displayName ?: scale.advertisedName,
+                color = if (onClick != null) TextPrimary else TextSecondary,
+                fontSize = 14.sp,
+                fontWeight = if (onClick != null) FontWeight.SemiBold else FontWeight.Normal
+            )
+            Text(
+                text = if (scale.recognised != null) scale.advertisedName else scale.deviceAddress,
+                color = TextSecondary,
+                fontSize = 11.sp
+            )
+        }
+        Text(
+            text = "${scale.signalStrengthDbm} dBm",
+            color = if (onClick != null) ElectricCyan else TextSecondary,
+            fontSize = 12.sp
         )
     }
 }

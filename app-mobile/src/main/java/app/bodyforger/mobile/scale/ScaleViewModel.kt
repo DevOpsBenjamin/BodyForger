@@ -101,8 +101,13 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
                 val known = _state.value.discovered
                 // Une balance s'annonce en boucle : on tient une entrée par adresse.
                 _state.value = _state.value.copy(
+                    // Les compatibles d'abord, puis les plus proches : c'est l'ordre dans
+                    // lequel on cherche sa balance des yeux.
                     discovered = (known.filterNot { it.deviceAddress == found.deviceAddress } + found)
-                        .sortedByDescending { it.signalStrengthDbm }
+                        .sortedWith(
+                            compareByDescending<DiscoveredScale> { it.isCompatible }
+                                .thenByDescending { it.signalStrengthDbm }
+                        )
                 )
             }
         }
@@ -125,6 +130,9 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
      * la pesée de validation n'a pas eu lieu.
      */
     fun associate(scale: DiscoveredScale, profile: BiaProfile) {
+        // Un appareil non reconnu n'a pas de pilote : tenter une gravure dessus serait
+        // écrire au hasard dans la mémoire d'un matériel inconnu.
+        if (!scale.isCompatible) return
         val huid = _state.value.huid ?: return
         if (_state.value.isPairing) return
 
