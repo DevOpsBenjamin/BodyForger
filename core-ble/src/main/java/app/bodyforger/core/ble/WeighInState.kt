@@ -18,14 +18,18 @@ sealed interface WeighInState {
      * prête, consigne à l'athlète, mesure. Le découpage appartient au pilote et sert à
      * afficher une progression, pas à en déduire ce qui se passe.
      *
+     * Une étape peut demander **plusieurs gestes à la fois** : monter sur le plateau et
+     * saisir la poignée sont simultanés, les séparer ferait relâcher la poignée avant la
+     * mesure.
+     *
      * [detail] est un libellé propre au pilote, destiné au journal et au diagnostic — jamais
-     * à piloter l'interface, qui se fonde sur [phase] et [instruction].
+     * à piloter l'interface, qui se fonde sur [phase] et [instructions].
      */
     data class Progress(
         val index: Int,
         val totalSteps: Int,
         val phase: SessionPhase,
-        val instruction: AthleteInstruction? = null,
+        val instructions: List<AthleteInstruction> = emptyList(),
         val detail: String? = null
     ) : WeighInState
 
@@ -64,7 +68,7 @@ sealed interface PairingState {
         val index: Int,
         val totalSteps: Int,
         val phase: SessionPhase,
-        val instruction: AthleteInstruction? = null,
+        val instructions: List<AthleteInstruction> = emptyList(),
         val detail: String? = null
     ) : PairingState
 

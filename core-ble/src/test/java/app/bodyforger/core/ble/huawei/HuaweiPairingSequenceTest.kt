@@ -15,7 +15,7 @@ class HuaweiPairingSequenceTest {
         assertEquals(PairingRequirement.WEIGH_IN_REQUIRED, HuaweiPairingSequence.requirement)
 
         val steps = HuaweiPairingSequence.stepsFor(HuaweiScaleModel.HUAWEI_SCALE_3_PRO)
-        assertTrue(steps.any { it.instruction == AthleteInstruction.STEP_ON_BAREFOOT })
+        assertTrue(steps.any { AthleteInstruction.STEP_ON_BAREFOOT in it.instructions })
         assertEquals(SessionPhase.MEASURING, steps.last().phase)
     }
 
@@ -24,24 +24,24 @@ class HuaweiPairingSequenceTest {
         val pro = HuaweiPairingSequence.stepsFor(HuaweiScaleModel.HUAWEI_SCALE_3_PRO)
         val plain = HuaweiPairingSequence.stepsFor(HuaweiScaleModel.HUAWEI_SCALE_3)
 
-        assertTrue(pro.any { it.instruction == AthleteInstruction.GRIP_HANDLE })
-        assertFalse(plain.any { it.instruction == AthleteInstruction.GRIP_HANDLE })
+        assertTrue(pro.any { AthleteInstruction.GRIP_HANDLE in it.instructions })
+        assertFalse(plain.any { AthleteInstruction.GRIP_HANDLE in it.instructions })
     }
 
     @Test
     fun `un modele sans plafond connu ne reclame pas la poignee`() {
         val family = HuaweiPairingSequence.stepsFor(HuaweiScaleModel.HAIGE_FAMILY)
 
-        assertFalse(family.any { it.instruction == AthleteInstruction.GRIP_HANDLE })
-        assertTrue(family.any { it.instruction == AthleteInstruction.STEP_ON_BAREFOOT })
+        assertFalse(family.any { AthleteInstruction.GRIP_HANDLE in it.instructions })
+        assertTrue(family.any { AthleteInstruction.STEP_ON_BAREFOOT in it.instructions })
     }
 
     @Test
     fun `l'athlete reste hors du plateau pendant la negociation`() {
         val steps = HuaweiPairingSequence.stepsFor(HuaweiScaleModel.HUAWEI_SCALE_3_PRO)
 
-        val offPlatform = steps.indexOfFirst { it.instruction == AthleteInstruction.STAY_OFF_PLATFORM }
-        val stepOn = steps.indexOfFirst { it.instruction == AthleteInstruction.STEP_ON_BAREFOOT }
+        val offPlatform = steps.indexOfFirst { AthleteInstruction.STAY_OFF_PLATFORM in it.instructions }
+        val stepOn = steps.indexOfFirst { AthleteInstruction.STEP_ON_BAREFOOT in it.instructions }
         assertTrue(offPlatform in 0 until stepOn)
     }
 }

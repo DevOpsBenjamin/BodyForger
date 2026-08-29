@@ -23,21 +23,22 @@ object HuaweiPairingSequence {
     /**
      * Les étapes pour un modèle donné.
      *
-     * La saisie de la poignée n'est demandée que si le matériel a huit électrodes : l'exiger
-     * d'une balance qui n'en a pas laisserait l'athlète devant une consigne impossible.
+     * Monter et saisir la poignée forment une seule étape, deux gestes simultanés. La poignée
+     * n'est demandée que si le matériel en a une : l'exiger d'une balance qui n'en a pas
+     * laisserait l'athlète devant une consigne impossible.
      */
     fun stepsFor(model: HuaweiScaleModel): List<HuaweiSessionStep> = buildList {
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.DISCOVERING,
-                instruction = AthleteInstruction.TAP_SCALE_TO_WAKE,
+                instructions = listOf(AthleteInstruction.TAP_SCALE_TO_WAKE),
                 detail = "Réveil de la balance et scan ciblé"
             )
         )
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.PREPARING,
-                instruction = AthleteInstruction.STAY_OFF_PLATFORM,
+                instructions = listOf(AthleteInstruction.STAY_OFF_PLATFORM),
                 detail = "Handshake chiffré (0x21, 0x25, 0x29)"
             )
         )
@@ -52,19 +53,10 @@ object HuaweiPairingSequence {
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.AWAITING_ATHLETE,
-                instruction = AthleteInstruction.STEP_ON_BAREFOOT,
-                detail = "Pesée de validation : montée sur le plateau"
+                instructions = HuaweiWeighInSequence.stepOnInstructions(model),
+                detail = "Pesée de validation : balance prête"
             )
         )
-        if (model.capability?.electrodeCount == ElectrodeCount.EIGHT) {
-            add(
-                HuaweiSessionStep(
-                    phase = SessionPhase.AWAITING_ATHLETE,
-                    instruction = AthleteInstruction.GRIP_HANDLE,
-                    detail = "Saisie de la poignée rétractable"
-                )
-            )
-        }
         add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Relevé de validation (0x97)"))
     }
 }

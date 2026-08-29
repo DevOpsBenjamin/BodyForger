@@ -8,9 +8,8 @@ import app.bodyforger.core.model.ElectrodeCount
  * La séquence de pesée **Mode 2** de la famille Haige, jouée à chaque pesée une fois
  * l'Association établie.
  *
- * Elle est multi-étapes au même titre que l'appairage : la balance doit être réveillée,
- * authentifiée et configurée avant que l'athlète puisse monter, et la consigne de saisir la
- * poignée n'a de sens qu'au dernier moment.
+ * Multi-étapes au même titre que l'appairage : la balance doit être réveillée, authentifiée
+ * et configurée avant que l'athlète puisse monter.
  *
  * Séquence tirée de `TECH.md` §5 et de l'implémentation de référence `scale3.py`.
  */
@@ -19,45 +18,46 @@ object HuaweiWeighInSequence {
     /**
      * Les étapes pour un modèle donné.
      *
-     * La saisie de la poignée n'est demandée qu'à un matériel à huit électrodes. Sans elle,
-     * la pesée aboutit quand même — la balance émet une trame complète où seule la masse est
-     * renseignée, puis l'acquitte.
+     * Monter et saisir la poignée forment **une seule étape** : ce sont deux gestes
+     * simultanés, et les séparer ferait relâcher la poignée avant la mesure. La poignée n'est
+     * demandée qu'à un matériel à huit électrodes ; sans elle la pesée aboutit quand même,
+     * avec la seule masse.
      */
     fun stepsFor(model: HuaweiScaleModel): List<HuaweiSessionStep> = buildList {
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.DISCOVERING,
-                instruction = AthleteInstruction.TAP_SCALE_TO_WAKE,
+                instructions = listOf(AthleteInstruction.TAP_SCALE_TO_WAKE),
                 detail = "Réveil de la balance et scan ciblé"
             )
         )
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.PREPARING,
-                instruction = AthleteInstruction.STAY_OFF_PLATFORM,
+                instructions = listOf(AthleteInstruction.STAY_OFF_PLATFORM),
                 detail = "Handshake chiffré (0x21, 0x25, 0x29)"
             )
         )
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Synchronisation de l'heure (0x52)"))
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Transmission du profil utilisateur (0x31)"))
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Armement du streaming BIA (0x97)"))
+        add(HuaweiSessionStep(SessionPhase.AWAITING_ATHLETE, stepOnInstructions(model), "Balance prête"))
         add(
             HuaweiSessionStep(
-                phase = SessionPhase.AWAITING_ATHLETE,
-                instruction = AthleteInstruction.STEP_ON_BAREFOOT,
-                detail = "Balance prête : montée sur le plateau"
+                phase = SessionPhase.MEASURING,
+                detail = "Stabilisation, relevé (0x97) puis acquittement (0x31 type=2)"
             )
         )
+    }
+
+    /**
+     * Ce que l'athlète doit faire au moment de monter — la poignée n'ayant de sens que sur un
+     * matériel qui en possède une.
+     */
+    internal fun stepOnInstructions(model: HuaweiScaleModel): List<AthleteInstruction> = buildList {
+        add(AthleteInstruction.STEP_ON_BAREFOOT)
         if (model.capability?.electrodeCount == ElectrodeCount.EIGHT) {
-            add(
-                HuaweiSessionStep(
-                    phase = SessionPhase.AWAITING_ATHLETE,
-                    instruction = AthleteInstruction.GRIP_HANDLE,
-                    detail = "Saisie de la poignée rétractable des deux mains"
-                )
-            )
+            add(AthleteInstruction.GRIP_HANDLE)
         }
-        add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Stabilisation puis relevé (0x97)"))
-        add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Acquittement de la mesure (0x31 type=2)"))
     }
 }
