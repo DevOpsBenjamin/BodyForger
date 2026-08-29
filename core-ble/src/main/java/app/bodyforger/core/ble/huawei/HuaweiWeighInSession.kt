@@ -86,7 +86,10 @@ class HuaweiWeighInSession(
 
         advance() // Balance prête : l'athlète peut monter
 
-        advance() // Stabilisation et relevé
+        // ⚠️ On **reste** sur cette étape tant que la trame n'est pas là. Enchaîner tout de
+        // suite sur l'étape de mesure effacerait l'invitation en quelques microsecondes, et
+        // l'athlète attendrait devant un écran qui ne lui demande plus rien.
+        //
         // Écouter avant d'armer : le flux des notifications n'a pas de tampon, et une trame
         // émise avant qu'un collecteur ne s'abonne serait perdue pour tout le monde.
         val frame = run {
@@ -104,6 +107,9 @@ class HuaweiWeighInSession(
             emit(WeighInState.Failed(SessionFailure.TIMED_OUT))
             return@coroutineScope
         }
+
+        // La trame est là : l'athlète est monté, la mesure est en cours de dépouillement.
+        advance()
 
         val clear = HuaweiCrypto.decrypt(sessionKey, frame.payload)
         val decoded = clear?.let { HuaweiTelemetryDecoder.decode(it, model) }

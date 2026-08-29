@@ -203,7 +203,11 @@ class HuaweiFrameReassembler {
         lastRejection = null
         if (raw.size < 5) return discard("trame de ${raw.size} octets, trop courte")
         val frameMagic = HuaweiFrameMagic.of(raw[0].toInt())
-            ?: return discard("octet magique inconnu : 0x%02x".format(raw[0].toInt() and 0xFF))
+            ?: return discard(
+                // La réponse de capacités emploie son propre format, hors de cette couche de
+                // trame — d'où un octet de tête qui n'en est pas un.
+                "octet magique inconnu : 0x%02x".format(raw[0].toInt() and 0xFF)
+            )
 
         val declared = (raw[1].toInt() and 0xFF) - 3
         if (declared < 0 || 3 + declared + 2 > raw.size) {

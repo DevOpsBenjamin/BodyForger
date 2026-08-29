@@ -356,6 +356,10 @@ class AndroidGattTransport(
             val why = reassembler.lastRejection
             if (why == null) {
                 Log.v(TAG, "trame intermédiaire sur $characteristic (${frame.size} o)")
+            } else if (characteristic == HuaweiCharacteristic.CAPABILITIES_RESPONSE) {
+                // Cette caractéristique répond dans son propre format, hors de la couche de
+                // trame : son rejet est attendu et rien n'en dépend.
+                Log.v(TAG, "réponse de capacités hors trame (${frame.size} o)")
             } else {
                 // Le contenu brut est indispensable : sans lui, un défaut de recollage se
                 // devine au lieu de se lire.

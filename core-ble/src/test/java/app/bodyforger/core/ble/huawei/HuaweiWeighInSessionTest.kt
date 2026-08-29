@@ -62,6 +62,19 @@ class HuaweiWeighInSessionTest {
     }
 
     @Test
+    fun `l'invitation a monter reste affichee pendant toute l'attente`() = runTest {
+        // Enchainer sur l'etape de mesure effacerait la consigne en quelques microsecondes,
+        // et l'athlete attendrait devant un ecran qui ne lui demande plus rien.
+        val transport = FakeScale(sendsTelemetry = false)
+        val states = session(transport, athleteTimeoutMs = 50)
+            .run(association, association.huid, profile).toList()
+
+        val lastProgress = states.filterIsInstance<WeighInState.Progress>().last()
+        assertEquals(SessionPhase.AWAITING_ATHLETE, lastProgress.phase)
+        assertTrue(lastProgress.instructions.isNotEmpty())
+    }
+
+    @Test
     fun `la progression couvre les phases dans l'ordre`() = runTest {
         val states = session(FakeScale()).run(association, association.huid, profile).toList()
         val phases = states.filterIsInstance<WeighInState.Progress>().map { it.phase }
