@@ -16,15 +16,24 @@
 
 ## 💡 About BodyForger
 
-**BodyForger** is a personal, open-source fitness and body tracking project currently under active development (**WIP**). It is designed to solve specific daily training frustrations by merging the best of two open-source projects into a native dual-app ecosystem (**Android APK + Wear OS Native**):
+**BodyForger** is a personal, open-source fitness and body tracking project under active development (**WIP**). It's a native dual-app ecosystem (**Android APK + Wear OS Native**) that brings together two things I previously tracked in separate places:
 
-1. **[openGym](https://gitlab.com/DuarteSantos8/opengym)** — Comprehensive workout routines, 1,300+ exercises, and advanced set mechanics (drop-sets, rest-pause, 1RM).
-2. **[SimpleBodyGraph](https://github.com/DevOpsBenjamin/SimpleBodyGraph)** — DEXA-calibrated BIA body composition modeling, connected BLE smart scales (Huawei Scale 3 / standard GATT), and body tape measurements.
+1. **Workouts** — routines, a 1,300+ exercise library and advanced set mechanics (drop-sets, rest-pause, 1RM), building on **[openGym](https://gitlab.com/DuarteSantos8/opengym)**.
+2. **Body composition** — DEXA-calibrated BIA modelling, BLE smart scales and tape measurements, carried over from **[SimpleBodyGraph](https://github.com/DevOpsBenjamin/SimpleBodyGraph)**, a small earlier app of mine that only did scale tracking. For a mature, broadly supported take on that half, see **[openScale](https://github.com/oliexdev/openScale)**.
 
 ### Why this project?
-I'm a long-time **Hevy** user and still recommend it — it's a genuinely good app. But my own setup asks for two things it isn't built around: a watch that runs a full session **on its own**, away from the phone, and a **Google Health Connect** sync that carries everything I care about rather than a subset. Those are design priorities, not defects.
+I'm a long-time **Hevy** user and still recommend it — it's a good app. Two things about my own setup pushed me to build something else.
 
-BodyForger is built to be **100% wrist-first**, fully autonomous on Wear OS (logging workouts with screen dimmed/off via Android Health Services), directly connected to smart scales via BLE, and deeply integrated with the Google Health ecosystem.
+The first is that at the end of a session I have to take my phone out for the sync to happen. I'd rather **the watch write to Health Connect itself**, and walk away.
+
+The second is that the Health Connect sync doesn't feel quite dialled in for what I want out of it. I'm hoping to do better — though that's a hope, not a claim. This is a work in progress and it hasn't proven anything yet.
+
+### How it relates to Google Health
+BodyForger **doesn't live inside Google Health**. It's a standalone, local-first app with its own database, its own history and its own statistics — it keeps working with Health Connect switched off entirely.
+
+What it does is write *outwards*, deliberately: exercise types are mapped onto Google's own SDK types so sessions land as proper, well-formed records rather than opaque blobs — which is also what makes them worth anything to an assistant like Gemini reading them back. Data flows out; nothing depends on it flowing in.
+
+The rest is **wrist-first**: full session autonomy on Wear OS with the screen dimmed or off (Android Health Services), and smart scales over BLE.
 
 ---
 
@@ -32,12 +41,12 @@ BodyForger is built to be **100% wrist-first**, fully autonomous on Wear OS (log
 
 BodyForger is a **personal, non-commercial project**, built first and foremost for its author's own use. It is open source because there is no reason to keep it closed — not because it is looking for users.
 
-**This app is built to live inside Google Health.** That is the point of it, not a side integration — and it's the single need that started the project.
+It's tuned for a watch-first routine with **Health Connect as the destination** for what it records — not as a dependency, and not as a place it lives.
 
 ### You'll get the most out of it if
 
 - You wear a **Wear OS watch** and train with it on your wrist, away from your phone.
-- You use **Google Health Connect** as the hub of your health data.
+- You want your health data to land in **Google Health Connect**, cleanly typed.
 - You own a **BLE body composition scale** and care about raw impedance, not just a body fat number.
 
 ### It's probably not the right fit if

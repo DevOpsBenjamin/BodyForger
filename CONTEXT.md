@@ -7,7 +7,9 @@ This document is the canonical reference for the business terms and concepts use
 ## 0. Scope: Audience & Boundaries
 
 ### Target User
-The athlete BodyForger is designed for: someone who trains with a **Wear OS watch on the wrist**, away from their phone, and uses **Google Health Connect** as the convergence point for their health data. They typically own a **bioelectrical impedance scale** and care about raw impedance as much as the computed result.
+The athlete BodyForger is designed for: someone who trains with a **Wear OS watch on the wrist**, away from their phone, and who wants what they record to land in **Google Health Connect** as properly typed records. They typically own a **bioelectrical impedance scale** and care about raw impedance as much as the computed result.
+
+Health Connect is a **destination, not a dependency**: the application holds its own database, history and statistics, and keeps working with the export switched off (see *Health Connect Telemetry*).
 
 This is not a technical prerequisite — the app blocks no one. It is a **design frame**: every trade-off is settled in favour of this usage, and usages further from it are deliberately less well served.
 
