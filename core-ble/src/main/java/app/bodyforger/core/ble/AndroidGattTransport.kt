@@ -141,11 +141,23 @@ class AndroidGattTransport(
             Log.w(TAG, "pas de descripteur de notification sur $characteristic")
             return@withLock false
         }
-        val value = if (enabled) {
-            BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-        } else {
-            BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+        // ⚠️ Notification et indication ne s'activent pas avec la même valeur, et écrire
+        // l'une pour l'autre fait rejeter le descripteur. La famille Haige emploie
+        // massivement l'**indication** — l'acquittement que la notification n'a pas — et une
+        // seule de ses caractéristiques notifie vraiment. Le choix se lit donc dans les
+        // propriétés de chaque caractéristique, jamais supposé.
+        val indicates = target.properties and BluetoothGattCharacteristic.PROPERTY_INDICATE != 0
+        val notifies = target.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0
+        if (!indicates && !notifies) {
+            Log.w(TAG, "$characteristic ne sait ni notifier ni indiquer (props=0x%02x)".format(target.properties))
+            return@withLock false
         }
+        val value = when {
+            !enabled -> BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+            notifies -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+            else -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
+        }
+        Log.d(TAG, "abonnement $characteristic en ${if (notifies) "notification" else "indication"}")
 
         val acknowledged = CompletableDeferred<Boolean>().also { pendingDescriptor = it }
         val started = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
