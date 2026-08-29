@@ -91,7 +91,7 @@ private fun NotAssociated(onStartScan: () -> Unit) {
         Text("Aucune balance associée", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         Text(
             // Sans ce geste, la balance ne s'annonce pas et reste invisible au scan.
-            "Tapotez la balance du pied pour la réveiller, puis lancez la recherche. " +
+            "Lancez la recherche, puis choisissez votre balance dans la liste. " +
                 "L'appairage grave votre profil dans sa mémoire et demande une pesée de calibration.",
             color = TextSecondary,
             fontSize = 13.sp,
@@ -118,7 +118,7 @@ private fun Scanning(
         }
         if (discovered.isEmpty()) {
             Text(
-                "Aucun appareil pour l'instant. Tapotez la balance du pied : elle ne s'annonce que quelques secondes.",
+                "Aucun appareil pour l'instant. Assurez-vous que la balance est à portée.",
                 color = TextSecondary,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 8.dp)

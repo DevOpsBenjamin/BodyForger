@@ -136,6 +136,16 @@ class HuaweiFrameReassembler {
     private val chunks = mutableListOf<ByteArray>()
     private var expectedFrames = 0
 
+    /**
+     * Pourquoi la dernière trame a été écartée, ou `null` si elle a été acceptée.
+     *
+     * Une trame incomplète et une trame rejetée rendent toutes deux `null` : sans cette
+     * distinction, un défaut de recollage est indiscernable d'un message qui arrive en
+     * plusieurs morceaux.
+     */
+    var lastRejection: String? = null
+        private set
+
     /** L'origine des trames en cours de recollage, tant qu'une charge est incomplète. */
     var magic: HuaweiFrameMagic? = null
         private set
@@ -148,16 +158,22 @@ class HuaweiFrameReassembler {
      * assembler une fausse.
      */
     fun feed(raw: ByteArray): ByteArray? {
-        if (raw.size < 5) return discard()
-        val frameMagic = HuaweiFrameMagic.of(raw[0].toInt()) ?: return discard()
+        lastRejection = null
+        if (raw.size < 5) return discard("trame de ${raw.size} octets, trop courte")
+        val frameMagic = HuaweiFrameMagic.of(raw[0].toInt())
+            ?: return discard("octet magique inconnu : 0x%02x".format(raw[0].toInt() and 0xFF))
 
         val declared = (raw[1].toInt() and 0xFF) - 3
-        if (declared < 0 || 3 + declared + 2 > raw.size) return discard()
+        if (declared < 0 || 3 + declared + 2 > raw.size) {
+            return discard("longueur annoncée ${raw[1].toInt() and 0xFF} incompatible avec ${raw.size} octets")
+        }
 
         val expectedCrc = HuaweiFraming.crc16(raw, 3 + declared)
         val actualCrc = (raw[3 + declared].toInt() and 0xFF) or
             ((raw[4 + declared].toInt() and 0xFF) shl 8)
-        if (expectedCrc != actualCrc) return discard()
+        if (expectedCrc != actualCrc) {
+            return discard("CRC attendu 0x%04x, reçu 0x%04x".format(expectedCrc, actualCrc))
+        }
 
         val sequence = raw[2].toInt() and 0xFF
         val index = sequence and 0x0F
@@ -169,7 +185,7 @@ class HuaweiFrameReassembler {
             magic = frameMagic
         } else if (index != chunks.size || total != expectedFrames || frameMagic != magic) {
             // Trame orpheline, ou d'un autre message : on ne devine pas ce qui manque.
-            return discard()
+            return discard("trame $index/$total hors séquence (${chunks.size} déjà reçues)")
         }
 
         chunks += raw.copyOfRange(3, 3 + declared)
@@ -193,8 +209,9 @@ class HuaweiFrameReassembler {
         magic = null
     }
 
-    private fun discard(): ByteArray? {
+    private fun discard(reason: String): ByteArray? {
         reset()
+        lastRejection = reason
         return null
     }
 }

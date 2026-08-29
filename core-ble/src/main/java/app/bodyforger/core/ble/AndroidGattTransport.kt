@@ -353,10 +353,17 @@ class AndroidGattTransport(
         val reassembler = reassemblers.getOrPut(characteristic) { HuaweiFrameReassembler() }
         val payload = reassembler.feed(frame)
         if (payload == null) {
-            Log.v(TAG, "trame partielle ou écartée sur $characteristic (${frame.size} o)")
+            val why = reassembler.lastRejection
+            if (why == null) {
+                Log.v(TAG, "trame intermédiaire sur $characteristic (${frame.size} o)")
+            } else {
+                // Le contenu brut est indispensable : sans lui, un défaut de recollage se
+                // devine au lieu de se lire.
+                Log.w(TAG, "trame écartée sur $characteristic — $why — ${frame.toHex()}")
+            }
             return
         }
-        Log.d(TAG, "reçu $characteristic : ${payload.size} o")
+        Log.d(TAG, "reçu $characteristic : ${payload.size} o — ${payload.toHex()}")
         notifications.tryEmit(
             ScaleNotification(
                 characteristic = characteristic,
@@ -365,6 +372,9 @@ class AndroidGattTransport(
             )
         )
     }
+
+    private fun ByteArray.toHex(limit: Int = 40): String =
+        take(limit).joinToString("") { "%02x".format(it) } + if (size > limit) "…" else ""
 
     companion object {
         /** Filtre de journal pour suivre une session : `adb logcat -s BodyForgerBle`. */
