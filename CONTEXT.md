@@ -71,6 +71,16 @@ The breakdown of muscle and fat mass by anatomical region — trunk, right arm, 
 
 This analysis is **entirely derived**: each limb's impedance is deduced from the **Raw Impedances** by solving Kirchhoff's laws. It is therefore never stored, but recomputed on demand. Confusing this derived layer with the measurement itself is the mistake to avoid.
 
+### Measurement Trueness vs Repeatability
+Bioelectrical impedance is **not** a DEXA scan, and is never exact. In absolute terms it is off by several points of body fat; what it does well is **repeat itself**. The quantity that carries meaning is therefore the **trend across measurements**, never the figure of a single day.
+
+Two consequences follow, and they govern every choice made about body composition:
+
+* A formula that is slightly wrong but **applied consistently to the whole history** is worth more than a truer formula applied to only part of it. Changing the calculation without recomputing the past manufactures a progression that came from the code rather than from the athlete.
+* This is why derived quantities are **never stored** and the **Raw Impedances** are kept forever: the day an equation improves, the entire history moves with it and the curve stays honest.
+
+Chasing absolute accuracy against the scale's own figure is a category error. The instruments of truth here are consistency over time and the rolling median (as already used to validate a **Palier**), not agreement to the decimal.
+
 ### Measurement Capability
 The level of fidelity a **Body Log** originates from, recorded alongside it because it determines which quantities are legitimately computable:
 
@@ -80,6 +90,18 @@ The level of fidelity a **Body Log** originates from, recorded alongside it beca
 * **Manual** — mass and body fat declared by the athlete.
 
 A quantity a capability cannot measure is **absent**, never substituted by a default value: a fabricated figure would be indistinguishable from a real measurement in the history.
+
+### Lean Mass Compartments
+The chemical split of **fat-free mass** into water, protein and bone mineral. BodyForger uses the Western **Brozek 4C** constants — 0.732 water, 0.211 protein, 0.057 bone mineral — not the scale manufacturer's.
+
+The scale is an **instrument, not the reference**: the goal is to measure with BodyForger's own constants, calibrated for the athlete it serves, rather than to reproduce the manufacturer's app.
+
+This split is a layer of its own. It leaves fat-free mass, body fat percentage and every **Segmental Composition** value untouched — those follow from the impedances, not from the chemistry.
+
+### Manufacturer Cross-Check
+Comparing BodyForger's figures against the scale's own is a **gross-error detector, not an accuracy target**. Its tolerance is the kilogram: an arm going from 2 to 6 kg is a bug worth hunting; a few hundred grams, or a point of body fat, is noise and is ignored.
+
+Reducing a sub-kilogram gap against the manufacturer is never in itself a reason to change the model.
 
 ### BIA Profile
 The set of the user's physiological constants (biological sex, date of birth / age, height in cm) required by the multi-frequency bioelectrical impedance equations.
