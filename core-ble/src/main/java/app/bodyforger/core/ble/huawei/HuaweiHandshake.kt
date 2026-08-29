@@ -3,6 +3,8 @@ package app.bodyforger.core.ble.huawei
 import app.bodyforger.core.ble.ScaleNotification
 import android.util.Log
 import app.bodyforger.core.ble.ScaleTransport
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import java.security.SecureRandom
@@ -52,11 +54,9 @@ class HuaweiHandshake(
         }
 
         // 1. La balance tire son aléa et nous l'envoie.
-        if (!transport.writeRaw(HuaweiCharacteristic.AUTH_REQUEST, HuaweiCommands.QUERY)) {
-            Log.w(TAG, "demande d'authentification non écrite")
-            return null
+        val answer = exchange(HuaweiCharacteristic.AUTH_REQUEST) {
+            transport.writeRaw(HuaweiCharacteristic.AUTH_REQUEST, HuaweiCommands.QUERY)
         }
-        val answer = awaitPayload(HuaweiCharacteristic.AUTH_REQUEST)
         val scaleNonce = answer
             ?.takeIf { it.size >= HuaweiCrypto.NONCE_BYTES }
             ?.copyOf(HuaweiCrypto.NONCE_BYTES)
@@ -68,13 +68,10 @@ class HuaweiHandshake(
         // 2. Nous tirons le nôtre et prouvons que nous connaissons le secret.
         val clientNonce = ByteArray(HuaweiCrypto.NONCE_BYTES).also(random::nextBytes)
         val clientToken = HuaweiCrypto.clientToken(keys, scaleNonce, clientNonce)
-        if (!transport.write(HuaweiCharacteristic.AUTH_TOKENS, clientNonce + clientToken)) {
-            Log.w(TAG, "jeton client non écrit")
-            return null
-        }
-
         // 3. La balance prouve à son tour, et c'est là que la référence s'arrêtait.
-        val scaleToken = awaitPayload(HuaweiCharacteristic.AUTH_TOKENS)
+        val scaleToken = exchange(HuaweiCharacteristic.AUTH_TOKENS) {
+            transport.write(HuaweiCharacteristic.AUTH_TOKENS, clientNonce + clientToken)
+        }
         if (scaleToken == null) {
             Log.w(TAG, "la balance n'a pas répondu son jeton")
             return null
@@ -91,11 +88,10 @@ class HuaweiHandshake(
         val sessionKey = ByteArray(HuaweiCrypto.KEY_BYTES).also(random::nextBytes)
         val iv = ByteArray(HuaweiCrypto.IV_BYTES).also(random::nextBytes)
         val sealed = HuaweiCrypto.encrypt(rootKey, iv, sessionKey)
-        if (!transport.write(HuaweiCharacteristic.SESSION_KEY, sealed)) {
-            Log.w(TAG, "clé de session non écrite")
-            return null
-        }
-        if (awaitPayload(HuaweiCharacteristic.SESSION_KEY) == null) {
+        if (exchange(HuaweiCharacteristic.SESSION_KEY) {
+                transport.write(HuaweiCharacteristic.SESSION_KEY, sealed)
+            } == null
+        ) {
             Log.w(TAG, "clé de session non acquittée")
             return null
         }
@@ -111,10 +107,31 @@ class HuaweiHandshake(
         return sessionKey
     }
 
-    private suspend fun awaitPayload(characteristic: HuaweiCharacteristic): ByteArray? =
-        withTimeoutOrNull(RESPONSE_TIMEOUT_MS) {
+    /**
+     * Écrit, puis attend la réponse — **en se mettant à écouter d'abord**.
+     *
+     * ⚠️ Écrire puis écouter perd les réponses immédiates. Le flux des notifications n'a pas
+     * de tampon : ce qui est émis avant qu'un collecteur ne s'abonne n'existe pour personne.
+     * La balance acquitte parfois en une milliseconde, et l'attente expirait alors sur une
+     * réponse déjà arrivée — un échec d'autant plus trompeur que les échanges plus lents,
+     * eux, passaient.
+     */
+    private suspend fun exchange(
+        characteristic: HuaweiCharacteristic,
+        send: suspend () -> Boolean
+    ): ByteArray? = coroutineScope {
+        val response = async {
             transport.incoming.first { it.characteristic == characteristic }
-        }?.let(ScaleNotification::payload)
+        }
+        if (!send()) {
+            Log.w(TAG, "écriture refusée sur $characteristic")
+            response.cancel()
+            return@coroutineScope null
+        }
+        val received = withTimeoutOrNull(RESPONSE_TIMEOUT_MS) { response.await() }
+        if (received == null) response.cancel()
+        received?.payload
+    }
 
     /** Comparaison à temps constant sur le préfixe attendu, pour ne rien laisser fuir. */
     private fun ByteArray.startsWithBytes(expected: ByteArray): Boolean {

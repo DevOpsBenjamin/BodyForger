@@ -1,12 +1,16 @@
 package app.bodyforger.core.ble.huawei
 
 import app.bodyforger.core.ble.PairingState
+import app.bodyforger.core.ble.ScaleNotification
 import app.bodyforger.core.ble.ScaleTransport
 import app.bodyforger.core.ble.SessionFailure
 import app.bodyforger.core.model.ScaleAssociation
 import app.bodyforger.core.model.ScaleCapability
 import app.bodyforger.core.model.ScaleUserProfile
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withTimeoutOrNull
@@ -40,6 +44,9 @@ class HuaweiPairingSession(
         huid: String,
         profile: ScaleUserProfile
     ): Flow<PairingState> = flow {
+        // Un scope englobant : écouter une réponse doit pouvoir démarrer **avant** l'écriture
+        // qui la provoque, sans quoi une réponse immédiate serait perdue.
+        coroutineScope {
         val steps = HuaweiPairingSequence.stepsFor(model)
         var index = 0
         suspend fun advance() {
@@ -51,47 +58,53 @@ class HuaweiPairingSession(
         advance() // Réveil et scan ciblé
         if (!transport.connect()) {
             emit(PairingState.Failed(SessionFailure.CONNECTION_LOST))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Handshake
         val sessionKey = HuaweiHandshake(transport, model, random).negotiate(deviceAddress)
         if (sessionKey == null) {
             emit(PairingState.Failed(SessionFailure.REJECTED_BY_DEVICE))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Armement du mode association
         if (!transport.subscribe(HuaweiCharacteristic.HUID_REGISTRATION)) {
             emit(PairingState.Failed(SessionFailure.CONNECTION_LOST))
-            return@flow
+            return@coroutineScope
         }
         if (!transport.write(HuaweiCharacteristic.BINDING_CONTROL, HuaweiPayloads.bindingControl(armed = true))) {
             emit(PairingState.Failed(SessionFailure.REJECTED_BY_DEVICE))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Gravure du HUID — irréversible à partir d'ici
+        // La tare répond sur la même caractéristique : on écoute avant d'écrire, faute de
+        // quoi une réponse immédiate serait perdue.
+        val tareAwaited = async {
+            transport.incoming.first { it.characteristic == HuaweiCharacteristic.HUID_REGISTRATION }
+        }
         val engraved = writeSealed(
             sessionKey,
             HuaweiCharacteristic.HUID_REGISTRATION,
             huid.toByteArray(Charsets.US_ASCII).copyOf(HUID_FIELD_BYTES)
         )
         if (!engraved) {
+            tareAwaited.cancel()
             transport.write(HuaweiCharacteristic.BINDING_CONTROL, HuaweiPayloads.bindingControl(armed = false))
             emit(PairingState.Failed(SessionFailure.REJECTED_BY_DEVICE))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Attente de la tare : l'athlète doit monter
-        val tareKg = awaitTare(sessionKey)
+        val tareKg = awaitTare(sessionKey, tareAwaited)
         if (tareKg == null) {
             // La référence poursuit ici avec une tare de zéro, ou un ancien poids, et l'écrit
             // dans la mémoire flash. Nous refusons : une Association sans tare n'existe pas,
             // et l'appairage se rejouera sur le même HUID sans rien coûter (#19).
             transport.write(HuaweiCharacteristic.BINDING_CONTROL, HuaweiPayloads.bindingControl(armed = false))
             emit(PairingState.Failed(SessionFailure.TIMED_OUT))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Synchronisation de l'heure
@@ -110,6 +123,9 @@ class HuaweiPairingSession(
 
         advance() // Armement du flux BIA — l'athlète est toujours sur la balance
         transport.subscribe(HuaweiCharacteristic.BIA_STREAM)
+        val validationAwaited = async {
+            transport.incoming.first { it.characteristic == HuaweiCharacteristic.BIA_STREAM }
+        }
         // S'abonner ne suffit pas : le flux doit être armé pour que la balance émette.
         transport.writeRaw(HuaweiCharacteristic.BIA_STREAM, HuaweiCommands.QUERY)
 
@@ -119,9 +135,8 @@ class HuaweiPairingSession(
         // pendant l'appairage — `TECH.md` §5 la montre, l'implémentation de référence s'arrête
         // à la tare. Lui accorder le délai d'attente de l'athlète ferait paraître l'appairage
         // bloqué deux minutes durant, pour une valeur facultative.
-        val validation = withTimeoutOrNull(VALIDATION_TIMEOUT_MS) {
-            transport.incoming.first { it.characteristic == HuaweiCharacteristic.BIA_STREAM }
-        }
+        val validation = withTimeoutOrNull(VALIDATION_TIMEOUT_MS) { validationAwaited.await() }
+            .also { if (it == null) validationAwaited.cancel() }
         val telemetry = validation
             ?.let { HuaweiCrypto.decrypt(sessionKey, it.payload) }
             ?.let { HuaweiTelemetryDecoder.decode(it, model) }
@@ -152,6 +167,7 @@ class HuaweiPairingSession(
                 validation = telemetry
             )
         )
+        }
     }
 
     /**
@@ -160,10 +176,15 @@ class HuaweiPairingSession(
      * C'est **l'acquittement de la gravure autant que la mesure** : recevoir cette valeur
      * prouve que l'emplacement a bien été écrit.
      */
-    private suspend fun awaitTare(sessionKey: ByteArray): Double? {
-        val notification = withTimeoutOrNull(athleteTimeoutMs) {
-            transport.incoming.first { it.characteristic == HuaweiCharacteristic.HUID_REGISTRATION }
-        } ?: return null
+    private suspend fun awaitTare(
+        sessionKey: ByteArray,
+        awaited: Deferred<ScaleNotification>
+    ): Double? {
+        val notification = withTimeoutOrNull(athleteTimeoutMs) { awaited.await() }
+        if (notification == null) {
+            awaited.cancel()
+            return null
+        }
 
         val clear = HuaweiCrypto.decrypt(sessionKey, notification.payload) ?: return null
         if (clear.size < 2) return null

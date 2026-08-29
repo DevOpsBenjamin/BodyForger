@@ -6,6 +6,8 @@ import app.bodyforger.core.ble.WeighInState
 import app.bodyforger.core.model.ScaleAssociation
 import app.bodyforger.core.model.ScaleUserProfile
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withTimeoutOrNull
@@ -35,6 +37,7 @@ class HuaweiWeighInSession(
         huid: String,
         profile: ScaleUserProfile
     ): Flow<WeighInState> = flow {
+        coroutineScope {
         val steps = HuaweiWeighInSequence.stepsFor(model)
         var index = 0
         suspend fun advance() {
@@ -46,7 +49,7 @@ class HuaweiWeighInSession(
         advance() // Réveil et scan ciblé
         if (!transport.connect()) {
             emit(WeighInState.Failed(SessionFailure.CONNECTION_LOST))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Handshake
@@ -55,13 +58,13 @@ class HuaweiWeighInSession(
             // Un refus n'est pas diagnosticable : clé racine fausse, appareil usurpé ou
             // liaison perdue se ressemblent tous.
             emit(WeighInState.Failed(SessionFailure.REJECTED_BY_DEVICE))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Synchronisation de l'heure
         if (!transport.write(HuaweiCharacteristic.TIME_SYNC, HuaweiPayloads.currentTime(clock()))) {
             emit(WeighInState.Failed(SessionFailure.CONNECTION_LOST))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Profil utilisateur
@@ -72,36 +75,41 @@ class HuaweiWeighInSession(
         )
         if (!sent) {
             emit(WeighInState.Failed(SessionFailure.REJECTED_BY_DEVICE))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Armement du flux de télémétrie
         if (!transport.subscribe(HuaweiCharacteristic.BIA_STREAM)) {
             emit(WeighInState.Failed(SessionFailure.CONNECTION_LOST))
-            return@flow
-        }
-        // S'abonner ne suffit pas : la balance n'émet rien tant que le flux n'est pas armé.
-        if (!transport.writeRaw(HuaweiCharacteristic.BIA_STREAM, HuaweiCommands.QUERY)) {
-            emit(WeighInState.Failed(SessionFailure.CONNECTION_LOST))
-            return@flow
+            return@coroutineScope
         }
 
         advance() // Balance prête : l'athlète peut monter
 
         advance() // Stabilisation et relevé
-        val frame = withTimeoutOrNull(athleteTimeoutMs) {
-            transport.incoming.first { it.characteristic == HuaweiCharacteristic.BIA_STREAM }
+        // Écouter avant d'armer : le flux des notifications n'a pas de tampon, et une trame
+        // émise avant qu'un collecteur ne s'abonne serait perdue pour tout le monde.
+        val frame = run {
+            val awaited = async {
+                transport.incoming.first { it.characteristic == HuaweiCharacteristic.BIA_STREAM }
+            }
+            // S'abonner ne suffit pas : la balance n'émet rien tant que le flux n'est pas armé.
+            if (!transport.writeRaw(HuaweiCharacteristic.BIA_STREAM, HuaweiCommands.QUERY)) {
+                awaited.cancel()
+                return@run null
+            }
+            withTimeoutOrNull(athleteTimeoutMs) { awaited.await() }.also { if (it == null) awaited.cancel() }
         }
         if (frame == null) {
             emit(WeighInState.Failed(SessionFailure.TIMED_OUT))
-            return@flow
+            return@coroutineScope
         }
 
         val clear = HuaweiCrypto.decrypt(sessionKey, frame.payload)
         val decoded = clear?.let { HuaweiTelemetryDecoder.decode(it, model) }
         if (decoded == null) {
             emit(WeighInState.Failed(SessionFailure.DEVICE_ERROR))
-            return@flow
+            return@coroutineScope
         }
 
         // La balance attend son acquittement pour clore la session ; sans lui elle reste
@@ -118,6 +126,7 @@ class HuaweiWeighInSession(
         )
 
         emit(WeighInState.Completed(decoded.telemetry))
+        }
     }
 
     private suspend fun writeSealed(
