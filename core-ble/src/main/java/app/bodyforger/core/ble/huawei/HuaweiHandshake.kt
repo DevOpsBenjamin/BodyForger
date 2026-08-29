@@ -37,7 +37,14 @@ class HuaweiHandshake(
 
         // S'abonner d'abord : les réponses arrivent par notification, jamais en retour
         // d'écriture. Écrire avant de s'être abonné revient à parler dans le vide.
-        for (characteristic in NEGOTIATION_CHARACTERISTICS) {
+        // Les canaux d'événement sont utiles mais non indispensables : leur absence ne doit
+        // pas empêcher une authentification qui, elle, ne dépend que des trois suivants.
+        for (characteristic in OPTIONAL_CHANNELS) {
+            if (!transport.subscribe(characteristic)) {
+                Log.w(TAG, "canal facultatif indisponible, on poursuit : $characteristic")
+            }
+        }
+        for (characteristic in REQUIRED_CHANNELS) {
             if (!transport.subscribe(characteristic)) {
                 Log.w(TAG, "abonnement impossible : $characteristic")
                 return null
@@ -121,9 +128,14 @@ class HuaweiHandshake(
         private const val TAG = "BodyForgerBle"
         private const val RESPONSE_TIMEOUT_MS = 5_000L
 
-        private val NEGOTIATION_CHARACTERISTICS = listOf(
+        /** Canaux d'événement : la balance y pousse des états, sans que rien n'en dépende. */
+        private val OPTIONAL_CHANNELS = listOf(
             HuaweiCharacteristic.STATUS_SENTINEL,
-            HuaweiCharacteristic.CAPABILITIES_RESPONSE,
+            HuaweiCharacteristic.CAPABILITIES_RESPONSE
+        )
+
+        /** Sans ces trois-là, aucune réponse d'authentification ne peut nous parvenir. */
+        private val REQUIRED_CHANNELS = listOf(
             HuaweiCharacteristic.AUTH_REQUEST,
             HuaweiCharacteristic.AUTH_TOKENS,
             HuaweiCharacteristic.SESSION_KEY

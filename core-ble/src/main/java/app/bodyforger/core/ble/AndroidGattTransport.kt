@@ -106,6 +106,7 @@ class AndroidGattTransport(
         }
         val ready = withTimeoutOrNull(CONNECTION_TIMEOUT_MS) { discovered.await() } == true
         Log.d(TAG, if (ready) "services découverts" else "découverte des services échouée")
+        if (ready) dumpProfile()
         ready
     }
 
@@ -134,7 +135,12 @@ class AndroidGattTransport(
         // Activer les notifications côté Android ne suffit pas : il faut aussi le dire à la
         // balance, en écrivant dans le descripteur de configuration client.
         val descriptor = target.getDescriptor(HuaweiGattProfile.CLIENT_CONFIG_DESCRIPTOR)
-            ?: return@withLock false
+        if (descriptor == null) {
+            // Sans descripteur de configuration, la balance ne peut pas être avertie qu'on
+            // écoute. Certaines caractéristiques n'en ont pas et ne notifient jamais.
+            Log.w(TAG, "pas de descripteur de notification sur $characteristic")
+            return@withLock false
+        }
         val value = if (enabled) {
             BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
         } else {
@@ -150,12 +156,17 @@ class AndroidGattTransport(
             @Suppress("DEPRECATION")
             connected.writeDescriptor(descriptor)
         }
-        if (!started) return@withLock false
+        if (!started) {
+            Log.w(TAG, "écriture du descripteur non démarrée : $characteristic")
+            return@withLock false
+        }
 
         if (enabled) reassemblers[characteristic] = HuaweiFrameReassembler()
         else reassemblers.remove(characteristic)
 
-        withTimeoutOrNull(operationTimeoutMs) { acknowledged.await() } == true
+        val ok = withTimeoutOrNull(operationTimeoutMs) { acknowledged.await() } == true
+        Log.d(TAG, "abonnement $characteristic : ${if (ok) "ok" else "ÉCHEC (descripteur non acquitté)"}")
+        ok
     }
 
     override suspend fun write(
@@ -231,6 +242,33 @@ class AndroidGattTransport(
         services = null
         pendingWrite = null
         pendingDescriptor = null
+    }
+
+    /**
+     * Journalise ce que la balance expose réellement.
+     *
+     * La carte GATT n'a été relevée que sur un modèle : c'est ici que l'on voit si elle tient
+     * sur un autre matériel, plutôt que de le déduire d'un échec muet.
+     */
+    private fun dumpProfile() {
+        val services = gatt?.services ?: return
+        Log.d(TAG, "--- profil GATT annoncé par l'appareil ---")
+        for (service in services) {
+            for (characteristic in service.characteristics) {
+                val known = profile.characteristicOf(characteristic.uuid)
+                val cccd = characteristic.getDescriptor(HuaweiGattProfile.CLIENT_CONFIG_DESCRIPTOR)
+                Log.d(
+                    TAG,
+                    "  ${characteristic.uuid} props=0x%02x cccd=%s %s".format(
+                        characteristic.properties,
+                        if (cccd != null) "oui" else "NON",
+                        known?.name ?: "(inconnue de notre carte)"
+                    )
+                )
+            }
+        }
+        val missing = HuaweiCharacteristic.entries.filter { resolve(it) == null }
+        if (missing.isNotEmpty()) Log.w(TAG, "absentes de l'appareil : ${missing.joinToString()}")
     }
 
     private fun resolve(characteristic: HuaweiCharacteristic): BluetoothGattCharacteristic? {
