@@ -7,6 +7,7 @@ import app.bodyforger.core.ble.AndroidGattTransport
 import app.bodyforger.core.ble.AndroidScaleScanner
 import app.bodyforger.core.ble.AthleteInstruction
 import app.bodyforger.core.ble.DiscoveredScale
+import app.bodyforger.core.ble.ScanRejected
 import app.bodyforger.core.ble.SessionFailure
 import app.bodyforger.core.ble.WeighInState
 import app.bodyforger.core.ble.ScaleIdentifier
@@ -25,6 +26,7 @@ import app.bodyforger.core.model.ScaleUserProfile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -45,6 +47,8 @@ data class ScaleUiState(
     val progress: WeighInState.Progress? = null,
     val lastLog: BodyLog? = null,
     val failure: SessionFailure? = null,
+    /** Message d'un scan refusé par le système, à distinguer d'une absence de résultat. */
+    val scanError: String? = null,
     val isWeighing: Boolean = false,
     val isPairing: Boolean = false,
     /** Étape courante de l'appairage, sur son total. */
@@ -95,9 +99,21 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
     /** Balaie les alentours. La balance ne s'annonce qu'après un tapotement. */
     fun startScan() {
         if (_state.value.isScanning) return
-        _state.value = _state.value.copy(isScanning = true, discovered = emptyList(), failure = null)
+        _state.value = _state.value.copy(
+            isScanning = true,
+            discovered = emptyList(),
+            failure = null,
+            scanError = null
+        )
         scanJob = viewModelScope.launch {
-            scanner.scan(identifier).collect { found ->
+            scanner.scan(identifier).catch { cause ->
+                // Un refus du système n'est pas une absence de balance : le taire laisserait
+                // l'écran chercher indéfiniment.
+                _state.value = _state.value.copy(
+                    isScanning = false,
+                    scanError = (cause as? ScanRejected)?.message ?: "La recherche a échoué."
+                )
+            }.collect { found ->
                 val known = _state.value.discovered
                 // Une balance s'annonce en boucle : on tient une entrée par adresse.
                 _state.value = _state.value.copy(

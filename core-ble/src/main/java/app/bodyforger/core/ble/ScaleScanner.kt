@@ -44,6 +44,14 @@ fun interface ScaleIdentifier {
     fun identify(advertisedName: String?): RecognisedScale?
 }
 
+/**
+ * Le scan a été refusé par le système.
+ *
+ * Distinguer un refus d'une absence de résultat est indispensable : les deux se traduisent
+ * autrement par un écran qui cherche indéfiniment.
+ */
+class ScanRejected(val errorCode: Int, override val message: String) : Exception(message)
+
 interface ScaleScanner {
 
     /**

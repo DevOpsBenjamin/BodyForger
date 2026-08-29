@@ -57,6 +57,12 @@ fun ScaleSettingsSection(
             else -> NotAssociated(onStartScan)
         }
 
+        state.scanError?.let { message ->
+            Card {
+                Text("Recherche impossible", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(message, color = TextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+            }
+        }
         state.failure?.let { Failure(it) }
         state.lastLog?.let { log ->
             Card {
