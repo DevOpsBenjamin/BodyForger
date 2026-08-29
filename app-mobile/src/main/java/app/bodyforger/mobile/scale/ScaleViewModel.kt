@@ -25,6 +25,7 @@ import app.bodyforger.core.model.ScaleUserProfile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -66,6 +67,15 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
     /** Le scan n'a besoin que de reconnaître un nom annoncé. */
     private val identifier = ScaleIdentifier(HuaweiScaleModel::recognise)
 
+    /**
+     * Le scan en cours.
+     *
+     * ⚠️ Android échoue à établir une connexion GATT pendant qu'un scan tourne : le radio
+     * est occupé et `connectGatt` retourne un échec sans explication. Le scan doit donc être
+     * **réellement annulé** avant toute connexion, et pas seulement masqué dans l'état.
+     */
+    private var scanJob: Job? = null
+
     private val _state = MutableStateFlow(ScaleUiState())
     val state: StateFlow<ScaleUiState> = _state.asStateFlow()
 
@@ -86,7 +96,7 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
     fun startScan() {
         if (_state.value.isScanning) return
         _state.value = _state.value.copy(isScanning = true, discovered = emptyList(), failure = null)
-        viewModelScope.launch {
+        scanJob = viewModelScope.launch {
             scanner.scan(identifier).collect { found ->
                 val known = _state.value.discovered
                 // Une balance s'annonce en boucle : on tient une entrée par adresse.
@@ -99,6 +109,8 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun stopScan() {
+        scanJob?.cancel()
+        scanJob = null
         _state.value = _state.value.copy(isScanning = false)
     }
 
@@ -116,7 +128,10 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
         val huid = _state.value.huid ?: return
         if (_state.value.isPairing) return
 
-        _state.value = _state.value.copy(isPairing = true, failure = null, progress = null, isScanning = false)
+        // Couper le scan **avant** de connecter : le laisser tourner fait échouer la
+        // connexion sans message.
+        stopScan()
+        _state.value = _state.value.copy(isPairing = true, failure = null, progress = null)
         viewModelScope.launch {
             val device = bluetoothDevice(scale.deviceAddress)
             val model = HuaweiScaleModel.identify(scale.advertisedName)
@@ -176,6 +191,7 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
         val huid = _state.value.huid ?: return
         if (_state.value.isWeighing) return
 
+        stopScan()
         _state.value = _state.value.copy(isWeighing = true, failure = null, progress = null)
         viewModelScope.launch {
             val device = bluetoothDevice(association.deviceAddress)

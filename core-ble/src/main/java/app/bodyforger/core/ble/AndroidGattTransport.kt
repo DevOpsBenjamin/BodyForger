@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.UUID
 
@@ -66,7 +67,26 @@ class AndroidGattTransport(
 
     private val reassemblers = mutableMapOf<HuaweiCharacteristic, HuaweiFrameReassembler>()
 
-    override suspend fun connect(): Boolean = gattLock.withLock {
+    /**
+     * Établit la connexion et découvre les services, avec reprise.
+     *
+     * ⚠️ Une première tentative échoue couramment sur Android sans que rien ne soit anormal —
+     * c'est l'échec 133, bien connu, qui frappe surtout un appareil jamais appairé ou dont le
+     * scan vient à peine de s'arrêter. Réessayer suffit presque toujours. Sans cette reprise,
+     * un appairage parfaitement légitime paraît refusé.
+     */
+    override suspend fun connect(): Boolean {
+        repeat(CONNECTION_ATTEMPTS) { attempt ->
+            if (attemptConnect()) return true
+            closeInternal()
+            // Laisser la pile Bluetooth se libérer avant de réessayer : enchaîner
+            // immédiatement reproduit le même échec.
+            delay(RETRY_DELAY_MS)
+        }
+        return false
+    }
+
+    private suspend fun attemptConnect(): Boolean = gattLock.withLock {
         if (gatt != null) return@withLock true
 
         val connected = CompletableDeferred<Boolean>().also { connection = it }
@@ -74,16 +94,12 @@ class AndroidGattTransport(
 
         gatt = device.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
         if (withTimeoutOrNull(CONNECTION_TIMEOUT_MS) { connected.await() } != true) {
-            closeInternal()
             return@withLock false
         }
         if (gatt?.discoverServices() != true) {
-            closeInternal()
             return@withLock false
         }
-        val ready = withTimeoutOrNull(CONNECTION_TIMEOUT_MS) { discovered.await() } == true
-        if (!ready) closeInternal()
-        ready
+        withTimeoutOrNull(CONNECTION_TIMEOUT_MS) { discovered.await() } == true
     }
 
     override suspend fun subscribe(characteristic: HuaweiCharacteristic): Boolean =
@@ -264,5 +280,9 @@ class AndroidGattTransport(
     companion object {
         const val DEFAULT_OPERATION_TIMEOUT_MS = 5_000L
         const val CONNECTION_TIMEOUT_MS = 15_000L
+
+        /** Trois essais : l'échec 133 frappe la première tentative, rarement la troisième. */
+        const val CONNECTION_ATTEMPTS = 3
+        const val RETRY_DELAY_MS = 600L
     }
 }
