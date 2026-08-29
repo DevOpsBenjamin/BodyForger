@@ -49,12 +49,22 @@ class HuaweiPairingSessionTest {
     }
 
     @Test
+    fun `la tare est une pesee de masse seule`() = runTest {
+        // Ni poignee ni pieds nus : sans mesure d'impedance, le contact de la peau avec les
+        // electrodes n'importe pas, et l'exiger serait une contrainte gratuite.
+        val states = session(FakeScale()).run(address, "Pro", huid, profile).toList()
+        val stepOn = states.filterIsInstance<PairingState.Progress>()
+            .first { it.instructions.contains(AthleteInstruction.STEP_ON) }
+        assertEquals(listOf(AthleteInstruction.STEP_ON), stepOn.instructions)
+    }
+
+    @Test
     fun `l'athlete n'est invite a monter qu'une seule fois`() = runTest {
         // La tare puis la trame BIA arrivent pendant la meme montee : deux invitations le
         // feraient descendre entre les deux et perdraient la mesure.
         val states = session(FakeScale()).run(address, "Pro", huid, profile).toList()
         val invitations = states.filterIsInstance<PairingState.Progress>()
-            .count { it.instructions.contains(AthleteInstruction.STEP_ON_BAREFOOT) }
+            .count { it.instructions.contains(AthleteInstruction.STEP_ON) }
         assertEquals(1, invitations)
     }
 
@@ -66,7 +76,7 @@ class HuaweiPairingSessionTest {
         val states = session(transport).run(address, "Pro", huid, profile).toList()
 
         val stepOnIndex = states.indexOfFirst {
-            it is PairingState.Progress && it.instructions.contains(AthleteInstruction.STEP_ON_BAREFOOT)
+            it is PairingState.Progress && it.instructions.contains(AthleteInstruction.STEP_ON)
         }
         val engravingIndex = states.indexOfFirst {
             it is PairingState.Progress && it.detail?.contains("Gravure") == true

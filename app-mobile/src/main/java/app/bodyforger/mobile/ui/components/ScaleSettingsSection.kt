@@ -172,7 +172,7 @@ private fun Pairing(state: ScaleUiState) {
             Text(instructionLabel(instruction), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
         Text(
-            "La pesée de calibration fait partie de l'appairage : sans elle, l'association ne sera pas enregistrée.",
+            "Une simple pesée de calibration termine l'appairage : sans elle, l'association ne sera pas enregistrée.",
             color = TextSecondary,
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 8.dp)
@@ -290,6 +290,7 @@ private fun Card(content: @Composable androidx.compose.foundation.layout.ColumnS
 private fun instructionLabel(instruction: AthleteInstruction): String = when (instruction) {
     AthleteInstruction.TAP_SCALE_TO_WAKE -> "Tapotez la balance du pied"
     AthleteInstruction.STAY_OFF_PLATFORM -> "Restez hors du plateau"
+    AthleteInstruction.STEP_ON -> "Montez sur la balance"
     AthleteInstruction.STEP_ON_BAREFOOT -> "Montez pieds nus sur la balance"
     AthleteInstruction.GRIP_HANDLE -> "Saisissez la poignée des deux mains"
     AthleteInstruction.STEP_OFF -> "Descendez du plateau"

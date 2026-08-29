@@ -41,13 +41,15 @@ object HuaweiPairingSequence {
         )
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Armement de l'association (0x45)"))
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Gravure du HUID en mémoire flash (0x2D)"))
-        // L'athlète monte ici, et une seule fois : la tare arrive après quelques secondes,
-        // puis la trame BIA complète pendant la même montée. L'inviter deux fois le ferait
-        // descendre entre les deux et perdrait la mesure.
+        // L'athlète monte ici, et une seule fois.
+        //
+        // ⚠️ **Pesée de masse seule.** L'appairage ne cherche qu'une tare de calibration, pas
+        // une mesure d'impédance : ni poignée, ni pieds nus. Exiger l'un ou l'autre ferait
+        // tenir une pose inutile pendant toute la gravure.
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.AWAITING_ATHLETE,
-                instructions = HuaweiWeighInSequence.stepOnInstructions(model),
+                instructions = listOf(AthleteInstruction.STEP_ON),
                 detail = "Capture de la tare renvoyée par la balance"
             )
         )
@@ -56,7 +58,8 @@ object HuaweiPairingSequence {
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Désarmement de l'association (0x45)"))
 
         // L'athlète est déjà sur la balance : la trame de validation arrive pendant la même
-        // montée que la tare, sans nouvelle consigne.
+        // montée que la tare, sans nouvelle consigne. Sans la poignée, elle ne portera que la
+        // masse — c'est attendu, et suffisant pour valider l'appairage.
         add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Armement du flux BIA (0x97)"))
         add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Relevé de validation (0x97) puis acquittement (0x31 type=2)"))
     }
