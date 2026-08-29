@@ -47,7 +47,12 @@ data class BodyCompositionReport(
 }
 
 /**
- * Un relevé corporel journalier rattaché à l'athlète.
+ * Un relevé corporel **horodaté** rattaché à l'athlète.
+ *
+ * Identifié par son instant et non par sa date : se peser plusieurs fois dans une journée est
+ * légitime — au réveil, après l'effort — et n'écrase rien. Un relevé par jour est un
+ * **objectif de suivi**, pas une contrainte du modèle : la tendance se lit sur une médiane
+ * glissante, qui absorbe très bien plusieurs points par jour comme des jours sans mesure.
  *
  * Porte toujours une masse, une date et un taux de masse grasse — ce dernier provenant soit
  * de la balance, soit d'une saisie manuelle. C'est ce qui rend l'application utilisable sans

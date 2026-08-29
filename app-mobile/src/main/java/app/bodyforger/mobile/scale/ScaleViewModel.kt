@@ -290,15 +290,13 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
                     return
                 }
 
-                val dateIso = measuredAt.atZone(ZoneId.systemDefault()).toLocalDate().toString()
-                // Un relevé corporel est **journalier** : repeser deux fois dans la journée
-                // remplace la mesure du jour au lieu d'en empiler une seconde, sans quoi
-                // l'historique compterait plusieurs personnes pour une seule date.
-                val existingId = database.bodyLogDao().findByDate(dateIso)?.log?.id
-
+                // Chaque pesée est un relevé distinct, identifié par son instant. Se peser
+                // plusieurs fois dans la journée est légitime — au réveil, après l'effort —
+                // et écraser la mesure du jour perdrait ce que ces écarts racontent. Un
+                // relevé par jour est un **objectif de suivi**, pas une limite.
                 val log = BodyLog(
-                    id = existingId ?: UUID.randomUUID().toString(),
-                    dateIso = dateIso,
+                    id = UUID.randomUUID().toString(),
+                    dateIso = measuredAt.atZone(ZoneId.systemDefault()).toLocalDate().toString(),
                     measuredAtEpochMs = measuredAt.toEpochMilli(),
                     massKg = telemetry.massKg,
                     bodyFatPercentage = bodyFat,
