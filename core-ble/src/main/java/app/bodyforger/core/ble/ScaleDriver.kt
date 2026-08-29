@@ -1,22 +1,30 @@
 package app.bodyforger.core.ble
 
 import app.bodyforger.core.model.ScaleAssociation
+import app.bodyforger.core.model.ScaleUserProfile
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Le composant d'adaptation matérielle dédié à une famille de balances.
  *
- * Encapsule l'identification, le chiffrement, les étapes d'appairage et le décodage des
- * trames, et expose la pesée comme une **suite d'états observables** — de sorte que
- * l'application reste générique et ignorante du matériel.
+ * Le pilote possède **son propre contrat** : sa séquence d'appairage, ses étapes, ses
+ * trames, sa cryptographie. Le cœur ne connaît que le vocabulaire commun — [SessionPhase],
+ * [AthleteInstruction], [SessionFailure] — et ne présume ni du nombre d'étapes, ni de leur
+ * ordre, ni de la nécessité d'une connexion.
  *
- * Rien de propre à un constructeur ne doit traverser cette interface : ni énumération de
- * modèles, ni décalage de trame, ni identifiant GATT.
+ * Rien de propre à un constructeur ne traverse cette interface : ni énumération de modèles,
+ * ni décalage de trame, ni identifiant GATT.
  */
 interface ScaleDriver {
 
+    /** Identifiant stable du pilote, par exemple `huawei_haige`. */
+    val id: String
+
     /** Nom lisible de la famille prise en charge. */
     val name: String
+
+    /** Ce que ce matériel exige avant de pouvoir être utilisé au quotidien. */
+    val pairingRequirement: PairingRequirement
 
     /**
      * Examine le nom annoncé dans l'advertisement BLE.
@@ -26,12 +34,28 @@ interface ScaleDriver {
     fun identify(advertisedName: String?): RecognisedScale?
 
     /**
+     * Déroule l'appairage initial et produit l'Association.
+     *
+     * Le flux se termine sur [PairingState.Completed] ou [PairingState.Failed]. Un pilote
+     * dont le [pairingRequirement] vaut [PairingRequirement.NONE] peut aboutir sans émettre
+     * la moindre étape.
+     */
+    fun pair(
+        deviceAddress: String,
+        advertisedName: String,
+        profile: ScaleUserProfile
+    ): Flow<PairingState>
+
+    /**
      * Déroule une pesée sur la balance associée.
      *
-     * Le flux émet la progression et se termine sur [WeighInState.Completed] ou
-     * [WeighInState.Failed]. L'annulation du flux interrompt la pesée.
+     * Le flux se termine sur [WeighInState.Completed] ou [WeighInState.Failed].
+     * L'annulation du flux interrompt la pesée.
      */
-    fun weighIn(association: ScaleAssociation): Flow<WeighInState>
+    fun weighIn(
+        association: ScaleAssociation,
+        profile: ScaleUserProfile
+    ): Flow<WeighInState>
 }
 
 /**
@@ -49,7 +73,8 @@ class ScaleDriverRegistry(private val drivers: List<ScaleDriver>) {
         }
 
     /** Le pilote capable de piloter cette Association. */
-    fun driverFor(advertisedName: String): ScaleDriver? = identify(advertisedName)?.driver
+    fun driverFor(association: ScaleAssociation): ScaleDriver? =
+        identify(association.advertisedName)?.driver
 
     data class Match(val driver: ScaleDriver, val scale: RecognisedScale)
 }
