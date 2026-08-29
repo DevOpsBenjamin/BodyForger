@@ -76,12 +76,12 @@ const pillars = [
 ]
 
 const comparisonItems = [
-  { feature: "Autonomie Wear OS (Sans téléphone)", hevy: "Déconnexions & bugs", bodyforger: "100% Standalone (Room DB locale)" },
-  { feature: "Mode Écran Éteint / Ambient", hevy: "App tuée ou figée", bodyforger: "Health Services & AOD 1Hz natif" },
-  { feature: "Balances BLE & Impédancemétrie (BIA)", hevy: "Poids basique manuel", bodyforger: "Pilote BLE GATT + Modèle DEXA 8 électrodes" },
-  { feature: "Google Health Connect", hevy: "Synchronisation partielle", bodyforger: "Planned Exercises + Séries temporelles HR" },
-  { feature: "Intégration IA (Gemini / Claude)", hevy: "Aucune", bodyforger: "Serveur MCP natif (Génération de routines)" },
-  { feature: "Modèle de données & Coût", hevy: "Abonnement propriétaire", bodyforger: "Open-Source & Local-First (Gratuit)" }
+  { feature: "Autonomie Wear OS", common: "La montre accompagne le téléphone", bodyforger: "Montre autonome (Room DB locale embarquée)" },
+  { feature: "Écran éteint / Ambient", common: "Comportement variable selon le constructeur", bodyforger: "Health Services & AOD 1 Hz natif" },
+  { feature: "Balances BLE & impédancemétrie", common: "Saisie manuelle du poids et du taux de gras", bodyforger: "Pilote BLE GATT + modèle DEXA 8 électrodes" },
+  { feature: "Google Health Connect", common: "Export des séances, souvent partiel", bodyforger: "Planned Exercises + séries temporelles HR" },
+  { feature: "Assistants IA (Gemini / Claude)", common: "Non proposé", bodyforger: "Serveur MCP natif (génération de routines)" },
+  { feature: "Modèle & coût", common: "Service hébergé, souvent sur abonnement", bodyforger: "Open source, local-first, sans compte" }
 ]
 
 const roadmapPhases = [
@@ -239,14 +239,16 @@ const roadmapPhases = [
       <!-- Why BodyForger (Comparison Table) -->
       <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
         <div class="text-center mb-12">
-          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 mb-3 inline-block">
-            Pourquoi une nouvelle app ?
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 mb-3 inline-block">
+            Pourquoi une app de plus ?
           </span>
           <h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-            La rupture avec Hevy & les applications actuelles
+            Des choix de conception différents
           </h2>
           <p class="text-slate-400 text-sm max-w-xl mx-auto">
-            Résoudre les blocages du quotidien qui gâchent l'expérience d'entraînement et le suivi de santé.
+            BodyForger est un projet personnel, taillé pour un usage précis : la montre au poignet et Google Health
+            au centre. Ce tableau compare des <strong class="text-slate-300">partis pris</strong>, pas des qualités —
+            les applications commerciales sont plus abouties, mieux supportées et conviennent à bien plus de monde.
           </p>
         </div>
 
@@ -255,14 +257,14 @@ const roadmapPhases = [
             <thead class="bg-slate-900/90 text-xs uppercase text-slate-400 border-b border-slate-800">
               <tr>
                 <th class="py-4 px-5">Fonctionnalité</th>
-                <th class="py-4 px-5 text-rose-400/80">Hevy / Apps classiques</th>
+                <th class="py-4 px-5 text-slate-400">Approche courante</th>
                 <th class="py-4 px-5 text-cyan-400">BodyForger</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800/60 text-slate-300">
               <tr v-for="item in comparisonItems" :key="item.feature" class="hover:bg-slate-900/40">
                 <td class="py-3.5 px-5 font-medium text-white">{{ item.feature }}</td>
-                <td class="py-3.5 px-5 text-slate-400">{{ item.hevy }}</td>
+                <td class="py-3.5 px-5 text-slate-400">{{ item.common }}</td>
                 <td class="py-3.5 px-5 text-cyan-300 font-medium flex items-center gap-2">
                   <CheckCircle2 class="w-4 h-4 text-cyan-400 shrink-0" />
                   {{ item.bodyforger }}
@@ -271,6 +273,17 @@ const roadmapPhases = [
             </tbody>
           </table>
         </div>
+
+        <p class="text-slate-400 text-sm max-w-2xl mx-auto text-center mt-8 leading-relaxed">
+          Si vous vous entraînez téléphone en main, sans montre Wear OS, ou en dehors de Google Health,
+          BodyForger ne remplacera pas votre application actuelle — et ne cherche pas à le faire.
+          <a href="https://www.hevyapp.com/" target="_blank" rel="noopener" class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">Hevy</a>
+          et
+          <a href="https://gitlab.com/DuarteSantos8/opengym" target="_blank" rel="noopener" class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">openGym</a>
+          sont d'excellents outils, plus complets et mieux accompagnés. Ce projet est né d'un besoin
+          personnel très précis : une montre réellement autonome et une synchronisation Health Connect
+          qui ne perde rien en route.
+        </p>
       </section>
 
       <!-- Roadmap Section -->
