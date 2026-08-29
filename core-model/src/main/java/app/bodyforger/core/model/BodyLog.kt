@@ -1,36 +1,50 @@
 package app.bodyforger.core.model
 
 /**
- * Impédances par zone anatomique.
- *
- * ⚠️ Ce type fusionne le mesuré et le dérivé : les zones segmentaires sont des fonctions
- * pures de Kirchhoff des [RawImpedances], et ne doivent jamais être persistées. Conservé
- * uniquement le temps que `DexaBiaCalculator` soit réécrit — voir #20.
- */
-@Deprecated("Couche dérivée, jamais persistée. Remplacé par RawImpedances — voir #20.")
-data class SegmentalImpedance(
-    val trunkZ50: Double,
-    val rightArmZ50: Double,
-    val leftArmZ50: Double,
-    val rightLegZ50: Double,
-    val leftLegZ50: Double
-)
-
-/**
  * L'analyse de composition corporelle dérivée des [RawImpedances].
  *
  * N'existe que si des impédances ont été relevées. À ne pas confondre avec le taux de masse
  * grasse du [BodyLog], qui est toujours renseigné.
  */
 data class BodyCompositionReport(
-    val bodyFatPercentage: Double,
+    /** Masse maigre : tout ce qui n'est pas du gras — muscle, os, eau, organes. */
     val fatFreeMassKg: Double,
+    val fatMassKg: Double,
+    val bodyFatPercentage: Double,
+
+    /** Masse musculaire squelettique : la part que l'entraînement fait bouger. */
     val skeletalMuscleMassKg: Double,
-    val totalBodyWaterLiters: Double,
-    val extracellularWaterLiters: Double,
-    val intracellularWaterLiters: Double,
-    val ecwTbwRatio: Double
-)
+
+    // --- Compartiments de la masse maigre (modèle Brozek 4C) ---
+    val totalBodyWaterKg: Double,
+    val extracellularWaterKg: Double,
+    val intracellularWaterKg: Double,
+    val proteinMassKg: Double,
+    val boneMineralMassKg: Double,
+
+    /** Rapport eau extracellulaire sur eau totale. Norme clinique ~0,38 – 0,40. */
+    val ecwTbwRatio: Double,
+
+    /**
+     * Le muscle réparti sur les cinq segments, ou `null` si la pesée n'a pas mis les mains
+     * en jeu : sans les bras dans le circuit, aucun membre n'est isolable et aucun ne sera
+     * inventé.
+     */
+    val segmentalMuscle: SegmentalMuscleMass?,
+
+    /** Les cinq segments isolés à chaque fréquence relevée. Dérivés, jamais persistés. */
+    val segmental: List<SegmentalImpedances> = emptyList()
+) {
+    /**
+     * Masse musculaire squelettique **totale** rapportée au carré de la taille, en kg/m².
+     *
+     * ⚠️ Ce n'est pas le SMI de Baumgartner et la grille clinique ne s'y applique pas :
+     * celle-ci porte sur le muscle des seuls membres. Pour la lire, passer par
+     * [SegmentalMuscleMass.baumgartnerIndex].
+     */
+    fun totalMuscleIndex(heightCm: Double): Double =
+        skeletalMuscleMassKg / ((heightCm / 100.0) * (heightCm / 100.0))
+}
 
 /**
  * Un relevé corporel journalier rattaché à l'athlète.

@@ -77,11 +77,11 @@ enum class HuaweiScaleModel(
          *
          * `TECH.md` §6.2 avertit que ce n'est pas universel dans la gamme Huawei — d'où un
          * facteur porté par le modèle plutôt qu'en constante du décodeur. Nos deux captures
-         * réelles le confirment sur `M00F` (3658 → 365,8 Ω) comme sur `M00D` (5098 → 509,8 Ω).
+         * réelles le confirment sur `M00F` comme sur `M00D` (compteur 5098 → 509,8 Ω).
          *
          * openScale désambiguïse par magnitude (`1..3999` lus en ohms, `4000..39999` divisés
          * par dix) parce qu'il couvre cinquante-huit balances. Cette heuristique se trompe
-         * sur nos relevés : elle rendrait 3658 en 3658 Ω.
+         * sur nos relevés : elle rendrait un compteur de 4150 en 4150 Ω.
          */
         const val HAIGE_OHM_DIVISOR: Double = 10.0
 

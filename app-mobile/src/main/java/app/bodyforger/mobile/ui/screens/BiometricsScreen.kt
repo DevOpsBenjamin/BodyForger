@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.bia.DexaBiaCalculator
+import app.bodyforger.mobile.data.DebugSampleBia
 import app.bodyforger.core.model.BiaProfile
 import app.bodyforger.core.model.BiologicalSex
 import app.bodyforger.mobile.ui.theme.AmberGold
@@ -68,8 +69,14 @@ fun BiometricsScreen() {
     }
 
     val report = remember(userMassKg) {
-        DexaBiaCalculator.calculate(massKg = userMassKg, profile = profile)
-    }
+        DexaBiaCalculator.calculate(
+            massKg = userMassKg,
+            profile = profile,
+            impedances = DebugSampleBia.dualFrequencyReading
+        )
+        // Sans impédances relevées, il n'y a pas de composition à montrer : le moteur rend
+        // `null` plutôt que d'inventer un chiffre.
+    } ?: return
 
     Column(
         modifier = Modifier
@@ -220,7 +227,7 @@ fun BiometricsScreen() {
                     Icon(imageVector = Icons.Default.Opacity, contentDescription = null, tint = ElectricCyan, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Eau Totale (TBW)", color = TextMuted, fontSize = 11.sp)
-                    Text(text = "${report.totalBodyWaterLiters} L", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "${report.totalBodyWaterKg} L", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
