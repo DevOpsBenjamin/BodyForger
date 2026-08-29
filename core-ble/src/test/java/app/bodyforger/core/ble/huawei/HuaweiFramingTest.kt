@@ -46,6 +46,30 @@ class HuaweiFramingTest {
         assertTrue(HuaweiFraming.crc16(bytes("db0300c1")) != HuaweiFraming.crc16(bytes("db0300c0")))
     }
 
+    @Test
+    fun `les trames recues de la balance suivent un autre CRC que celles qu'on emet`() {
+        // Constat de terrain sur deux trames d'authentification réellement capturées : la
+        // balance signe en MODBUS, quand nous signons en CCITT. `TECH.md` ne documente que
+        // le second, et la référence ne vérifie jamais ce qu'elle reçoit — elle n'avait donc
+        // aucune occasion de s'en apercevoir.
+        val first = bytes("bd1210a9ccb66a6d7386d9d992f0bd9cacb4")
+        assertEquals(0x9ed3, HuaweiFraming.receivedCrc16(first))
+        assertTrue(HuaweiFraming.crc16(first) != 0x9ed3)
+
+        val second = bytes("bd0511ec01")
+        assertEquals(0xd295, HuaweiFraming.receivedCrc16(second))
+    }
+
+    @Test
+    fun `une trame reelle de la balance se recolle`() {
+        val reassembler = HuaweiFrameReassembler()
+        assertNull(reassembler.feed(bytes("bd1210a9ccb66a6d7386d9d992f0bd9cacb4d39e")))
+        val payload = reassembler.feed(bytes("bd0511ec0195d2"))
+        // Quinze octets puis deux : l'aléa de seize octets, précédé de son octet d'entête.
+        assertEquals(17, payload!!.size)
+        assertNull(reassembler.lastRejection)
+    }
+
     // --- Découpage ---
 
     @Test
@@ -97,7 +121,7 @@ class HuaweiFramingTest {
         for (size in listOf(0, 1, 15, 16, 69, HuaweiFraming.MAX_PAYLOAD_BYTES)) {
             val payload = ByteArray(size) { ((it * 31) % 256).toByte() }
             val reassembler = HuaweiFrameReassembler()
-            val frames = HuaweiFraming.split(payload, HuaweiFrameMagic.SCALE_ENCRYPTED)
+            val frames = asScale(payload, HuaweiFrameMagic.SCALE_ENCRYPTED)
             var result: ByteArray? = null
             frames.forEach { result = reassembler.feed(it) }
             assertArrayEquals("charge de $size octets", payload, result)
@@ -106,7 +130,7 @@ class HuaweiFramingTest {
 
     @Test
     fun `la charge n'apparait qu'a la derniere trame`() {
-        val frames = HuaweiFraming.split(ByteArray(40), HuaweiFrameMagic.SCALE_ENCRYPTED)
+        val frames = asScale(ByteArray(40), HuaweiFrameMagic.SCALE_ENCRYPTED)
         val reassembler = HuaweiFrameReassembler()
         assertNull(reassembler.feed(frames[0]))
         assertNull(reassembler.feed(frames[1]))
@@ -117,7 +141,7 @@ class HuaweiFramingTest {
     fun `une trame au CRC faux est ecartee`() {
         // La référence ne vérifie pas le CRC : une trame corrompue y était recollée telle
         // quelle, puis déchiffrée en bruit sans que rien n'indique la corruption.
-        val frame = HuaweiFraming.split(ByteArray(4), HuaweiFrameMagic.SCALE_CLEAR)[0]
+        val frame = asScale(ByteArray(4), HuaweiFrameMagic.SCALE_CLEAR)[0]
         val corrupted = frame.copyOf().also { it[it.size - 1] = (it[it.size - 1] + 1).toByte() }
         assertNull(HuaweiFrameReassembler().feed(corrupted))
     }
@@ -125,7 +149,7 @@ class HuaweiFramingTest {
     @Test
     fun `une charge corrompue en cours de route n'est jamais rendue`() {
         val payload = ByteArray(40) { it.toByte() }
-        val frames = HuaweiFraming.split(payload, HuaweiFrameMagic.SCALE_ENCRYPTED)
+        val frames = asScale(payload, HuaweiFrameMagic.SCALE_ENCRYPTED)
         val reassembler = HuaweiFrameReassembler()
         reassembler.feed(frames[0])
         reassembler.feed(frames[1].copyOf().also { it[5] = (it[5] + 1).toByte() })
@@ -134,7 +158,7 @@ class HuaweiFramingTest {
 
     @Test
     fun `un octet magique inconnu est ecarte`() {
-        val frame = HuaweiFraming.split(ByteArray(4), HuaweiFrameMagic.SCALE_CLEAR)[0]
+        val frame = asScale(ByteArray(4), HuaweiFrameMagic.SCALE_CLEAR)[0]
         assertNull(HuaweiFrameReassembler().feed(frame.copyOf().also { it[0] = 0x42 }))
     }
 
@@ -148,7 +172,7 @@ class HuaweiFramingTest {
     @Test
     fun `une trame orpheline ne demarre pas un recollage`() {
         // Reprendre au milieu d'un message reviendrait à inventer les trames manquantes.
-        val frames = HuaweiFraming.split(ByteArray(40), HuaweiFrameMagic.SCALE_ENCRYPTED)
+        val frames = asScale(ByteArray(40), HuaweiFrameMagic.SCALE_ENCRYPTED)
         assertNull(HuaweiFrameReassembler().feed(frames[1]))
         assertNull(HuaweiFrameReassembler().feed(frames[2]))
     }
@@ -156,7 +180,7 @@ class HuaweiFramingTest {
     @Test
     fun `une nouvelle premiere trame abandonne le recollage en cours`() {
         val payload = ByteArray(20) { it.toByte() }
-        val frames = HuaweiFraming.split(payload, HuaweiFrameMagic.SCALE_ENCRYPTED)
+        val frames = asScale(payload, HuaweiFrameMagic.SCALE_ENCRYPTED)
         val reassembler = HuaweiFrameReassembler()
         reassembler.feed(frames[0])
         // La balance recommence son envoi : on repart de sa nouvelle première trame.
@@ -172,6 +196,10 @@ class HuaweiFramingTest {
         assertTrue(!HuaweiFrameMagic.HOST_CLEAR.fromScale && !HuaweiFrameMagic.HOST_CLEAR.encrypted)
         assertNull(HuaweiFrameMagic.of(0x00))
     }
+
+    /** Reconstitue une trame **comme la balance l'émet** : même structure, autre signature. */
+    private fun asScale(payload: ByteArray, magic: HuaweiFrameMagic) =
+        HuaweiFraming.split(payload, magic, HuaweiFraming::receivedCrc16)
 
     private fun bytes(hex: String) = ByteArray(hex.length / 2) {
         hex.substring(it * 2, it * 2 + 2).toInt(16).toByte()

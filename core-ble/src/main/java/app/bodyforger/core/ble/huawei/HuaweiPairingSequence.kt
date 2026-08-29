@@ -28,13 +28,10 @@ object HuaweiPairingSequence {
      * laisserait l'athlète devant une consigne impossible.
      */
     fun stepsFor(model: HuaweiScaleModel): List<HuaweiSessionStep> = buildList {
-        add(
-            HuaweiSessionStep(
-                phase = SessionPhase.DISCOVERING,
-                instructions = listOf(AthleteInstruction.TAP_SCALE_TO_WAKE),
-                detail = "Réveil de la balance et scan ciblé"
-            )
-        )
+        // Aucun tapotement ici : l'appairage part d'une balance que le scan vient de
+        // repérer, donc déjà réveillée. Le tapotement sert à réveiller une balance **déjà
+        // appairée** au moment de peser, et n'a de sens que là.
+        add(HuaweiSessionStep(SessionPhase.DISCOVERING, detail = "Connexion à la balance repérée"))
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.PREPARING,

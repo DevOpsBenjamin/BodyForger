@@ -84,7 +84,12 @@ object HuaweiFraming {
         0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
     )
 
-    /** Le CRC-16 CCITT d'une suite d'octets, registre initialisé à zéro. */
+    /**
+     * Le CRC des trames que **nous émettons** : CCITT, registre initialisé à zéro.
+     *
+     * C'est celui de la table ci-dessus, employé par l'implémentation de référence éprouvée
+     * en production. Les trames construites ainsi sont acceptées par le matériel.
+     */
     fun crc16(data: ByteArray, length: Int = data.size): Int {
         var register = 0
         for (i in 0 until length) {
@@ -95,12 +100,49 @@ object HuaweiFraming {
     }
 
     /**
+     * Le CRC des trames que **la balance émet** : MODBUS — polynôme `0x8005`, registre
+     * initialisé à `0xFFFF`, réfléchi en entrée comme en sortie.
+     *
+     * ⚠️ **Les deux sens n'emploient pas le même CRC**, et c'est un constat de terrain, pas
+     * une théorie : deux trames d'authentification réellement capturées le donnent sans
+     * ambiguïté, là où le CCITT sortant se trompe de plusieurs milliers. `TECH.md` §3.2 ne
+     * documente que le premier, et l'implémentation de référence ne vérifie jamais les trames
+     * reçues — elle n'avait donc aucune occasion de s'en apercevoir.
+     */
+    fun receivedCrc16(data: ByteArray, length: Int = data.size): Int {
+        var register = 0xFFFF
+        for (i in 0 until length) {
+            register = register xor (data[i].toInt() and 0xFF)
+            repeat(8) {
+                register = if (register and 1 != 0) {
+                    (register shr 1) xor MODBUS_REFLECTED_POLYNOMIAL
+                } else {
+                    register shr 1
+                }
+            }
+        }
+        return register and 0xFFFF
+    }
+
+    /** Polynôme MODBUS `0x8005`, sous sa forme réfléchie. */
+    private const val MODBUS_REFLECTED_POLYNOMIAL = 0xA001
+
+    /**
      * Découpe une charge utile en trames prêtes à écrire sur la caractéristique.
      *
      * Une charge vide produit **une** trame et non zéro : certaines commandes n'ont pas de
      * corps et doivent quand même être émises.
      */
-    fun split(payload: ByteArray, magic: HuaweiFrameMagic): List<ByteArray> {
+    fun split(
+        payload: ByteArray,
+        magic: HuaweiFrameMagic,
+        /**
+         * La signature à apposer. Les deux sens n'emploient pas le même CRC : ce paramètre
+         * existe pour pouvoir reconstituer une trame **telle que la balance l'émet**, ce dont
+         * les tests ont besoin et que le code de production n'a jamais à faire.
+         */
+        crc: (ByteArray, Int) -> Int = ::crc16
+    ): List<ByteArray> {
         require(payload.size <= MAX_PAYLOAD_BYTES) {
             "Charge de ${payload.size} octets : le séquencement sur quatre bits en admet $MAX_PAYLOAD_BYTES au plus"
         }
@@ -113,9 +155,9 @@ object HuaweiFraming {
             frame[1] = (chunk.size + HEADER_BYTES).toByte()
             frame[2] = ((((total - 1) and 0x0F) shl 4) or (index and 0x0F)).toByte()
             chunk.copyInto(frame, HEADER_BYTES)
-            val crc = crc16(frame, HEADER_BYTES + chunk.size)
-            frame[frame.size - 2] = (crc and 0xFF).toByte()
-            frame[frame.size - 1] = ((crc shr 8) and 0xFF).toByte()
+            val signature = crc(frame, HEADER_BYTES + chunk.size)
+            frame[frame.size - 2] = (signature and 0xFF).toByte()
+            frame[frame.size - 1] = ((signature shr 8) and 0xFF).toByte()
             frame
         }
     }
@@ -168,7 +210,7 @@ class HuaweiFrameReassembler {
             return discard("longueur annoncée ${raw[1].toInt() and 0xFF} incompatible avec ${raw.size} octets")
         }
 
-        val expectedCrc = HuaweiFraming.crc16(raw, 3 + declared)
+        val expectedCrc = HuaweiFraming.receivedCrc16(raw, 3 + declared)
         val actualCrc = (raw[3 + declared].toInt() and 0xFF) or
             ((raw[4 + declared].toInt() and 0xFF) shl 8)
         if (expectedCrc != actualCrc) {
