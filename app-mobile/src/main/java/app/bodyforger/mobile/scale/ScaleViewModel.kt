@@ -202,6 +202,9 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
                                 pairingStep = null,
                                 pairingInstructions = emptyList()
                             )
+                            // L'athlète est monté sur la balance pendant l'appairage : ce
+                            // qu'elle a mesuré vaut un relevé, plutôt que d'être jeté.
+                            state.validation?.let { handle(WeighInState.Completed(it)) }
                         }
                     }
                 }
@@ -287,9 +290,15 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
                     return
                 }
 
+                val dateIso = measuredAt.atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                // Un relevé corporel est **journalier** : repeser deux fois dans la journée
+                // remplace la mesure du jour au lieu d'en empiler une seconde, sans quoi
+                // l'historique compterait plusieurs personnes pour une seule date.
+                val existingId = database.bodyLogDao().findByDate(dateIso)?.log?.id
+
                 val log = BodyLog(
-                    id = UUID.randomUUID().toString(),
-                    dateIso = measuredAt.atZone(ZoneId.systemDefault()).toLocalDate().toString(),
+                    id = existingId ?: UUID.randomUUID().toString(),
+                    dateIso = dateIso,
                     measuredAtEpochMs = measuredAt.toEpochMilli(),
                     massKg = telemetry.massKg,
                     bodyFatPercentage = bodyFat,
