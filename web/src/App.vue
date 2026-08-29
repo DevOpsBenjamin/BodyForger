@@ -1,234 +1,231 @@
 <script setup>
-import { 
-  Zap, 
-  Watch, 
-  Scale, 
-  Dumbbell, 
-  Activity, 
-  CheckCircle2, 
-  Github, 
-  ArrowRight, 
-  Cpu, 
-  Sparkles, 
-  Layers, 
-  Clock, 
-  HeartPulse, 
-  Bluetooth, 
-  FileText,
-  Flame,
-  ShieldCheck,
-  Smartphone
+import { computed, onMounted } from 'vue'
+import {
+  Zap, Watch, Scale, Dumbbell, Activity, CheckCircle2, Github,
+  ArrowRight, Cpu, HeartPulse, Bluetooth, FileText, Smartphone, Languages
 } from 'lucide-vue-next'
+import { t, locale, setLocale, AVAILABLE } from './i18n.js'
 
-const pillars = [
-  {
-    icon: Watch,
-    badge: "100% Autonome",
-    badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
-    title: "Wear OS Wrist-First",
-    description: "Entraînez-vous sans smartphone. L'application tourne en tâche de fond native via l'API Android Health Services.",
-    features: [
-      "Écran éteint & Ambient Display (AOD 1Hz sans vider la batterie)",
-      "Cardiofréquencemètre en continu sur coprocesseur basse consommation",
-      "Chronomètre de repos avec retours haptiques personnalisés",
-      "Saisie rapide des séries & poids via couronne rotative"
-    ]
-  },
-  {
-    icon: Scale,
-    badge: "DEXA-Grade",
-    badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    title: "BIA & Balances BLE",
-    description: "Héritage direct de SimpleBodyGraph. Connexion GATT native aux balances connectées avec algorithmes multi-fréquences.",
-    features: [
-      "Pilote Bluetooth natif Huawei Scale 3 / Pro (handshake crypto)",
-      "Analyse segmentaire 8 électrodes (Tronc, Bras D/G, Jambes D/G)",
-      "Calcul DEXA : Masse grasse, SMM, FFM, Somatotypes, VFL, Eau (ICW/ECW)",
-      "Paliers d'objectifs validés par tendance médiane hebdomadaire"
-    ]
-  },
-  {
-    icon: Dumbbell,
-    badge: "1 300+ Exos",
-    badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    title: "Moteur OpenGym",
-    description: "La puissance de la base open-source openGym avec modélisation avancée de l'intensité et de l'hypertrophie.",
-    features: [
-      "Catalogue exhaustif de 1 300+ exercices avec instructions & animations",
-      "Support natif des Drop-sets avec réduction de charge en % automatique",
-      "Clusters Rest-pause / Myo-reps décomposés en séries d'activation",
-      "Estimation du 1RM (Epley/Brzycki) et Heatmap musculaire hebdomadaire"
-    ]
-  },
-  {
-    icon: Activity,
-    badge: "Écosystème Google",
-    badgeColor: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-    title: "Health Connect & MCP AI",
-    description: "Synchronisation totale avec l'écosystème Google Health Connect et génération de routines par IA via MCP.",
-    features: [
-      "Support de PlannedExerciseSessionRecord pour importer des séances",
-      "Export complet des séances avec séries temporelles de rythme cardiaque",
-      "Serveur MCP (Model Context Protocol) dédié pour Gemini / Claude",
-      "Génération automatique de programmes selon l'évolution BIA réelle"
-    ]
-  }
+const REPO = 'https://github.com/DevOpsBenjamin/BodyForger'
+
+const LINKS = {
+  opengym: { href: 'https://gitlab.com/DuarteSantos8/opengym', label: 'openGym' },
+  bodygraph: { href: 'https://github.com/DevOpsBenjamin/SimpleBodyGraph', label: 'SimpleBodyGraph' },
+  health: { href: 'https://health.google/health-connect-android/', label: 'Google Health Connect' },
+  hevy: { href: 'https://www.hevyapp.com/', label: 'Hevy' }
+}
+
+/** Splits "text {key} text" into renderable segments, so links stay real
+ *  anchors instead of going through v-html. */
+function segments(str, extras = {}) {
+  return str
+    .split(/(\{[a-z]+\})/gi)
+    .filter((chunk) => chunk !== '')
+    .map((chunk, i) => {
+      const match = /^\{([a-z]+)\}$/i.exec(chunk)
+      if (!match) return { k: i, type: 'text', value: chunk }
+      const key = match[1]
+      if (LINKS[key]) return { k: i, type: 'link', href: LINKS[key].href, value: LINKS[key].label }
+      if (extras[key]) return { k: i, type: 'strong', value: extras[key] }
+      return { k: i, type: 'text', value: chunk }
+    })
+}
+
+const PILLAR_ICONS = [Watch, Scale, Dumbbell, Activity]
+const PILLAR_ACCENT = [
+  'bg-neon/10 text-neon border-neon/25',
+  'bg-electric/10 text-electric border-electric/25',
+  'bg-gold/10 text-gold border-gold/25',
+  'bg-txt/5 text-txt-2 border-line'
 ]
 
-const comparisonItems = [
-  { feature: "Autonomie Wear OS", common: "La montre accompagne le téléphone", bodyforger: "Montre autonome (Room DB locale embarquée)" },
-  { feature: "Écran éteint / Ambient", common: "Comportement variable selon le constructeur", bodyforger: "Health Services & AOD 1 Hz natif" },
-  { feature: "Balances BLE & impédancemétrie", common: "Saisie manuelle du poids et du taux de gras", bodyforger: "Pilote BLE GATT + modèle DEXA 8 électrodes" },
-  { feature: "Google Health Connect", common: "Export des séances, souvent partiel", bodyforger: "Planned Exercises + séries temporelles HR" },
-  { feature: "Assistants IA (Gemini / Claude)", common: "Non proposé", bodyforger: "Serveur MCP natif (génération de routines)" },
-  { feature: "Modèle & coût", common: "Service hébergé, souvent sur abonnement", bodyforger: "Open source, local-first, sans compte" }
-]
+const pillars = computed(() =>
+  t.value.pillars.items.map((item, i) => ({
+    ...item,
+    icon: PILLAR_ICONS[i],
+    accent: PILLAR_ACCENT[i]
+  }))
+)
 
-const roadmapPhases = [
-  { phase: "Phase 0", title: "Architecture & Branding", status: "Terminé", done: true },
-  { phase: "Phase 1", title: "Socle BIA DEXA & Driver BLE en Kotlin", status: "En cours", current: true },
-  { phase: "Phase 2", title: "Intégration Catalogue 1 300 Exos & Modèles de séries", status: "À venir", done: false },
-  { phase: "Phase 3", title: "Moteur Wear OS (Health Services + AOD + Haptique)", status: "À venir", done: false },
-  { phase: "Phase 4", title: "Synchronisation Wearable Data Layer (Montre ↔ Tel)", status: "À venir", done: false },
-  { phase: "Phase 5", title: "Exporteur Google Health Connect (Sessions & Planned)", status: "À venir", done: false },
-  { phase: "Phase 6", title: "Serveur MCP pour génération IA de routines", status: "À venir", done: false }
-]
+const PHASE_STATE = ['done', 'current', 'todo', 'todo', 'todo', 'todo', 'todo']
+
+const roadmap = computed(() =>
+  t.value.roadmap.phases.map((title, i) => ({
+    phase: `Phase ${i}`,
+    title,
+    state: PHASE_STATE[i],
+    status: t.value.roadmap.status[PHASE_STATE[i]]
+  }))
+)
+
+onMounted(() => {
+  document.documentElement.lang = locale.value
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950">
-    <!-- Glow Background Accents -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      <div class="absolute -top-40 -left-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
-      <div class="absolute top-1/3 -right-40 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+  <div class="min-h-screen bg-obsidian text-txt flex flex-col font-sans selection:bg-neon selection:text-obsidian">
+    <!-- Ambient glow -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+      <div class="absolute -top-40 -left-40 w-[30rem] h-[30rem] rounded-full bg-neon/8 blur-3xl"></div>
+      <div class="absolute top-1/3 -right-40 w-[28rem] h-[28rem] rounded-full bg-electric/6 blur-3xl"></div>
     </div>
 
-    <!-- Header Navigation -->
-    <header class="relative z-10 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md sticky top-0">
+    <!-- Header: z-50 so page content scrolls underneath instead of over it -->
+    <header class="sticky top-0 z-50 border-b border-line bg-obsidian/90 backdrop-blur-md">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <Zap class="w-5 h-5 text-slate-950 stroke-[2.5]" />
+          <div class="w-9 h-9 rounded-xl bg-neon flex items-center justify-center shadow-lg shadow-neon/20">
+            <Zap class="w-5 h-5 text-obsidian stroke-[2.5]" />
           </div>
-          <div>
-            <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">BodyForger</span>
-            <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">WIP</span>
+          <div class="flex items-center">
+            <span class="font-extrabold text-lg tracking-tight text-txt">BodyForger</span>
+            <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/25">
+              {{ t.nav.wip }}
+            </span>
           </div>
         </div>
 
-        <div class="flex items-center gap-4">
-          <a 
-            href="https://github.com/DevOpsBenjamin/BodyForger" 
-            target="_blank" 
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Language switch -->
+          <div
+            class="flex items-center rounded-lg border border-line bg-surface p-0.5"
+            role="group"
+            :aria-label="t.nav.langLabel"
+          >
+            <Languages class="w-3.5 h-3.5 text-txt-3 mx-1.5 hidden sm:block" aria-hidden="true" />
+            <button
+              v-for="lang in AVAILABLE"
+              :key="lang.code"
+              type="button"
+              :aria-pressed="locale === lang.code"
+              :class="[
+                'px-2.5 py-1 text-xs font-bold rounded-md transition-colors',
+                locale === lang.code
+                  ? 'bg-neon text-obsidian'
+                  : 'text-txt-2 hover:text-txt hover:bg-surface-2'
+              ]"
+              @click="setLocale(lang.code)"
+            >
+              {{ lang.label }}
+            </button>
+          </div>
+
+          <a
+            :href="REPO"
+            target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white px-3.5 py-1.5 rounded-lg hover:bg-slate-800/60 transition-colors border border-transparent hover:border-slate-700"
+            class="flex items-center gap-2 text-sm font-medium text-txt-2 hover:text-txt px-3 py-1.5 rounded-lg hover:bg-surface transition-colors border border-transparent hover:border-line"
           >
             <Github class="w-4 h-4" />
-            <span class="hidden sm:inline">GitHub</span>
+            <span class="hidden sm:inline">{{ t.nav.github }}</span>
           </a>
         </div>
       </div>
     </header>
 
-    <!-- Hero Section -->
-    <main class="relative z-10 flex-1">
+    <!-- pb-24 clears the fixed footer -->
+    <main class="relative z-10 flex-1 pb-24">
+      <!-- Hero -->
       <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-20 text-center">
-        <!-- Status Pill -->
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-medium text-slate-300 mb-8 shadow-inner">
-          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-          Application Native Android & Wear OS en cours de développement
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-line text-xs font-medium text-txt-2 mb-8">
+          <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span>
+          {{ t.hero.status }}
         </div>
 
-        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-          Forge Your Physique. <br />
-          <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
-            Wrist-First & Autonomous.
-          </span>
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-txt mb-6 leading-tight">
+          {{ t.hero.titleTop }} <br />
+          <span class="text-neon">{{ t.hero.titleAccent }}</span>
         </h1>
 
-        <p class="text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed">
-          L'écosystème de musculation et de suivi de composition corporelle tout-en-un. 
-          Fusionne le meilleur de <strong class="text-slate-200">openGym</strong> et de <strong class="text-slate-200">SimpleBodyGraph</strong> avec un moteur Wear OS autonome et une intégration profonde à <strong class="text-slate-200">Google Health Connect</strong>.
+        <p class="text-lg sm:text-xl text-txt-2 max-w-3xl mx-auto mb-10 leading-relaxed">
+          <template v-for="seg in segments(t.hero.subtitle)" :key="seg.k">
+            <a
+              v-if="seg.type === 'link'"
+              :href="seg.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-neon hover:text-neon/80 underline underline-offset-2 decoration-neon/40"
+            >{{ seg.value }}</a>
+            <template v-else>{{ seg.value }}</template>
+          </template>
         </p>
 
-        <!-- CTA Buttons -->
         <div class="flex flex-wrap items-center justify-center gap-4 mb-14">
-          <a 
-            href="https://github.com/DevOpsBenjamin/BodyForger" 
-            target="_blank" 
+          <a
+            :href="REPO"
+            target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm shadow-xl shadow-cyan-500/25 transition-all hover:scale-105 active:scale-95"
+            class="flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-neon hover:brightness-110 text-obsidian font-bold text-sm shadow-xl shadow-neon/20 transition-all hover:scale-105 active:scale-95"
           >
             <Github class="w-4 h-4" />
-            Explorer le code source sur GitHub
+            {{ t.hero.ctaPrimary }}
             <ArrowRight class="w-4 h-4" />
           </a>
-          <a 
-            href="https://github.com/DevOpsBenjamin/BodyForger/blob/main/PLAN.md" 
-            target="_blank" 
+          <a
+            :href="`${REPO}/blob/main/PLAN.md`"
+            target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-sm border border-slate-800 hover:border-slate-700 transition-all"
+            class="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-surface hover:bg-surface-2 text-txt font-semibold text-sm border border-line transition-all"
           >
-            <FileText class="w-4 h-4 text-cyan-400" />
-            Lire le Master Plan technique
+            <FileText class="w-4 h-4 text-neon" />
+            {{ t.hero.ctaSecondary }}
           </a>
         </div>
 
-        <!-- Tech Badges Strip -->
-        <div class="flex flex-wrap justify-center items-center gap-3 text-xs text-slate-400">
-          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
-            <Smartphone class="w-3.5 h-3.5 text-cyan-400" /> Kotlin Native Android
+        <div class="flex flex-wrap justify-center items-center gap-3 text-xs text-txt-2">
+          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-line">
+            <Smartphone class="w-3.5 h-3.5 text-neon" /> {{ t.hero.badges.kotlin }}
           </span>
-          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
-            <Watch class="w-3.5 h-3.5 text-cyan-400" /> Standalone Wear OS
+          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-line">
+            <Watch class="w-3.5 h-3.5 text-neon" /> {{ t.hero.badges.wear }}
           </span>
-          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
-            <Bluetooth class="w-3.5 h-3.5 text-emerald-400" /> Huawei Scale 3 BLE
+          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-line">
+            <Bluetooth class="w-3.5 h-3.5 text-electric" /> {{ t.hero.badges.ble }}
           </span>
-          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
-            <HeartPulse class="w-3.5 h-3.5 text-rose-400" /> Google Health Connect
+          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-line">
+            <HeartPulse class="w-3.5 h-3.5 text-crimson" /> {{ t.hero.badges.health }}
           </span>
-          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 border border-slate-800">
-            <Cpu class="w-3.5 h-3.5 text-violet-400" /> Serveur MCP Gemini
+          <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-line">
+            <Cpu class="w-3.5 h-3.5 text-gold" /> {{ t.hero.badges.mcp }}
           </span>
         </div>
       </section>
 
-      <!-- 4 Core Pillars Section -->
+      <!-- Pillars -->
       <section class="max-w-6xl mx-auto px-4 sm:px-6 py-16">
         <div class="text-center mb-14">
-          <h2 class="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-3">
-            Les 4 Piliers Fondateurs de BodyForger
-          </h2>
-          <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
-            Une architecture pensée pour l'indépendance de la montre, la précision clinique et la synchro d'écosystème.
-          </p>
+          <h2 class="text-2xl sm:text-4xl font-bold tracking-tight text-txt mb-3">{{ t.pillars.title }}</h2>
+          <p class="text-txt-2 text-sm sm:text-base max-w-2xl mx-auto">{{ t.pillars.subtitle }}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div 
-            v-for="pillar in pillars" 
+          <div
+            v-for="pillar in pillars"
             :key="pillar.title"
-            class="p-7 rounded-2xl bg-slate-900/50 border border-slate-800/80 hover:border-slate-700/80 transition-all hover:bg-slate-900/80 relative overflow-hidden group flex flex-col justify-between"
+            class="p-7 rounded-2xl bg-surface border border-line hover:border-neon/30 transition-all group flex flex-col justify-between"
           >
             <div>
               <div class="flex items-center justify-between mb-5">
-                <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700/60 flex items-center justify-center text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/10 transition-all">
+                <div class="w-12 h-12 rounded-xl bg-surface-2 border border-line flex items-center justify-center text-neon group-hover:scale-110 transition-transform">
                   <component :is="pillar.icon" class="w-6 h-6" />
                 </div>
-                <span class="text-xs font-semibold px-2.5 py-1 rounded-full border" :class="pillar.badgeColor">
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full border" :class="pillar.accent">
                   {{ pillar.badge }}
                 </span>
               </div>
 
-              <h3 class="text-xl font-bold text-white mb-2">{{ pillar.title }}</h3>
-              <p class="text-slate-400 text-sm mb-6 leading-relaxed">{{ pillar.description }}</p>
+              <h3 class="text-xl font-bold text-txt mb-2">{{ pillar.title }}</h3>
+              <p class="text-txt-2 text-sm mb-6 leading-relaxed">{{ pillar.description }}</p>
             </div>
 
-            <ul class="space-y-2.5 pt-4 border-t border-slate-800/60">
-              <li v-for="feat in pillar.features" :key="feat" class="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
-                <CheckCircle2 class="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+            <ul class="space-y-2.5 pt-4 border-t border-line">
+              <li
+                v-for="feat in pillar.features"
+                :key="feat"
+                class="flex items-start gap-2.5 text-xs sm:text-sm text-txt-2"
+              >
+                <CheckCircle2 class="w-4 h-4 text-neon shrink-0 mt-0.5" />
                 <span>{{ feat }}</span>
               </li>
             </ul>
@@ -236,93 +233,99 @@ const roadmapPhases = [
         </div>
       </section>
 
-      <!-- Why BodyForger (Comparison Table) -->
+      <!-- Design trade-offs -->
       <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
         <div class="text-center mb-12">
-          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 mb-3 inline-block">
-            Pourquoi une app de plus ?
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-neon/10 text-neon border border-neon/25 mb-3 inline-block">
+            {{ t.comparison.badge }}
           </span>
-          <h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">
-            Des choix de conception différents
-          </h2>
-          <p class="text-slate-400 text-sm max-w-xl mx-auto">
-            BodyForger est un projet personnel, taillé pour un usage précis : la montre au poignet et Google Health
-            au centre. Ce tableau compare des <strong class="text-slate-300">partis pris</strong>, pas des qualités —
-            les applications commerciales sont plus abouties, mieux supportées et conviennent à bien plus de monde.
+          <h2 class="text-2xl sm:text-3xl font-bold text-txt mb-2">{{ t.comparison.title }}</h2>
+          <p class="text-txt-2 text-sm max-w-xl mx-auto leading-relaxed">
+            <template
+              v-for="seg in segments(t.comparison.subtitle, { tradeoffs: t.comparison.tradeoffs })"
+              :key="seg.k"
+            >
+              <strong v-if="seg.type === 'strong'" class="text-txt">{{ seg.value }}</strong>
+              <template v-else>{{ seg.value }}</template>
+            </template>
           </p>
         </div>
 
-        <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/40">
+        <div class="overflow-x-auto rounded-2xl border border-line bg-surface">
           <table class="w-full text-left text-sm">
-            <thead class="bg-slate-900/90 text-xs uppercase text-slate-400 border-b border-slate-800">
+            <thead class="bg-surface-2 text-xs uppercase text-txt-2 border-b border-line">
               <tr>
-                <th class="py-4 px-5">Fonctionnalité</th>
-                <th class="py-4 px-5 text-slate-400">Approche courante</th>
-                <th class="py-4 px-5 text-cyan-400">BodyForger</th>
+                <th class="py-4 px-5">{{ t.comparison.colFeature }}</th>
+                <th class="py-4 px-5">{{ t.comparison.colCommon }}</th>
+                <th class="py-4 px-5 text-neon">BodyForger</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-800/60 text-slate-300">
-              <tr v-for="item in comparisonItems" :key="item.feature" class="hover:bg-slate-900/40">
-                <td class="py-3.5 px-5 font-medium text-white">{{ item.feature }}</td>
-                <td class="py-3.5 px-5 text-slate-400">{{ item.common }}</td>
-                <td class="py-3.5 px-5 text-cyan-300 font-medium flex items-center gap-2">
-                  <CheckCircle2 class="w-4 h-4 text-cyan-400 shrink-0" />
-                  {{ item.bodyforger }}
+            <tbody class="divide-y divide-line text-txt-2">
+              <tr v-for="item in t.comparison.rows" :key="item.feature" class="hover:bg-surface-2/50">
+                <td class="py-3.5 px-5 font-medium text-txt">{{ item.feature }}</td>
+                <td class="py-3.5 px-5">{{ item.common }}</td>
+                <td class="py-3.5 px-5 text-neon font-medium">
+                  <span class="flex items-center gap-2">
+                    <CheckCircle2 class="w-4 h-4 shrink-0" />
+                    {{ item.bodyforger }}
+                  </span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <p class="text-slate-400 text-sm max-w-2xl mx-auto text-center mt-8 leading-relaxed">
-          Si vous vous entraînez téléphone en main, sans montre Wear OS, ou en dehors de Google Health,
-          BodyForger ne remplacera pas votre application actuelle — et ne cherche pas à le faire.
-          <a href="https://www.hevyapp.com/" target="_blank" rel="noopener" class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">Hevy</a>
-          et
-          <a href="https://gitlab.com/DuarteSantos8/opengym" target="_blank" rel="noopener" class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">openGym</a>
-          sont d'excellents outils, plus complets et mieux accompagnés. Ce projet est né d'un besoin
-          personnel très précis : une montre réellement autonome et une synchronisation Health Connect
-          qui ne perde rien en route.
+        <p class="text-txt-2 text-sm max-w-2xl mx-auto text-center mt-8 leading-relaxed">
+          <template v-for="seg in segments(t.comparison.note)" :key="seg.k">
+            <a
+              v-if="seg.type === 'link'"
+              :href="seg.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-neon hover:text-neon/80 underline underline-offset-2 decoration-neon/40"
+            >{{ seg.value }}</a>
+            <template v-else>{{ seg.value }}</template>
+          </template>
         </p>
       </section>
 
-      <!-- Roadmap Section -->
+      <!-- Roadmap -->
       <section class="max-w-4xl mx-auto px-4 sm:px-6 py-16">
         <div class="text-center mb-12">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">Roadmap & État d'avancement</h2>
-          <p class="text-slate-400 text-sm">Suivi transparent du cycle de développement.</p>
+          <h2 class="text-2xl sm:text-3xl font-bold text-txt mb-2">{{ t.roadmap.title }}</h2>
+          <p class="text-txt-2 text-sm">{{ t.roadmap.subtitle }}</p>
         </div>
 
         <div class="space-y-3">
-          <div 
-            v-for="step in roadmapPhases" 
+          <div
+            v-for="step in roadmap"
             :key="step.phase"
-            class="p-4 rounded-xl border flex items-center justify-between"
+            class="p-4 rounded-xl border flex items-center justify-between gap-3"
             :class="[
-              step.done ? 'bg-slate-900/80 border-slate-800 text-slate-300' :
-              step.current ? 'bg-cyan-950/30 border-cyan-500/40 text-white shadow-lg shadow-cyan-500/5' :
-              'bg-slate-950/40 border-slate-900 text-slate-500'
+              step.state === 'done' ? 'bg-surface border-line text-txt-2' :
+              step.state === 'current' ? 'bg-neon/5 border-neon/40 text-txt' :
+              'bg-obsidian border-line/60 text-txt-3'
             ]"
           >
-            <div class="flex items-center gap-3">
-              <span 
-                class="text-xs font-bold px-2 py-0.5 rounded"
+            <div class="flex items-center gap-3 min-w-0">
+              <span
+                class="text-xs font-bold px-2 py-0.5 rounded shrink-0 border"
                 :class="[
-                  step.done ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                  step.current ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse' :
-                  'bg-slate-900 text-slate-600'
+                  step.state === 'done' ? 'bg-surface-2 text-txt-2 border-line' :
+                  step.state === 'current' ? 'bg-neon/15 text-neon border-neon/40 animate-pulse' :
+                  'bg-surface text-txt-3 border-line/60'
                 ]"
               >
                 {{ step.phase }}
               </span>
-              <span class="font-medium text-sm">{{ step.title }}</span>
+              <span class="font-medium text-sm truncate">{{ step.title }}</span>
             </div>
-            <span 
-              class="text-xs font-semibold"
+            <span
+              class="text-xs font-semibold shrink-0"
               :class="[
-                step.done ? 'text-emerald-400' :
-                step.current ? 'text-cyan-400' :
-                'text-slate-600'
+                step.state === 'done' ? 'text-txt-2' :
+                step.state === 'current' ? 'text-neon' :
+                'text-txt-3'
               ]"
             >
               {{ step.status }}
@@ -332,20 +335,32 @@ const roadmapPhases = [
       </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="relative z-10 border-t border-slate-900 py-10 bg-slate-950">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+    <!-- Fixed footer -->
+    <footer class="fixed bottom-0 inset-x-0 z-40 border-t border-line bg-obsidian/95 backdrop-blur-md">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-4 text-xs text-txt-3">
         <div class="flex items-center gap-2">
-          <Zap class="w-4 h-4 text-cyan-400" />
-          <span class="font-semibold text-slate-400">BodyForger</span>
-          <span>— Open-Source, Offline-First & Wrist-First</span>
+          <Zap class="w-3.5 h-3.5 text-neon shrink-0" />
+          <span class="font-semibold text-txt-2">BodyForger</span>
+          <span class="hidden sm:inline">— {{ t.footer.tagline }}</span>
         </div>
-        <div class="flex items-center gap-4">
-          <a href="https://github.com/DevOpsBenjamin/SimpleBodyGraph" target="_blank" class="hover:text-slate-300 transition-colors">SimpleBodyGraph</a>
-          <span>•</span>
-          <a href="https://gitlab.com/DuarteSantos8/opengym" target="_blank" class="hover:text-slate-300 transition-colors">openGym</a>
-          <span>•</span>
-          <a href="https://github.com/DevOpsBenjamin/BodyForger" target="_blank" class="hover:text-slate-300 transition-colors">GitHub Repo</a>
+        <div class="flex items-center gap-3">
+          <a
+            href="https://github.com/DevOpsBenjamin/SimpleBodyGraph"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-neon transition-colors"
+          >SimpleBodyGraph</a>
+          <span aria-hidden="true">•</span>
+          <a
+            href="https://gitlab.com/DuarteSantos8/opengym"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-neon transition-colors"
+          >openGym</a>
+          <span aria-hidden="true">•</span>
+          <a :href="REPO" target="_blank" rel="noopener noreferrer" class="hover:text-neon transition-colors">
+            {{ t.footer.repo }}
+          </a>
         </div>
       </div>
     </footer>

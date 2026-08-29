@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Design tokens mirrored from the Android app
+   (app-mobile/src/main/java/app/bodyforger/mobile/ui/theme/Theme.kt) */
+@theme {
+  --color-obsidian: #0A0A0C;
+  --color-surface: #16161A;
+  --color-surface-2: #222228;
+  --color-line: #2A2A32;
+
+  --color-neon: #CCFF00;
+  --color-electric: #00E5FF;
+  --color-gold: #FFB800;
+  --color-crimson: #FF3B30;
+
+  --color-txt: #FFFFFF;
+  --color-txt-2: #8E8E93;
+  --color-txt-3: #55555C;
+}
+
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', sans-serif;
