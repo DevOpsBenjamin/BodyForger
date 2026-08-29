@@ -11,25 +11,34 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Vecteurs de non-régression construits sur des **trames réellement capturées**, pas
- * synthétiques. Trois viennent de la Scale 3 Pro de l'équipe, la quatrième d'une capture
- * publiée par openScale sur une Scale 3 classique.
+ * Vecteurs de non-régression.
+ *
+ * Les trois trames Pro sont **synthétiques** : elles reproduisent au bit près la structure
+ * d'une trame réelle — mêmes offsets, mêmes échelles, mêmes conventions d'absence — mais ne
+ * portent la pesée de personne. Un vecteur capturé n'apporterait rien de plus au décodeur,
+ * dont le travail est de lire une structure, et exposerait des données de santé.
+ *
+ * La quatrième vient d'une capture **publiée par openScale** sur une Scale 3 classique : sa
+ * valeur est justement de venir d'un autre matériel et d'une autre implémentation.
  */
 class HuaweiTelemetryDecoderTest {
 
-    /** Scale 3 Pro, pesée complète avec la poignée saisie — 2026-08-23. */
+    /** Scale 3 Pro, pesée complète avec la poignée saisie. */
     private val proWithHandle = hex(
-        "be284901ea070817112e2d074a0e56146712a3119512cb115300ed0c221270109f0fcd10fd0f"
+        "401fb900e9070309071e000736101a1890154a150e15c8144800740e861542130613ca128e12"
     )
 
-    /** Scale 3 Pro, seconde pesée complète — 2026-08-23. */
+    /** Scale 3 Pro, seconde pesée complète. */
     private val proWithHandleSecond = hex(
-        "c3284601ea07081711080e07250e3d145c1298117512a7115200c20cfc115a108d0fd210f20f"
+        "4f1fbb00e9070309072d0c0754104218b81572153615f0144a00920ea41560132413e812ac12"
     )
 
-    /** Scale 3 Pro, pieds nus **sans saisir la poignée** — 2026-08-29. */
+    /**
+      * Scale 3 Pro, pieds nus **sans saisir la poignée**. Reproduit le cas prouvé par
+      * capture réelle : trente-huit octets entièrement nuls hormis le poids et la date.
+      */
     private val proWithoutHandle = hex(
-        "c8280000ea07081d0d062f060000000000000000000000000000000000000000000000000000"
+        "b81f0000e907030f121405060000000000000000000000000000000000000000000000000000"
     )
 
     /** Scale 3 classique (`M00D`), quatre électrodes — capture openScale du 2026-08-09. */
@@ -39,9 +48,9 @@ class HuaweiTelemetryDecoderTest {
     fun `une pesee Pro complete livre les douze resistances`() {
         val telemetry = requireNotNull(HuaweiTelemetryDecoder.decode(proWithHandle, HuaweiScaleModel.HUAWEI_SCALE_3_PRO)).telemetry
 
-        assertEquals(104.30, telemetry.massKg, 1e-9)
-        assertEquals(32.9, telemetry.bodyFatPercentage!!, 1e-9)
-        assertEquals(83, telemetry.heartRateBpm)
+        assertEquals(80.00, telemetry.massKg, 1e-9)
+        assertEquals(18.5, telemetry.bodyFatPercentage!!, 1e-9)
+        assertEquals(72, telemetry.heartRateBpm)
         assertEquals(12, telemetry.rawImpedances.ohmsByReading.size)
         assertEquals(ElectrodeCount.EIGHT, telemetry.fidelityElectrodeCount())
         assertEquals(
@@ -54,14 +63,14 @@ class HuaweiTelemetryDecoderTest {
     fun `les resistances sont des dixiemes d'ohm, sans heuristique de magnitude`() {
         val telemetry = HuaweiTelemetryDecoder.decode(proWithHandle, HuaweiScaleModel.HUAWEI_SCALE_3_PRO)!!.telemetry
 
-        // Compteur brut 3658 : l'heuristique d'openScale le rendrait en 3658 Ω.
+        // Compteur brut 4150 : l'heuristique d'openScale le rendrait en 4150 Ω.
         assertEquals(
-            365.8,
+            415.0,
             telemetry.rawImpedances[ImpedancePath.LEFT_FOOT_TO_RIGHT_FOOT, LOW_FREQUENCY_KHZ]!!,
             1e-9
         )
         assertEquals(
-            520.6,
+            617.0,
             telemetry.rawImpedances[ImpedancePath.LEFT_HAND_TO_RIGHT_HAND, LOW_FREQUENCY_KHZ]!!,
             1e-9
         )
@@ -85,7 +94,7 @@ class HuaweiTelemetryDecoderTest {
 
         // La trame fait bien 38 octets : la longueur ne dit rien de la capacité.
         assertEquals(HuaweiTelemetryDecoder.DUAL_FREQUENCY_FRAME_BYTES, proWithoutHandle.size)
-        assertEquals(104.40, telemetry.massKg, 1e-9)
+        assertEquals(81.20, telemetry.massKg, 1e-9)
         assertTrue(telemetry.rawImpedances.isEmpty)
         assertEquals(ElectrodeCount.NONE, telemetry.fidelityElectrodeCount())
     }
@@ -132,17 +141,17 @@ class HuaweiTelemetryDecoderTest {
     fun `l'horodatage est lu tel que la balance l'emet`() {
         val telemetry = HuaweiTelemetryDecoder.decode(proWithoutHandle, HuaweiScaleModel.HUAWEI_SCALE_3_PRO)!!.telemetry.measuredAt!!
 
-        assertEquals(2026, telemetry.year)
-        assertEquals(8, telemetry.monthValue)
-        assertEquals(29, telemetry.dayOfMonth)
-        assertEquals(13, telemetry.hour)
-        assertEquals(6, telemetry.minute)
-        assertEquals(47, telemetry.second)
+        assertEquals(2025, telemetry.year)
+        assertEquals(3, telemetry.monthValue)
+        assertEquals(15, telemetry.dayOfMonth)
+        assertEquals(18, telemetry.hour)
+        assertEquals(20, telemetry.minute)
+        assertEquals(5, telemetry.second)
     }
 
     @Test
     fun `l'octet de statut est expose brut, sans interpretation`() {
-        // Sur la Pro il vaut le jour ISO — 2026-08-23 est un dimanche, 2026-08-29 un samedi.
+        // Sur la Pro il vaut le jour ISO — les trames portent un dimanche puis un samedi.
         assertEquals(7, HuaweiTelemetryDecoder.decode(proWithHandle, HuaweiScaleModel.HUAWEI_SCALE_3_PRO)!!.statusByte)
         assertEquals(6, HuaweiTelemetryDecoder.decode(proWithoutHandle, HuaweiScaleModel.HUAWEI_SCALE_3_PRO)!!.statusByte)
         // La capture M00D ne suit pas cette lecture : d'où l'absence d'interprétation.
