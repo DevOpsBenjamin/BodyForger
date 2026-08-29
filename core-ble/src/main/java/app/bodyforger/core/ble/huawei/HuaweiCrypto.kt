@@ -18,19 +18,16 @@ import javax.crypto.spec.SecretKeySpec
  * * La **clé de session**, tirée au hasard à chaque connexion, chiffre ensuite les charges
  *   utiles en AES-128-CTR.
  *
+ * ⚠️ Le matériel de clés n'appartient pas à cette classe mais au **modèle** : celles connues
+ * ont été relevées sur la Scale 3 Pro, et rien ne dit qu'un autre modèle les partage. Voir
+ * [HuaweiKeyMaterial].
+ *
  * ⚠️ La clé racine dépend du **MAC physique**, pas d'un identifiant de plateforme. Sur
  * Android et Wear OS le scan natif le fournit directement ; c'est ce qui rend l'appairage
  * réalisable depuis la montre (cf. #7, #19). Une plateforme qui masque le MAC derrière un
  * UUID aléatoire — macOS le fait — ne peut pas dériver cette clé.
  */
 object HuaweiCrypto {
-
-    /** Secret constructeur, commun à la famille. */
-    private val CAK = "90B96ECA297EF78717E66E491084D3F8".hexToBytes()
-
-    /** Les deux tables de la boîte blanche mêlées pour produire le sel de dérivation. */
-    private val WB1033 = "CA4946D061C9FE534F6044F930EBB69B".hexToBytes()
-    private val WB2033 = "FBCE6E2B4BAF80ED969BA26B4A4B9325".hexToBytes()
 
     /** Suffixes distinguant le jeton de l'application de celui de la balance. */
     private val CLIENT_SALT = "1123".toByteArray(Charsets.UTF_8)
@@ -49,12 +46,14 @@ object HuaweiCrypto {
      *
      * @param macAddress au format `AA:BB:CC:DD:EE:FF`, séparateurs optionnels.
      */
-    fun deriveRootKey(macAddress: String): ByteArray {
+    fun deriveRootKey(keys: HuaweiKeyMaterial, macAddress: String): ByteArray {
         val normalised = (macAddress.replace(":", "").replace("-", "").uppercase() + "0000")
             .toByteArray(Charsets.UTF_8)
         require(normalised.size >= KEY_BYTES) { "Adresse MAC trop courte : $macAddress" }
 
-        val whitebox = ByteArray(KEY_BYTES) { ((WB1033[it].toInt() shl 4) xor WB2033[it].toInt()).toByte() }
+        val whitebox = ByteArray(KEY_BYTES) {
+            ((keys.whiteboxFirst[it].toInt() shl 4) xor keys.whiteboxSecond[it].toInt()).toByte()
+        }
         val condensed = sha256(whitebox).copyOf(KEY_BYTES)
         val mixed = ByteArray(KEY_BYTES) {
             ((condensed[it].toInt() and 0xFF shr 6) xor (normalised[it].toInt() and 0xFF)).toByte()
@@ -67,22 +66,27 @@ object HuaweiCrypto {
      * secret constructeur. Double HMAC : le premier dérive une clé de l'aléa, le second
      * signe ce même aléa avec elle.
      */
-    fun clientToken(scaleNonce: ByteArray, clientNonce: ByteArray): ByteArray =
-        token(scaleNonce, clientNonce, CLIENT_SALT)
+    fun clientToken(keys: HuaweiKeyMaterial, scaleNonce: ByteArray, clientNonce: ByteArray): ByteArray =
+        token(keys, scaleNonce, clientNonce, CLIENT_SALT)
 
     /**
      * Le jeton que la balance doit renvoyer. Le comparer à ce qu'elle envoie **authentifie
      * le matériel** : sans cette vérification, n'importe quel appareil se faisant passer
      * pour la balance serait accepté.
      */
-    fun expectedScaleToken(scaleNonce: ByteArray, clientNonce: ByteArray): ByteArray =
-        token(scaleNonce, clientNonce, SCALE_SALT)
+    fun expectedScaleToken(keys: HuaweiKeyMaterial, scaleNonce: ByteArray, clientNonce: ByteArray): ByteArray =
+        token(keys, scaleNonce, clientNonce, SCALE_SALT)
 
-    private fun token(scaleNonce: ByteArray, clientNonce: ByteArray, salt: ByteArray): ByteArray {
+    private fun token(
+        keys: HuaweiKeyMaterial,
+        scaleNonce: ByteArray,
+        clientNonce: ByteArray,
+        salt: ByteArray
+    ): ByteArray {
         require(scaleNonce.size == NONCE_BYTES) { "Aléa balance de ${scaleNonce.size} octets" }
         require(clientNonce.size == NONCE_BYTES) { "Aléa client de ${clientNonce.size} octets" }
         val combined = scaleNonce + clientNonce
-        return hmacSha256(hmacSha256(CAK + salt, combined), combined)
+        return hmacSha256(hmacSha256(keys.authenticationSecret + salt, combined), combined)
     }
 
     /**
@@ -123,6 +127,4 @@ object HuaweiCrypto {
     private fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray =
         Mac.getInstance("HmacSHA256").apply { init(SecretKeySpec(key, "HmacSHA256")) }.doFinal(data)
 
-    private fun String.hexToBytes(): ByteArray =
-        ByteArray(length / 2) { substring(it * 2, it * 2 + 2).toInt(16).toByte() }
 }

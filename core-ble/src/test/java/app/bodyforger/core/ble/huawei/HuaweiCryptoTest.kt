@@ -17,6 +17,8 @@ import org.junit.Test
  */
 class HuaweiCryptoTest {
 
+    private val keys = HuaweiKeyMaterial.SCALE_3_PRO
+
     private val fictitiousMac = "AA:BB:CC:DD:EE:FF"
     private val otherMac = "11:22:33:44:55:66"
 
@@ -29,36 +31,36 @@ class HuaweiCryptoTest {
     fun `la cle racine correspond a la reference`() {
         assertEquals(
             "d0d01fae597b65147ee89b03e26dd8ec",
-            HuaweiCrypto.deriveRootKey(fictitiousMac).toHex()
+            HuaweiCrypto.deriveRootKey(keys, fictitiousMac).toHex()
         )
         assertEquals(
             "41c30ee71f3e88defdaf4bf5a216e4dc",
-            HuaweiCrypto.deriveRootKey(otherMac).toHex()
+            HuaweiCrypto.deriveRootKey(keys, otherMac).toHex()
         )
     }
 
     @Test
     fun `deux balances ne partagent jamais la meme cle racine`() {
         assertNotEquals(
-            HuaweiCrypto.deriveRootKey(fictitiousMac).toHex(),
-            HuaweiCrypto.deriveRootKey(otherMac).toHex()
+            HuaweiCrypto.deriveRootKey(keys, fictitiousMac).toHex(),
+            HuaweiCrypto.deriveRootKey(keys, otherMac).toHex()
         )
     }
 
     @Test
     fun `la derivation ignore la casse et les separateurs`() {
-        val reference = HuaweiCrypto.deriveRootKey(fictitiousMac).toHex()
-        assertEquals(reference, HuaweiCrypto.deriveRootKey("aa:bb:cc:dd:ee:ff").toHex())
-        assertEquals(reference, HuaweiCrypto.deriveRootKey("AABBCCDDEEFF").toHex())
-        assertEquals(reference, HuaweiCrypto.deriveRootKey("AA-BB-CC-DD-EE-FF").toHex())
+        val reference = HuaweiCrypto.deriveRootKey(keys, fictitiousMac).toHex()
+        assertEquals(reference, HuaweiCrypto.deriveRootKey(keys, "aa:bb:cc:dd:ee:ff").toHex())
+        assertEquals(reference, HuaweiCrypto.deriveRootKey(keys, "AABBCCDDEEFF").toHex())
+        assertEquals(reference, HuaweiCrypto.deriveRootKey(keys, "AA-BB-CC-DD-EE-FF").toHex())
     }
 
     @Test
     fun `la meme balance donne toujours la meme cle`() {
         // Rien n'est mémorisé entre deux connexions : la clé se recalcule.
         assertArrayEquals(
-            HuaweiCrypto.deriveRootKey(fictitiousMac),
-            HuaweiCrypto.deriveRootKey(fictitiousMac)
+            HuaweiCrypto.deriveRootKey(keys, fictitiousMac),
+            HuaweiCrypto.deriveRootKey(keys, fictitiousMac)
         )
     }
 
@@ -68,11 +70,11 @@ class HuaweiCryptoTest {
     fun `les deux jetons correspondent a la reference`() {
         assertEquals(
             "e2c2c283c9545d4d67bce6e302ae0c0f274571455d92148746d037fe100def58",
-            HuaweiCrypto.clientToken(scaleNonce, clientNonce).toHex()
+            HuaweiCrypto.clientToken(keys, scaleNonce, clientNonce).toHex()
         )
         assertEquals(
             "7d1c75ca91ef42b547ea1738b98b2ec2c853d53873fe617666e9a06839b7d052",
-            HuaweiCrypto.expectedScaleToken(scaleNonce, clientNonce).toHex()
+            HuaweiCrypto.expectedScaleToken(keys, scaleNonce, clientNonce).toHex()
         )
     }
 
@@ -80,8 +82,8 @@ class HuaweiCryptoTest {
     fun `le jeton de la balance differe de celui du client`() {
         // Deux sels distincts : sans cela, rejouer le jeton reçu suffirait à s'authentifier.
         assertNotEquals(
-            HuaweiCrypto.clientToken(scaleNonce, clientNonce).toHex(),
-            HuaweiCrypto.expectedScaleToken(scaleNonce, clientNonce).toHex()
+            HuaweiCrypto.clientToken(keys, scaleNonce, clientNonce).toHex(),
+            HuaweiCrypto.expectedScaleToken(keys, scaleNonce, clientNonce).toHex()
         )
     }
 
@@ -89,22 +91,22 @@ class HuaweiCryptoTest {
     fun `changer un seul bit d'un alea change tout le jeton`() {
         val altered = clientNonce.copyOf().also { it[0] = (it[0].toInt() xor 1).toByte() }
         assertNotEquals(
-            HuaweiCrypto.clientToken(scaleNonce, clientNonce).toHex(),
-            HuaweiCrypto.clientToken(scaleNonce, altered).toHex()
+            HuaweiCrypto.clientToken(keys, scaleNonce, clientNonce).toHex(),
+            HuaweiCrypto.clientToken(keys, scaleNonce, altered).toHex()
         )
     }
 
     @Test
     fun `l'ordre des aleas n'est pas interchangeable`() {
         assertNotEquals(
-            HuaweiCrypto.clientToken(scaleNonce, clientNonce).toHex(),
-            HuaweiCrypto.clientToken(clientNonce, scaleNonce).toHex()
+            HuaweiCrypto.clientToken(keys, scaleNonce, clientNonce).toHex(),
+            HuaweiCrypto.clientToken(keys, clientNonce, scaleNonce).toHex()
         )
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun `un alea de mauvaise taille est refuse`() {
-        HuaweiCrypto.clientToken(ByteArray(8), clientNonce)
+        HuaweiCrypto.clientToken(keys, ByteArray(8), clientNonce)
     }
 
     // --- Chiffrement de session ---
@@ -171,8 +173,32 @@ class HuaweiCryptoTest {
 
     @Test
     fun `la cle racine fait bien seize octets`() {
-        assertEquals(HuaweiCrypto.KEY_BYTES, HuaweiCrypto.deriveRootKey(fictitiousMac).size)
-        assertTrue(HuaweiCrypto.deriveRootKey(fictitiousMac).any { it != 0.toByte() })
+        assertEquals(HuaweiCrypto.KEY_BYTES, HuaweiCrypto.deriveRootKey(keys, fictitiousMac).size)
+        assertTrue(HuaweiCrypto.deriveRootKey(keys, fictitiousMac).any { it != 0.toByte() })
+    }
+
+    @Test
+    fun `le materiel de cles appartient au modele, pas au moteur`() {
+        // Relevé sur la Pro, appliqué aux autres comme hypothèse testable : un possesseur
+        // d'une autre balance peut essayer avec du code complet, et un refus la réfute.
+        for (model in HuaweiScaleModel.entries) {
+            assertEquals(HuaweiKeyMaterial.SCALE_3_PRO, model.keyMaterial)
+        }
+    }
+
+    @Test
+    fun `un materiel different produit une cle racine differente`() {
+        // Si un autre modèle a d'autres constantes, la clé change : emprunter celles de la
+        // Pro donnerait un handshake refusé sans message.
+        val other = HuaweiKeyMaterial(
+            authenticationSecret = ByteArray(16) { 1 },
+            whiteboxFirst = ByteArray(16) { 2 },
+            whiteboxSecond = ByteArray(16) { 3 }
+        )
+        assertNotEquals(
+            HuaweiCrypto.deriveRootKey(keys, fictitiousMac).toHex(),
+            HuaweiCrypto.deriveRootKey(other, fictitiousMac).toHex()
+        )
     }
 
     private fun ByteArray.toHex() = joinToString("") { "%02x".format(it) }
