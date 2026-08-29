@@ -112,7 +112,12 @@ class HuaweiPairingSession(
         transport.subscribe(HuaweiCharacteristic.BIA_STREAM)
 
         advance() // Relevé de validation, puis acquittement
-        val validation = withTimeoutOrNull(athleteTimeoutMs) {
+        // ⚠️ Attente **courte** et volontairement distincte de celle de la tare : cette trame
+        // est un bonus, pas une condition. Rien n'établit que tout matériel en produise une
+        // pendant l'appairage — `TECH.md` §5 la montre, l'implémentation de référence s'arrête
+        // à la tare. Lui accorder le délai d'attente de l'athlète ferait paraître l'appairage
+        // bloqué deux minutes durant, pour une valeur facultative.
+        val validation = withTimeoutOrNull(VALIDATION_TIMEOUT_MS) {
             transport.incoming.first { it.characteristic == HuaweiCharacteristic.BIA_STREAM }
         }
         val telemetry = validation
@@ -180,5 +185,12 @@ class HuaweiPairingSession(
 
         /** L'athlète doit se déchausser et monter : la référence attend vingt-cinq secondes. */
         const val DEFAULT_TARE_TIMEOUT_MS = 120_000L
+
+        /**
+         * Attente de la trame de validation, facultative. L'athlète est déjà sur la balance
+         * et la mesure d'impédance suit la stabilisation de quelques secondes ; au-delà, elle
+         * ne viendra pas, et l'appairage n'a pas à l'attendre.
+         */
+        const val VALIDATION_TIMEOUT_MS = 20_000L
     }
 }

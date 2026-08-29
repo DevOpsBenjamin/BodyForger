@@ -76,6 +76,16 @@ class HuaweiPairingSessionTest {
     }
 
     @Test
+    fun `une balance qui ne livre pas de trame de validation s'appaire quand meme`() = runTest {
+        // Rien n'etablit que tout materiel en produise une pendant l'appairage : la tare
+        // suffit a fonder l'Association.
+        val states = session(FakeScale(sendsValidation = false)).run(address, "Pro", huid, profile).toList()
+        val completed = states.last() as PairingState.Completed
+        assertEquals(81.25, completed.association.tareKg, 1e-9)
+        assertTrue(completed.validation == null)
+    }
+
+    @Test
     fun `sans tare, aucune Association n'est produite`() = runTest {
         val states = session(FakeScale(sendsTare = false), tareTimeoutMs = 50)
             .run(address, "Pro", huid, profile).toList()
@@ -131,6 +141,7 @@ class HuaweiPairingSessionTest {
     private inner class FakeScale(
         private val authenticates: Boolean = true,
         private val sendsTare: Boolean = true,
+        private val sendsValidation: Boolean = true,
         private val tareHundredths: Int = 8125
     ) : ScaleTransport {
 
@@ -176,7 +187,7 @@ class HuaweiPairingSessionTest {
                         val iv = ByteArray(HuaweiCrypto.IV_BYTES) { 0x22 }
                         emit(characteristic, HuaweiCrypto.encrypt(key, iv, tare))
                         // La trame de validation suit, pendant la meme montee.
-                        emit(
+                        if (sendsValidation) emit(
                             HuaweiCharacteristic.BIA_STREAM,
                             HuaweiCrypto.encrypt(key, ByteArray(HuaweiCrypto.IV_BYTES) { 0x33 }, validationFrame)
                         )
