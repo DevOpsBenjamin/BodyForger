@@ -96,9 +96,13 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
             // à l'athlète et survit à l'échec d'une association (#19).
             val huid = database.athleteIdentityDao().huidOrCreate(System.currentTimeMillis())
             val association = database.scaleAssociationDao().mostRecent()?.toDomain()
+            // Le dernier relevé vient de la base : sans lui, une pesée après redémarrage
+            // annoncerait un poids nul à la balance, qui s'en sert pour cadrer sa mesure.
+            val lastLog = database.bodyLogDao().mostRecent()?.toDomain()
             _state.value = _state.value.copy(
                 huid = huid,
-                association = association?.copy(huid = huid)
+                association = association?.copy(huid = huid),
+                lastLog = lastLog
             )
         }
     }
@@ -177,7 +181,7 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
                     deviceAddress = scale.deviceAddress,
                     advertisedName = scale.advertisedName,
                     huid = huid,
-                    profile = ScaleUserProfile(profile, lastWeightKg = _state.value.lastLog?.massKg)
+                    profile = ScaleUserProfile(profile, lastWeightKg = lastKnownWeightKg())
                 ).collect { state ->
                     when (state) {
                         is PairingState.Progress -> _state.value = _state.value.copy(
@@ -247,7 +251,7 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
                 HuaweiWeighInSession(transport, model).run(
                     association = association,
                     huid = huid,
-                    profile = ScaleUserProfile(profile, lastWeightKg = _state.value.lastLog?.massKg)
+                    profile = ScaleUserProfile(profile, lastWeightKg = lastKnownWeightKg())
                 ).collect { state -> handle(state) }
             } finally {
                 transport.close()
@@ -298,6 +302,16 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    /**
+     * Le meilleur poids connu à annoncer à la balance, qui s'en sert pour cadrer sa mesure.
+     *
+     * Le dernier relevé d'abord, la tare d'appairage ensuite. Aucun des deux n'est fabriqué :
+     * à défaut, rien n'est annoncé plutôt qu'un chiffre inventé, que la balance graverait
+     * dans sa calibration (#19).
+     */
+    private fun lastKnownWeightKg(): Double? =
+        _state.value.lastLog?.massKg ?: _state.value.association?.tareKg?.takeIf { it > 0.0 }
 
     private fun bluetoothDevice(address: String) = runCatching {
         getApplication<Application>()
