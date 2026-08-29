@@ -1,5 +1,6 @@
-package app.bodyforger.core.ble
+package app.bodyforger.core.ble.huawei
 
+import app.bodyforger.core.ble.RecognisedScale
 import app.bodyforger.core.model.ElectrodeCount
 import app.bodyforger.core.model.ImpedanceReading
 import app.bodyforger.core.model.ScaleCapability
@@ -15,7 +16,7 @@ import app.bodyforger.core.model.ScaleCapability
  * autres membres de la famille sont reconnus — même protocole, même handshake, même trame —
  * mais leur capacité est déduite de ce que la trame livre réellement, jamais supposée.
  */
-enum class ScaleModel(
+enum class HuaweiScaleModel(
     private val nameFragments: List<String>,
     val displayName: String,
     val capability: ScaleCapability?,
@@ -63,6 +64,9 @@ enum class ScaleModel(
         capability = null
     );
 
+    /** Ce que le pilote expose à la couche générique, sans rien laisser filtrer du modèle. */
+    fun toRecognisedScale(): RecognisedScale = RecognisedScale(displayName, capability)
+
     private fun matches(advertisedName: String): Boolean =
         nameFragments.any { advertisedName.contains(it, ignoreCase = true) }
 
@@ -91,9 +95,13 @@ enum class ScaleModel(
          *
          * @return le modèle reconnu, ou `null` si l'appareil n'appartient pas à la famille.
          */
-        fun identify(advertisedName: String?): ScaleModel? {
+        fun identify(advertisedName: String?): HuaweiScaleModel? {
             if (advertisedName.isNullOrBlank()) return null
             return entries.firstOrNull { it.matches(advertisedName) }
         }
+
+        /** Point d'entrée du pilote : reconnaît une balance sans exposer l'énumération. */
+        fun recognise(advertisedName: String?): RecognisedScale? =
+            identify(advertisedName)?.toRecognisedScale()
     }
 }
