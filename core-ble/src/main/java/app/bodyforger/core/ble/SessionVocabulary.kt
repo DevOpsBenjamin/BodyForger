@@ -37,7 +37,16 @@ enum class AthleteInstruction {
     /** Rester hors du plateau pendant la négociation. */
     STAY_OFF_PLATFORM,
 
-    /** Monter pieds nus sur les électrodes. */
+    /**
+     * Monter sur la balance pour une **pesée de masse seule**.
+     *
+     * Distincte de [STEP_ON_BAREFOOT] : sans mesure d'impédance, le contact de la peau avec
+     * les électrodes n'importe pas, et exiger les pieds nus serait une contrainte gratuite.
+     * C'est le cas de la tare relevée pendant l'appairage.
+     */
+    STEP_ON,
+
+    /** Monter pieds nus sur les électrodes, le contact conditionnant la mesure d'impédance. */
     STEP_ON_BAREFOOT,
 
     /** Saisir la poignée rétractable des deux mains — sans quoi aucune impédance ne sera relevée. */

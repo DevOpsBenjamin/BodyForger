@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
  * Rien de propre à un constructeur ne traverse cette interface : ni énumération de modèles,
  * ni décalage de trame, ni identifiant GATT.
  */
-interface ScaleDriver {
+interface ScaleDriver : ScaleIdentifier {
 
     /** Identifiant stable du pilote, par exemple `huawei_haige`. */
     val id: String
@@ -31,7 +31,7 @@ interface ScaleDriver {
      *
      * @return la balance reconnue, ou `null` si elle n'appartient pas à cette famille.
      */
-    fun identify(advertisedName: String?): RecognisedScale?
+    override fun identify(advertisedName: String?): RecognisedScale?
 
     /**
      * Déroule l'appairage initial et produit l'Association.

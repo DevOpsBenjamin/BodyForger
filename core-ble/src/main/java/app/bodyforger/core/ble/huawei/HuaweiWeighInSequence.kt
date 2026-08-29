@@ -54,7 +54,7 @@ object HuaweiWeighInSequence {
      * Ce que l'athlète doit faire au moment de monter — la poignée n'ayant de sens que sur un
      * matériel qui en possède une.
      */
-    internal fun stepOnInstructions(model: HuaweiScaleModel): List<AthleteInstruction> = buildList {
+    fun stepOnInstructions(model: HuaweiScaleModel): List<AthleteInstruction> = buildList {
         add(AthleteInstruction.STEP_ON_BAREFOOT)
         if (model.capability?.electrodeCount == ElectrodeCount.EIGHT) {
             add(AthleteInstruction.GRIP_HANDLE)

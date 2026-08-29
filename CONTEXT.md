@@ -55,7 +55,9 @@ The weekly aggregation of effective working (`Work`) set counts applied to each 
 ## 2. Context: Biometrics & Body Composition (BIA & Scales)
 
 ### Body Log
-A daily record attached to the athlete. It always carries body mass in kilograms, the calendar date (`YYYY-MM-DD`), the body fat percentage, and the **Measurement Capability** it came from. Where the hardware provides them, it also carries the **Raw Impedances**, heart rate, and the precise timestamp emitted by the scale itself.
+A **timestamped** record attached to the athlete. It always carries body mass in kilograms, the moment of measurement, the body fat percentage, and the **Measurement Capability** it came from. Where the hardware provides them, it also carries the **Raw Impedances** and heart rate.
+
+Identity is the **instant**, not the day. Weighing in several times in one day is legitimate — on waking, after training — and no reading overwrites another: what those gaps say is itself information. One reading a day is a **tracking goal**, not a constraint of the model, and the trend is read from a rolling median that copes equally well with several readings a day and with days that have none.
 
 Body fat percentage is **always present**: it comes either from the scale or from a manual entry by the athlete. It is not to be confused with the **Body Composition Report**, which exists only when raw impedances were measured.
 

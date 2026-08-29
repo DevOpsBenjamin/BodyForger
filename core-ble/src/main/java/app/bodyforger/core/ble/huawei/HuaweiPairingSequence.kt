@@ -28,13 +28,10 @@ object HuaweiPairingSequence {
      * laisserait l'athlète devant une consigne impossible.
      */
     fun stepsFor(model: HuaweiScaleModel): List<HuaweiSessionStep> = buildList {
-        add(
-            HuaweiSessionStep(
-                phase = SessionPhase.DISCOVERING,
-                instructions = listOf(AthleteInstruction.TAP_SCALE_TO_WAKE),
-                detail = "Réveil de la balance et scan ciblé"
-            )
-        )
+        // Aucun tapotement ici : l'appairage part d'une balance que le scan vient de
+        // repérer, donc déjà réveillée. Le tapotement sert à réveiller une balance **déjà
+        // appairée** au moment de peser, et n'a de sens que là.
+        add(HuaweiSessionStep(SessionPhase.DISCOVERING, detail = "Connexion à la balance repérée"))
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.PREPARING,
@@ -44,19 +41,26 @@ object HuaweiPairingSequence {
         )
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Armement de l'association (0x45)"))
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Gravure du HUID en mémoire flash (0x2D)"))
-        add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Capture de la tare renvoyée par la balance"))
+        // L'athlète monte ici, et une seule fois.
+        //
+        // ⚠️ **Pesée de masse seule.** L'appairage ne cherche qu'une tare de calibration, pas
+        // une mesure d'impédance : ni poignée, ni pieds nus. Exiger l'un ou l'autre ferait
+        // tenir une pose inutile pendant toute la gravure.
+        add(
+            HuaweiSessionStep(
+                phase = SessionPhase.AWAITING_ATHLETE,
+                instructions = listOf(AthleteInstruction.STEP_ON),
+                detail = "Capture de la tare renvoyée par la balance"
+            )
+        )
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Synchronisation de l'heure (0x52)"))
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Transmission du profil utilisateur (0x31)"))
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Désarmement de l'association (0x45)"))
 
-        // La gravure n'est confirmée que par une pesée réelle : c'est le propre de ce matériel.
-        add(
-            HuaweiSessionStep(
-                phase = SessionPhase.AWAITING_ATHLETE,
-                instructions = HuaweiWeighInSequence.stepOnInstructions(model),
-                detail = "Pesée de validation : balance prête"
-            )
-        )
-        add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Relevé de validation (0x97)"))
+        // L'athlète est déjà sur la balance : la trame de validation arrive pendant la même
+        // montée que la tare, sans nouvelle consigne. Sans la poignée, elle ne portera que la
+        // masse — c'est attendu, et suffisant pour valider l'appairage.
+        add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Armement du flux BIA (0x97)"))
+        add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Relevé de validation (0x97) puis acquittement (0x31 type=2)"))
     }
 }

@@ -20,7 +20,25 @@ enum class HuaweiScaleModel(
     private val nameFragments: List<String>,
     val displayName: String,
     val capability: ScaleCapability?,
-    val impedanceOhmDivisor: Double = HAIGE_OHM_DIVISOR
+    val impedanceOhmDivisor: Double = HAIGE_OHM_DIVISOR,
+    /**
+     * Le matériel cryptographique employé pour ce modèle.
+     *
+     * ⚠️ Il n'a été **relevé que sur la Scale 3 Pro**. Les autres modèles reçoivent le même
+     * par défaut : c'est une **hypothèse volontairement testable**, pas un constat. Un
+     * possesseur d'une autre balance peut ainsi essayer avec du code complet, et un
+     * handshake refusé sur ce modèle **est** la réfutation — il faudra alors relever ses
+     * propres constantes.
+     */
+    val keyMaterial: HuaweiKeyMaterial = HuaweiKeyMaterial.SCALE_3_PRO,
+    /**
+     * La carte des caractéristiques GATT employée pour ce modèle.
+     *
+     * ⚠️ Relevée sur la Pro seule, et appliquée aux autres comme hypothèse — douze de ses
+     * quinze UUID sont propriétaires. Une caractéristique absente à la découverte des
+     * services réfute l'hypothèse, et se diagnostique, elle.
+     */
+    val gattProfile: HuaweiGattProfile = HuaweiGattProfile.SCALE_3_PRO
 ) {
     /**
      * `M00F` / `HAGRID-B29` — poignée rétractable, huit électrodes, bande haute fréquence.
@@ -36,6 +54,7 @@ enum class HuaweiScaleModel(
                 ImpedanceReading.HIGH_FREQUENCY_KHZ
             )
         )
+        // Seul modèle sur lequel le matériel de clés a été effectivement relevé.
     ),
 
     /**
@@ -49,6 +68,8 @@ enum class HuaweiScaleModel(
             electrodeCount = ElectrodeCount.FOUR,
             frequenciesKHz = listOf(ImpedanceReading.LOW_FREQUENCY_KHZ)
         )
+        // Hérite du matériel de la Pro faute d'un relevé propre : à confirmer ou infirmer
+        // par un handshake réel sur une M00D.
     ),
 
     /**
