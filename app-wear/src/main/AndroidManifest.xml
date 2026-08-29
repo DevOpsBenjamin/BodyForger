@@ -8,8 +8,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/sym_def_app_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
         
@@ -20,12 +21,29 @@
         <activity
             android:name=".presentation.WearMainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@android:style/Theme.DeviceDefault">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".tile.BodyForgerTileService"
+            android:icon="@drawable/ic_tile_bodyforger"
+            android:label="@string/tile_name"
+            android:description="@string/tile_description"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+                <action android:name="com.google.android.clockwork.home.provider.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/ic_tile_preview" />
+        </service>
     </application>
 
 </manifest>

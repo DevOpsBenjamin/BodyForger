@@ -9,7 +9,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "app.bodyforger.wear"
+        applicationId = "app.bodyforger"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
@@ -56,6 +56,14 @@ dependencies {
     implementation(libs.androidx.wear.compose.foundation)
     implementation(libs.androidx.wear.compose.material)
     implementation(libs.androidx.wear.compose.navigation)
+
+    // Wear OS Tiles & ProtoLayout
+    implementation(libs.androidx.wear.tiles)
+    implementation(libs.androidx.wear.protolayout)
+    implementation(libs.androidx.wear.protolayout.material)
+    implementation(libs.androidx.wear.protolayout.expression)
+    implementation(libs.androidx.concurrent.futures.ktx)
+    implementation(libs.kotlinx.coroutines.guava)
 
     implementation(libs.androidx.health.services)
     implementation(libs.play.services.wearable)
