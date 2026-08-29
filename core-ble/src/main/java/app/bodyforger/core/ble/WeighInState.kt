@@ -12,12 +12,18 @@ import app.bodyforger.core.model.ScaleAssociation
 sealed interface WeighInState {
 
     /**
-     * Le pilote progresse.
+     * Étape [index] sur [totalSteps], telle que le pilote découpe sa séquence.
+     *
+     * Une pesée est multi-étapes au même titre qu'un appairage : réveil, handshake, balance
+     * prête, consigne à l'athlète, mesure. Le découpage appartient au pilote et sert à
+     * afficher une progression, pas à en déduire ce qui se passe.
      *
      * [detail] est un libellé propre au pilote, destiné au journal et au diagnostic — jamais
      * à piloter l'interface, qui se fonde sur [phase] et [instruction].
      */
     data class Progress(
+        val index: Int,
+        val totalSteps: Int,
         val phase: SessionPhase,
         val instruction: AthleteInstruction? = null,
         val detail: String? = null
