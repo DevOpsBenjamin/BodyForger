@@ -92,7 +92,7 @@ fun SettingsScreen(
             state = state,
             onStartScan = { requestPermissions.launch(permissions) },
             onStopScan = scaleViewModel::stopScan,
-            onAssociate = scaleViewModel::associate,
+            onAssociate = { scale -> scaleViewModel.associate(scale, profile) },
             onForget = scaleViewModel::forgetScale,
             onWeighIn = { scaleViewModel.weighIn(profile) }
         )

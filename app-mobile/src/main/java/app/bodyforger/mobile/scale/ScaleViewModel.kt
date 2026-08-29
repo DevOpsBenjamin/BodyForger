@@ -5,11 +5,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.bodyforger.core.ble.AndroidGattTransport
 import app.bodyforger.core.ble.AndroidScaleScanner
+import app.bodyforger.core.ble.AthleteInstruction
 import app.bodyforger.core.ble.DiscoveredScale
 import app.bodyforger.core.ble.SessionFailure
 import app.bodyforger.core.ble.WeighInState
 import app.bodyforger.core.ble.ScaleIdentifier
 import app.bodyforger.core.ble.huawei.HuaweiScaleModel
+import app.bodyforger.core.ble.PairingState
+import app.bodyforger.core.ble.huawei.HuaweiPairingSession
 import app.bodyforger.core.ble.huawei.HuaweiWeighInSession
 import app.bodyforger.core.database.BodyForgerDatabases
 import app.bodyforger.core.database.entity.impedanceRows
@@ -41,7 +44,11 @@ data class ScaleUiState(
     val progress: WeighInState.Progress? = null,
     val lastLog: BodyLog? = null,
     val failure: SessionFailure? = null,
-    val isWeighing: Boolean = false
+    val isWeighing: Boolean = false,
+    val isPairing: Boolean = false,
+    /** Étape courante de l'appairage, sur son total. */
+    val pairingStep: Pair<Int, Int>? = null,
+    val pairingInstructions: List<AthleteInstruction> = emptyList()
 ) {
     val isAssociated: Boolean get() = association != null
 }
@@ -96,27 +103,62 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Retient une balance découverte.
+     * Déroule l'appairage **Mode 1** : gravure du HUID, puis relevé de la tare.
      *
-     * L'Association reste incomplète tant qu'aucune tare n'a été relevée — la première pesée
-     * la fournira. Rien de fabriqué n'est écrit en attendant.
+     * ⚠️ La gravure consomme un emplacement de la mémoire flash, définitivement, et elle a
+     * lieu **avant** que l'athlète ne monte. Rejouer l'appairage réécrit le même emplacement
+     * puisque le HUID ne change jamais (#19).
+     *
+     * Sans tare relevée, aucune Association n'est enregistrée : elle n'existe pas tant que
+     * la pesée de validation n'a pas eu lieu.
      */
-    fun associate(scale: DiscoveredScale) {
+    fun associate(scale: DiscoveredScale, profile: BiaProfile) {
         val huid = _state.value.huid ?: return
+        if (_state.value.isPairing) return
+
+        _state.value = _state.value.copy(isPairing = true, failure = null, progress = null, isScanning = false)
         viewModelScope.launch {
-            val association = ScaleAssociation(
-                deviceAddress = scale.deviceAddress,
-                huid = huid,
-                tareKg = 0.0,
-                advertisedName = scale.advertisedName,
-                capability = scale.recognised.capability
-            )
-            database.scaleAssociationDao().upsert(association.toEntity(System.currentTimeMillis()))
-            _state.value = _state.value.copy(
-                association = association,
-                isScanning = false,
-                discovered = emptyList()
-            )
+            val device = bluetoothDevice(scale.deviceAddress)
+            val model = HuaweiScaleModel.identify(scale.advertisedName)
+            if (device == null || model == null) {
+                _state.value = _state.value.copy(isPairing = false, failure = SessionFailure.DEVICE_NOT_FOUND)
+                return@launch
+            }
+
+            val transport = AndroidGattTransport(getApplication(), device, model.gattProfile)
+            try {
+                HuaweiPairingSession(transport, model).run(
+                    deviceAddress = scale.deviceAddress,
+                    advertisedName = scale.advertisedName,
+                    huid = huid,
+                    profile = ScaleUserProfile(profile, lastWeightKg = _state.value.lastLog?.massKg)
+                ).collect { state ->
+                    when (state) {
+                        is PairingState.Progress -> _state.value = _state.value.copy(
+                            pairingStep = state.index to state.totalSteps,
+                            pairingInstructions = state.instructions
+                        )
+                        is PairingState.Failed -> _state.value = _state.value.copy(
+                            failure = state.reason,
+                            pairingStep = null,
+                            pairingInstructions = emptyList()
+                        )
+                        is PairingState.Completed -> {
+                            database.scaleAssociationDao()
+                                .upsert(state.association.toEntity(System.currentTimeMillis()))
+                            _state.value = _state.value.copy(
+                                association = state.association,
+                                discovered = emptyList(),
+                                pairingStep = null,
+                                pairingInstructions = emptyList()
+                            )
+                        }
+                    }
+                }
+            } finally {
+                transport.close()
+                _state.value = _state.value.copy(isPairing = false)
+            }
         }
     }
 

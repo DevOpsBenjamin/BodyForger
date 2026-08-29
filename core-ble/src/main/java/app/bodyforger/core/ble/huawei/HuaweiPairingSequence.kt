@@ -44,19 +44,23 @@ object HuaweiPairingSequence {
         )
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Armement de l'association (0x45)"))
         add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Gravure du HUID en mémoire flash (0x2D)"))
-        add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Capture de la tare renvoyée par la balance"))
-        add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Synchronisation de l'heure (0x52)"))
-        add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Transmission du profil utilisateur (0x31)"))
-        add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Désarmement de l'association (0x45)"))
-
-        // La gravure n'est confirmée que par une pesée réelle : c'est le propre de ce matériel.
+        // L'athlète monte ici, et une seule fois : la tare arrive après quelques secondes,
+        // puis la trame BIA complète pendant la même montée. L'inviter deux fois le ferait
+        // descendre entre les deux et perdrait la mesure.
         add(
             HuaweiSessionStep(
                 phase = SessionPhase.AWAITING_ATHLETE,
                 instructions = HuaweiWeighInSequence.stepOnInstructions(model),
-                detail = "Pesée de validation : balance prête"
+                detail = "Capture de la tare renvoyée par la balance"
             )
         )
-        add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Relevé de validation (0x97)"))
+        add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Synchronisation de l'heure (0x52)"))
+        add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Transmission du profil utilisateur (0x31)"))
+        add(HuaweiSessionStep(SessionPhase.PREPARING, detail = "Désarmement de l'association (0x45)"))
+
+        // L'athlète est déjà sur la balance : la trame de validation arrive pendant la même
+        // montée que la tare, sans nouvelle consigne.
+        add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Armement du flux BIA (0x97)"))
+        add(HuaweiSessionStep(SessionPhase.MEASURING, detail = "Relevé de validation (0x97) puis acquittement (0x31 type=2)"))
     }
 }

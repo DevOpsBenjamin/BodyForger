@@ -51,6 +51,7 @@ fun ScaleSettingsSection(
         SectionTitle("BALANCE CONNECTÉE")
 
         when {
+            state.isPairing -> Pairing(state)
             state.association != null -> AssociatedScale(state, onForget, onWeighIn)
             state.isScanning -> Scanning(state.discovered, onAssociate, onStopScan)
             else -> NotAssociated(onStartScan)
@@ -84,7 +85,8 @@ private fun NotAssociated(onStartScan: () -> Unit) {
         Text("Aucune balance associée", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         Text(
             // Sans ce geste, la balance ne s'annonce pas et reste invisible au scan.
-            "Tapotez la balance du pied pour la réveiller, puis lancez la recherche.",
+            "Tapotez la balance du pied pour la réveiller, puis lancez la recherche. " +
+                "L'appairage grave votre profil dans sa mémoire et demande une pesée de calibration.",
             color = TextSecondary,
             fontSize = 13.sp,
             modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
@@ -138,11 +140,49 @@ private fun Scanning(
     }
 }
 
+/**
+ * L'appairage en cours.
+ *
+ * ⚠️ La gravure du profil dans la mémoire de la balance a lieu **avant** que l'athlète ne
+ * monte, et consomme un emplacement définitivement. L'écran le dit plutôt que de le taire.
+ */
+@Composable
+private fun Pairing(state: ScaleUiState) {
+    Card {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(color = ElectricCyan, strokeWidth = 2.dp, modifier = Modifier.padding(end = 12.dp))
+            Text("Appairage en cours", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        }
+        state.pairingStep?.let { (index, total) ->
+            Text(
+                "Étape ${index + 1} sur $total",
+                color = ElectricCyan,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 10.dp)
+            )
+        }
+        state.pairingInstructions.forEach { instruction ->
+            Text(instructionLabel(instruction), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        }
+        Text(
+            "La pesée de calibration fait partie de l'appairage : sans elle, l'association ne sera pas enregistrée.",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+}
+
 @Composable
 private fun AssociatedScale(state: ScaleUiState, onForget: () -> Unit, onWeighIn: () -> Unit) {
     Card {
         Text(state.association!!.advertisedName, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         Text("Associée · ${state.association.deviceAddress}", color = TextSecondary, fontSize = 11.sp)
+        Text(
+            "Tare de calibration : %.2f kg".format(state.association.tareKg),
+            color = TextSecondary,
+            fontSize = 11.sp
+        )
 
         state.progress?.let { progress ->
             Text(

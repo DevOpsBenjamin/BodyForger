@@ -72,8 +72,17 @@ sealed interface PairingState {
         val detail: String? = null
     ) : PairingState
 
-    /** L'Association est établie et peut être partagée entre la montre et le téléphone. */
-    data class Completed(val association: ScaleAssociation) : PairingState
+    /**
+     * L'Association est établie et peut être partagée entre la montre et le téléphone.
+     *
+     * [validation] porte la pesée de validation quand le matériel en produit une pendant
+     * l'appairage : l'athlète est déjà monté, autant conserver ce qu'il a mesuré plutôt que
+     * de lui demander de recommencer. Elle vaut `null` sur un matériel qui n'en fait pas.
+     */
+    data class Completed(
+        val association: ScaleAssociation,
+        val validation: BiaTelemetry? = null
+    ) : PairingState
 
     /** L'appairage n'a pas abouti. */
     data class Failed(val reason: SessionFailure, val cause: Throwable? = null) : PairingState
