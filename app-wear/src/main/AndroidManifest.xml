@@ -30,17 +30,18 @@
 
         <service
             android:name=".tile.BodyForgerTileService"
-            android:icon="@android:drawable/sym_def_app_icon"
+            android:icon="@drawable/ic_tile_bodyforger"
             android:label="@string/tile_name"
             android:description="@string/tile_description"
             android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER"
             android:exported="true">
             <intent-filter>
                 <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+                <action android:name="com.google.android.clockwork.home.provider.action.BIND_TILE_PROVIDER" />
             </intent-filter>
             <meta-data
                 android:name="androidx.wear.tiles.PREVIEW"
-                android:resource="@android:drawable/sym_def_app_icon" />
+                android:resource="@drawable/ic_tile_preview" />
         </service>
     </application>
 
