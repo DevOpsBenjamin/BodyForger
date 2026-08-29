@@ -12,14 +12,10 @@ import android.os.Build
 import android.util.Log
 import app.bodyforger.core.ble.huawei.HuaweiCharacteristic
 import app.bodyforger.core.ble.huawei.HuaweiFrameMagic
-import app.bodyforger.core.ble.huawei.HuaweiFrameReassembler
 import app.bodyforger.core.ble.huawei.HuaweiFraming
 import app.bodyforger.core.ble.huawei.HuaweiGattProfile
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.delay
@@ -42,12 +38,8 @@ class AndroidGattTransport(
     private val operationTimeoutMs: Long = DEFAULT_OPERATION_TIMEOUT_MS
 ) : ScaleTransport {
 
-    private val notifications = MutableSharedFlow<ScaleNotification>(
-        replay = 0,
-        extraBufferCapacity = 32,
-        onBufferOverflow = BufferOverflow.SUSPEND
-    )
-    override val incoming: Flow<ScaleNotification> = notifications.asSharedFlow()
+    private val inbox = GattFrameInbox(profile, TAG)
+    override val incoming: Flow<ScaleNotification> = inbox.incoming
 
     /** Android allows one GATT operation in flight; this queues them. */
     private val gattLock = Mutex()
@@ -57,8 +49,6 @@ class AndroidGattTransport(
     private var services: CompletableDeferred<Boolean>? = null
     private var pendingWrite: CompletableDeferred<Boolean>? = null
     private var pendingDescriptor: CompletableDeferred<Boolean>? = null
-
-    private val reassemblers = mutableMapOf<HuaweiCharacteristic, HuaweiFrameReassembler>()
 
     /** Connects and discovers services, retrying: error 133 commonly hits the first try. */
     override suspend fun connect(): Boolean {
@@ -89,7 +79,7 @@ class AndroidGattTransport(
         }
         val ready = withTimeoutOrNull(CONNECTION_TIMEOUT_MS) { discovered.await() } == true
         Log.d(TAG, if (ready) "services découverts" else "découverte des services échouée")
-        if (ready) dumpProfile()
+        if (ready) gatt?.logAnnouncedProfile(profile, TAG)
         ready
     }
 
@@ -146,8 +136,7 @@ class AndroidGattTransport(
             return@withLock false
         }
 
-        if (enabled) reassemblers[characteristic] = HuaweiFrameReassembler()
-        else reassemblers.remove(characteristic)
+        if (enabled) inbox.open(characteristic) else inbox.close(characteristic)
 
         val ok = withTimeoutOrNull(operationTimeoutMs) { acknowledged.await() } == true
         Log.d(TAG, "abonnement $characteristic : ${if (ok) "ok" else "ÉCHEC (descripteur non acquitté)"}")
@@ -220,33 +209,11 @@ class AndroidGattTransport(
         gatt?.disconnect()
         gatt?.close()
         gatt = null
-        reassemblers.clear()
+        inbox.clear()
         connection = null
         services = null
         pendingWrite = null
         pendingDescriptor = null
-    }
-
-    /** Logs the profile the device actually announces, to test our map against it. */
-    private fun dumpProfile() {
-        val services = gatt?.services ?: return
-        Log.d(TAG, "--- profil GATT annoncé par l'appareil ---")
-        for (service in services) {
-            for (characteristic in service.characteristics) {
-                val known = profile.characteristicOf(characteristic.uuid)
-                val cccd = characteristic.getDescriptor(HuaweiGattProfile.CLIENT_CONFIG_DESCRIPTOR)
-                Log.d(
-                    TAG,
-                    "  ${characteristic.uuid} props=0x%02x cccd=%s %s".format(
-                        characteristic.properties,
-                        if (cccd != null) "oui" else "NON",
-                        known?.name ?: "(inconnue de notre carte)"
-                    )
-                )
-            }
-        }
-        val missing = HuaweiCharacteristic.entries.filter { resolve(it) == null }
-        if (missing.isNotEmpty()) Log.w(TAG, "absentes de l'appareil : ${missing.joinToString()}")
     }
 
     private fun resolve(characteristic: HuaweiCharacteristic): BluetoothGattCharacteristic? {
@@ -296,45 +263,17 @@ class AndroidGattTransport(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray
-        ) = deliver(characteristic.uuid, value)
+        ) = inbox.deliver(characteristic.uuid, value)
 
         @Deprecated("Requis avant Android 13, qui livre la valeur en argument.")
         @Suppress("DEPRECATION")
         override fun onCharacteristicChanged(
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
-        ) = deliver(characteristic.uuid, characteristic.value ?: ByteArray(0))
+        ) = inbox.deliver(characteristic.uuid, characteristic.value ?: ByteArray(0))
     }
 
     /** Reassembles, emitting only complete payloads. Never blocks the Bluetooth callback. */
-    private fun deliver(uuid: UUID, frame: ByteArray) {
-        val characteristic = profile.characteristicOf(uuid) ?: return
-        val reassembler = reassemblers.getOrPut(characteristic) { HuaweiFrameReassembler() }
-        val payload = reassembler.feed(frame)
-        if (payload == null) {
-            val why = reassembler.lastRejection
-            if (why == null) {
-                Log.v(TAG, "trame intermédiaire sur $characteristic (${frame.size} o)")
-            } else if (characteristic == HuaweiCharacteristic.CAPABILITIES_RESPONSE) {
-                Log.v(TAG, "réponse de capacités hors trame (${frame.size} o)")
-            } else {
-                Log.w(TAG, "trame écartée sur $characteristic — $why — ${frame.toHex()}")
-            }
-            return
-        }
-        Log.d(TAG, "reçu $characteristic : ${payload.size} o — ${payload.toHex()}")
-        notifications.tryEmit(
-            ScaleNotification(
-                characteristic = characteristic,
-                payload = payload,
-                encrypted = characteristic.protection != HuaweiCharacteristic.Protection.CLEAR
-            )
-        )
-    }
-
-    private fun ByteArray.toHex(limit: Int = 40): String =
-        take(limit).joinToString("") { "%02x".format(it) } + if (size > limit) "…" else ""
-
     companion object {
         /** Log tag: `adb logcat -s BodyForgerBle`. */
         const val TAG = "BodyForgerBle"
