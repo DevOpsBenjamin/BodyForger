@@ -38,7 +38,22 @@ Ce document régit les règles de développement, les protocoles d'authentificat
 
 ---
 
-## 🧪 4. Stratégie de Test & Données
+## 🧼 4. Hygiène du Code
+
+1. **Langue** : le **code, les commentaires et la documentation sont en anglais**. Les messages de commit et les échanges de tickets restent en français. Les libellés d'interface suivent la règle i18n ci-dessus.
+
+2. **Pas de commentaire explicatif dans le code.** Un nom bien choisi remplace une phrase. Ce qui demande un paragraphe demande en réalité un document : un fichier dans `docs/`, ou un ADR si c'est une décision. Le code peut y renvoyer d'une ligne, jamais le recopier.
+   * Ce qui reste acceptable : une ligne signalant un piège non déductible du code — un contournement de plateforme, un ordre d'appel obligatoire, une valeur imposée par un protocole.
+   * Ce qui ne l'est pas : reformuler ce que le code dit déjà, ou raconter l'historique d'une décision.
+
+3. **Aucune valeur magique.** Tout littéral porteur de sens vit dans une constante nommée pour **son usage**, pas pour sa valeur. Les constantes issues d'un protocole ou d'un modèle documenté portent **le nom qu'emploie la documentation**, afin que l'on puisse croiser les deux sans traduction.
+   * Exceptions : `0` et `1` comme éléments neutres, les indices de boucle, et les tables générées dont la doc explique la provenance.
+
+4. **Taille des fichiers** : un fichier qui dépasse ~250 lignes se relit mal. Les fichiers de données se découpent par domaine, les composants par responsabilité.
+
+---
+
+## 🧪 5. Stratégie de Test & Données
 
 * **Architecture Local-First** : Tous les modèles de données (Kotlin Room DB, IndexedDB) doivent être testables hors-ligne avec des jeux de données d'entraînement et de pesée BIA reproductibles.
 * **Intégrité Mathématique BIA** : Les tests du module `core-bia` doivent valider les algorithmes DEXA face aux équations de référence (cf. `PLAN.md`).

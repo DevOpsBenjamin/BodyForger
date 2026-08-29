@@ -12,12 +12,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 /**
- * Le scan BLE réel.
+ * The real BLE scan.
  *
- * Aucun filtre matériel n'est posé : les filtres d'Android portent sur le nom GAP ou sur un
- * UUID de service, or la famille Haige ne publie ni l'un ni l'autre de façon exploitable —
- * son modèle vit dans le nom annoncé. Le tri se fait donc côté logiciel, en confiant chaque
- * nom au pilote.
+ * No hardware filter is applied: Android filters on the GAP name or a service UUID, and this
+ * family publishes neither usefully — `docs/BLE_PROTOCOL.md` §1.
  */
 @SuppressLint("MissingPermission")
 class AndroidScaleScanner(private val context: Context) : ScaleScanner {
@@ -26,13 +24,7 @@ class AndroidScaleScanner(private val context: Context) : ScaleScanner {
         const val TAG = "BodyForgerBle"
         const val BLUETOOTH_UNAVAILABLE = -1
 
-        /**
-         * Traduit un code d'échec d'Android.
-         *
-         * Le bridage est le plus déroutant : il survient après quelques scans rapprochés,
-         * dure une trentaine de secondes, et ne se distingue d'une balance éteinte que par ce
-         * code.
-         */
+        /** Translates an Android scan failure code. */
         fun describe(errorCode: Int): String = when (errorCode) {
             ScanCallback.SCAN_FAILED_ALREADY_STARTED -> "un scan est déjà en cours."
             ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED -> "enregistrement refusé par le système."
@@ -43,7 +35,7 @@ class AndroidScaleScanner(private val context: Context) : ScaleScanner {
             else -> "échec inattendu (code $errorCode)."
         }
 
-        /** `SCAN_FAILED_SCANNING_TOO_FREQUENTLY`, absent des constantes publiques anciennes. */
+        /** `SCAN_FAILED_SCANNING_TOO_FREQUENTLY`, absent from older public constants. */
         const val SCAN_TOO_FREQUENTLY = 6
     }
 
@@ -58,18 +50,11 @@ class AndroidScaleScanner(private val context: Context) : ScaleScanner {
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                // `scanRecord.deviceName` est le nom **annoncé**, celui qui porte le modèle.
-                // `result.device.name` est le nom GAP, générique sur cette famille.
-                // Un appareil sans nom annoncé n'apprend rien à personne : ni reconnaissable,
-                // ni identifiable à l'œil.
                 val advertised = result.scanRecord?.deviceName ?: return
                 trySend(
                     DiscoveredScale(
                         deviceAddress = result.device.address,
                         advertisedName = advertised,
-                        // Un appareil inconnu est émis quand même : c'est ce qui permet de
-                        // voir qu'une balance est là sous un nom que le pilote ne sait pas
-                        // encore reconnaître.
                         recognised = identifier.identify(advertised),
                         signalStrengthDbm = result.rssi
                     )
@@ -77,17 +62,12 @@ class AndroidScaleScanner(private val context: Context) : ScaleScanner {
             }
 
             override fun onScanFailed(errorCode: Int) {
-                // ⚠️ Android bride les applications qui démarrent plus de cinq scans en trente
-                // secondes, et le refuse alors **en silence** pendant une demi-minute. Fermer
-                // sans rien dire laissait l'écran sur une recherche éternelle.
                 Log.w(TAG, "scan refusé : ${describe(errorCode)}")
                 close(ScanRejected(errorCode, describe(errorCode)))
             }
         }
 
         val settings = ScanSettings.Builder()
-            // La balance ne s'annonce que quelques secondes après un tapotement : un scan
-            // économe la manquerait.
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
 

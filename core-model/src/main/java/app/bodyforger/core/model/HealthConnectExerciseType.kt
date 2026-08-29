@@ -1,7 +1,7 @@
 package app.bodyforger.core.model
 
 /**
- * Catalogue normé des types d'exercices de musculation et de renforcement
+
  * officiellement reconnus par l'API Android Health Connect (androidx.health.connect.client.records.ExerciseSegmentType).
  *
  * Ce catalogue sert de socle canonique pour garantir une synchronisation 100% sans perte

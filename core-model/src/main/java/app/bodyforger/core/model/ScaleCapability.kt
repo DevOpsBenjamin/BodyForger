@@ -1,73 +1,62 @@
 package app.bodyforger.core.model
 
-/** Nombre d'électrodes en contact avec le corps pendant la mesure. */
+/** Electrodes in contact with the body during a reading. */
 enum class ElectrodeCount(val electrodes: Int) {
-    /** Aucune électrode : balance à poids seul, ou saisie manuelle. */
+    /** No electrodes: weight-only scale, or manual entry. */
     NONE(0),
 
-    /** Quatre électrodes au plateau : seul le trajet pied ↔ pied existe. */
+    /** Four plate electrodes: only the foot-to-foot path exists. */
     FOUR(4),
 
-    /** Quatre au plateau et quatre sur la poignée rétractable : les six trajets existent. */
+    /** Four on the plate and four on the handle: all six paths exist. */
     EIGHT(8)
 }
 
 /**
- * Le **plafond** d'un matériel : ce qu'il est capable de mesurer.
+ * A device's **ceiling**: what it is able to measure.
  *
- * Cette couche vit sur l'Association, pas sur la pesée. Elle sert **avant** la mesure —
- * décider si proposer une analyse de composition a un sens, et inviter l'athlète à sortir
- * la poignée. Elle ne dit jamais ce qu'une pesée donnée a réellement obtenu : pour cela,
- * voir [MeasuredFidelity].
+ * Lives on the association, not on the reading. It serves before a measurement — deciding
+ * whether offering a composition makes sense — and never says what a given reading obtained.
+ * For that, see [MeasuredFidelity].
  *
- * Deux axes indépendants. Les fusionner en une énumération plate écraserait deux
- * dimensions orthogonales : le nombre d'électrodes et le nombre de fréquences varient
- * séparément.
+ * Two independent axes: electrode count and frequency count vary separately.
  */
 data class ScaleCapability(
     val electrodeCount: ElectrodeCount,
     val frequenciesKHz: List<Int>
 ) {
     init {
-        require(frequenciesKHz.all { it > 0 }) { "Fréquence invalide dans $frequenciesKHz" }
+        require(frequenciesKHz.all { it > 0 }) { "Invalid frequency in $frequenciesKHz" }
         require(frequenciesKHz.distinct().size == frequenciesKHz.size) {
-            "Fréquences dupliquées dans $frequenciesKHz"
+            "Duplicate frequencies in $frequenciesKHz"
         }
         require(electrodeCount == ElectrodeCount.NONE || frequenciesKHz.isNotEmpty()) {
-            "Un appareil à électrodes doit déclarer au moins une fréquence"
+            "A device with electrodes must declare at least one frequency"
         }
         require(electrodeCount != ElectrodeCount.NONE || frequenciesKHz.isEmpty()) {
-            "Un appareil sans électrode ne peut relever aucune fréquence"
+            "A device without electrodes can read no frequency"
         }
     }
 
-    /**
-     * Les trajets que ce matériel peut relever. À quatre électrodes, seul le trajet
-     * pied ↔ pied existe : les cinq autres passent par les mains.
-     */
+    /** Paths this device can read; with four electrodes only foot-to-foot exists. */
     val measurablePaths: Set<ImpedancePath> = when (electrodeCount) {
         ElectrodeCount.NONE -> emptySet()
         ElectrodeCount.FOUR -> ImpedancePath.entries.filterNot { it.involvesHands }.toSet()
         ElectrodeCount.EIGHT -> ImpedancePath.entries.toSet()
     }
 
-    /**
-     * Le produit des deux axes : toute résistance que ce matériel peut relever.
-     *
-     * C'est un **majorant**, jamais un constat. Une balance huit électrodes dont l'athlète
-     * ne saisit pas la poignée produit légitimement l'ensemble vide.
-     */
+    /** Every resistance this device could read: an upper bound, never an observation. */
     val measurableReadings: Set<ImpedanceReading> =
         measurablePaths.flatMap { path -> frequenciesKHz.map { ImpedanceReading(path, it) } }.toSet()
 
-    /** Vrai si le matériel peut produire une analyse de composition corporelle. */
+    /** True when the device can produce a body composition. */
     val supportsBodyComposition: Boolean get() = measurableReadings.isNotEmpty()
 
     companion object {
-        /** Balance sans électrode : elle ne remonte qu'une masse. */
+        /** A scale without electrodes reports mass only. */
         val WEIGHT_ONLY = ScaleCapability(ElectrodeCount.NONE, emptyList())
 
-        /** Saisie manuelle par l'athlète : aucun capteur. */
+        /** Manual entry by the athlete: no sensor at all. */
         val MANUAL = WEIGHT_ONLY
     }
 }

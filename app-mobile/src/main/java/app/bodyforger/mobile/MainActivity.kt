@@ -82,7 +82,6 @@ fun BodyForgerApp() {
         )
     } else if (showingSettingsScreen) {
         SettingsScreen(
-            // Profil de démonstration : la saisie du profil athlète reste à câbler.
             profile = BiaProfile(BiologicalSex.MALE, ageYears = 30, heightCm = 180.0),
             onBack = { showingSettingsScreen = false }
         )

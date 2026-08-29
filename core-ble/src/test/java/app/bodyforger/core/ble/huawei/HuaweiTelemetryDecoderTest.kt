@@ -11,15 +11,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Vecteurs de non-régression.
  *
- * Les trois trames Pro sont **synthétiques** : elles reproduisent au bit près la structure
- * d'une trame réelle — mêmes offsets, mêmes échelles, mêmes conventions d'absence — mais ne
- * portent la pesée de personne. Un vecteur capturé n'apporterait rien de plus au décodeur,
- * dont le travail est de lire une structure, et exposerait des données de santé.
  *
- * La quatrième vient d'une capture **publiée par openScale** sur une Scale 3 classique : sa
- * valeur est justement de venir d'un autre matériel et d'une autre implémentation.
  */
 class HuaweiTelemetryDecoderTest {
 
@@ -33,11 +26,7 @@ class HuaweiTelemetryDecoderTest {
         "4f1fbb00e9070309072d0c0754104218b81572153615f0144a00920ea41560132413e812ac12"
     )
 
-    /**
-      * Scale 3 Pro, pieds nus **sans saisir la poignée**. Reproduit le cas prouvé par
-      * capture réelle : trente-huit octets entièrement nuls hormis le poids et la date.
-      */
-    private val proWithoutHandle = hex(
+        private val proWithoutHandle = hex(
         "b81f0000e907030f121405060000000000000000000000000000000000000000000000000000"
     )
 
@@ -92,7 +81,6 @@ class HuaweiTelemetryDecoderTest {
     fun `une Pro sans poignee reste une pesee valide, sans aucune impedance`() {
         val telemetry = requireNotNull(HuaweiTelemetryDecoder.decode(proWithoutHandle, HuaweiScaleModel.HUAWEI_SCALE_3_PRO)).telemetry
 
-        // La trame fait bien 38 octets : la longueur ne dit rien de la capacité.
         assertEquals(HuaweiTelemetryDecoder.DUAL_FREQUENCY_FRAME_BYTES, proWithoutHandle.size)
         assertEquals(81.20, telemetry.massKg, 1e-9)
         assertTrue(telemetry.rawImpedances.isEmpty)
@@ -154,7 +142,6 @@ class HuaweiTelemetryDecoderTest {
         // Sur la Pro il vaut le jour ISO — les trames portent un dimanche puis un samedi.
         assertEquals(7, HuaweiTelemetryDecoder.decode(proWithHandle, HuaweiScaleModel.HUAWEI_SCALE_3_PRO)!!.statusByte)
         assertEquals(6, HuaweiTelemetryDecoder.decode(proWithoutHandle, HuaweiScaleModel.HUAWEI_SCALE_3_PRO)!!.statusByte)
-        // La capture M00D ne suit pas cette lecture : d'où l'absence d'interprétation.
         assertEquals(0xa0, HuaweiTelemetryDecoder.decode(plainScaleThree, HuaweiScaleModel.HUAWEI_SCALE_3)!!.statusByte)
     }
 

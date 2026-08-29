@@ -68,7 +68,6 @@ fun ReorderExercisesScreen(
     onConfirm: (List<RoutineExercise>) -> Unit,
     onCancel: () -> Unit
 ) {
-    // Liste de travail isolée : si on quitte via la flèche retour, rien n'est sauvegardé !
     val workingList = remember {
         mutableStateListOf<RoutineExercise>().apply {
             addAll(initialExercises)
@@ -86,7 +85,6 @@ fun ReorderExercisesScreen(
             .statusBarsPadding()
             .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
-        // --- 1. BARRE SUPÉRIEURE : Flèche Retour (Annule) + Titre Réorganiser ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -154,7 +152,6 @@ fun ReorderExercisesScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Côté Gauche : Icône de muscle + Nom de l'exercice (Pas de bouton rouge)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
@@ -193,7 +190,6 @@ fun ReorderExercisesScreen(
                         }
                     }
 
-                    // Côté Droit : Poignée Drag Handle (Triple ligne ≡) avec détection tactile fluide
                     Box(
                         modifier = Modifier
                             .size(44.dp)
@@ -219,13 +215,11 @@ fun ReorderExercisesScreen(
                                         if (currentIdx != -1) {
                                             val threshold = itemHeightPx * 0.7f
                                             if (dragOffsetY > threshold && currentIdx < workingList.size - 1) {
-                                                // Déplacement vers le bas
                                                 val item = workingList.removeAt(currentIdx)
                                                 workingList.add(currentIdx + 1, item)
                                                 draggingIndex = currentIdx + 1
                                                 dragOffsetY -= itemHeightPx
                                             } else if (dragOffsetY < -threshold && currentIdx > 0) {
-                                                // Déplacement vers le haut
                                                 val item = workingList.removeAt(currentIdx)
                                                 workingList.add(currentIdx - 1, item)
                                                 draggingIndex = currentIdx - 1

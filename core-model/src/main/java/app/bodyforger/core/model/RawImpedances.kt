@@ -1,15 +1,10 @@
 package app.bodyforger.core.model
 
 /**
- * La **fidélité obtenue** par une pesée : l'ensemble des résistances qu'elle a réellement
- * relevées.
+ * What a reading actually captured: the set of resistances it obtained.
  *
- * Cette couche vit sur le [BodyLog], pas sur l'Association. Elle sert **après** la mesure —
- * sélectionner la famille d'équations et interdire au moteur de composition de tourner sur
- * du vide. Elle se lit dans la trame, elle ne se déclare pas : la balance remplit de zéros
- * ce qu'elle n'a pas mesuré.
- *
- * À distinguer de [ScaleCapability], qui n'en donne que le majorant.
+ * Lives on the reading, not on the association. It is read from the frame, never declared —
+ * the scale fills with zeros what it did not measure. See [ScaleCapability] for the ceiling.
  */
 @JvmInline
 value class MeasuredFidelity(val readings: Set<ImpedanceReading>) {
@@ -20,10 +15,7 @@ value class MeasuredFidelity(val readings: Set<ImpedanceReading>) {
 
     val isEmpty: Boolean get() = readings.isEmpty()
 
-    /**
-     * Le nombre d'électrodes que cette pesée a effectivement mis en jeu — déduit des
-     * trajets relevés, jamais du modèle de l'appareil.
-     */
+    /** Electrode count actually exercised, deduced from the paths read. */
     val exercisedElectrodeCount: ElectrodeCount
         get() = when {
             readings.any { it.path.involvesHands } -> ElectrodeCount.EIGHT
@@ -32,22 +24,16 @@ value class MeasuredFidelity(val readings: Set<ImpedanceReading>) {
         }
 
     companion object {
-        /** Une pesée qui n'a relevé aucune impédance : masse seule. */
+        /** A reading with no impedance at all: mass only. */
         val NONE = MeasuredFidelity(emptySet())
     }
 }
 
 /**
- * Les résistances brutes d'une pesée, en ohms — la seule grandeur qu'une balance à
- * bio-impédance **mesure** réellement.
+ * The raw resistances of a reading, in ohms — the only quantity a scale truly measures.
  *
- * Conservées telles quelles et pour toujours : c'est ce qui permet de recalculer tout
- * l'historique quand les équations de composition évoluent, et d'agréger une période en
- * analysant la médiane des résistances plutôt qu'une moyenne de résultats.
- *
- * **Une valeur absente n'est jamais remplacée par un défaut.** Un chiffre fabriqué serait
- * indiscernable d'une mesure réelle dans l'historique — une lecture pied ↔ pied authentique
- * vaut 509,8 Ω, soit précisément la plage où tombaient les anciennes valeurs de repli.
+ * Kept verbatim and forever, which is what allows the whole history to be recomputed when the
+ * equations improve. A missing value is never replaced by a default: see `docs/BIA_ENGINE.md`.
  */
 @JvmInline
 value class RawImpedances private constructor(val ohmsByReading: Map<ImpedanceReading, Double>) {
@@ -56,22 +42,17 @@ value class RawImpedances private constructor(val ohmsByReading: Map<ImpedanceRe
 
     val isEmpty: Boolean get() = ohmsByReading.isEmpty()
 
-    /** La résistance relevée sur ce trajet à cette fréquence, ou `null` si non mesurée. */
+    /** The resistance read on this path at this frequency, or `null` when not measured. */
     operator fun get(path: ImpedancePath, frequencyKHz: Int): Double? =
         ohmsByReading[ImpedanceReading(path, frequencyKHz)]
 
     operator fun get(reading: ImpedanceReading): Double? = ohmsByReading[reading]
 
     companion object {
-        /** Une pesée sans aucune impédance relevée. */
+        /** A reading carrying no impedance. */
         val NONE = RawImpedances(emptyMap())
 
-        /**
-         * Construit un relevé en écartant toute valeur non mesurée.
-         *
-         * Les entrées nulles ou négatives sont **rejetées, pas conservées** : le zéro est
-         * la façon dont l'appareil dit « je n'ai pas mesuré ».
-         */
+        /** Builds a reading, rejecting anything not measured: zero means "not measured". */
         fun of(ohmsByReading: Map<ImpedanceReading, Double>): RawImpedances =
             RawImpedances(ohmsByReading.filterValues { it > 0.0 }.toMap())
     }

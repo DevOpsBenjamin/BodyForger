@@ -9,11 +9,8 @@ import org.junit.Test
 
 class HuaweiFramingTest {
 
-    // --- La table du CRC : figée dans le code, mais vérifiée ici ---
-
     @Test
     fun `la table figee est exactement celle que le polynome engendre`() {
-        // C'est ce test qui autorise à figer la table : une coquille de transcription — comme
         // celle que porte openScale — ne pourrait pas y survivre.
         val regenerated = IntArray(256) { index ->
             var value = index shl 8
@@ -31,7 +28,6 @@ class HuaweiFramingTest {
 
     @Test
     fun `les premieres entrees correspondent a la table publiee`() {
-        // Recopiées depuis `TECH.md` §3.2, en décimal comme le document les donne.
         val published = intArrayOf(
             0, 4129, 8258, 12387, 16516, 20645, 24774, 28903,
             33032, 37161, 41290, 45419, 49548, 53677, 57806, 61935,
@@ -48,9 +44,7 @@ class HuaweiFramingTest {
 
     @Test
     fun `les trames recues de la balance suivent un autre CRC que celles qu'on emet`() {
-        // Constat de terrain sur deux trames d'authentification réellement capturées : la
         // balance signe en MODBUS, quand nous signons en CCITT. `TECH.md` ne documente que
-        // le second, et la référence ne vérifie jamais ce qu'elle reçoit — elle n'avait donc
         // aucune occasion de s'en apercevoir.
         val first = bytes("bd1210a9ccb66a6d7386d9d992f0bd9cacb4")
         assertEquals(0x9ed3, HuaweiFraming.receivedCrc16(first))
@@ -65,16 +59,12 @@ class HuaweiFramingTest {
         val reassembler = HuaweiFrameReassembler()
         assertNull(reassembler.feed(bytes("bd1210a9ccb66a6d7386d9d992f0bd9cacb4d39e")))
         val payload = reassembler.feed(bytes("bd0511ec0195d2"))
-        // Quinze octets puis deux : l'aléa de seize octets, précédé de son octet d'entête.
         assertEquals(17, payload!!.size)
         assertNull(reassembler.lastRejection)
     }
 
-    // --- Découpage ---
-
     @Test
     fun `une charge vide produit une trame, pas zero`() {
-        // Certaines commandes n'ont pas de corps et doivent quand même partir.
         val frames = HuaweiFraming.split(ByteArray(0), HuaweiFrameMagic.HOST_CLEAR)
         assertEquals(1, frames.size)
         assertEquals("db030036c0", frames[0].toHex())
@@ -110,7 +100,6 @@ class HuaweiFramingTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun `une charge que le sequencement ne peut pas porter est refusee`() {
-        // Quatre bits d'index : au-delà de seize trames, l'index reboucle silencieusement.
         HuaweiFraming.split(ByteArray(HuaweiFraming.MAX_PAYLOAD_BYTES + 1), HuaweiFrameMagic.HOST_CLEAR)
     }
 
@@ -139,8 +128,6 @@ class HuaweiFramingTest {
 
     @Test
     fun `une trame au CRC faux est ecartee`() {
-        // La référence ne vérifie pas le CRC : une trame corrompue y était recollée telle
-        // quelle, puis déchiffrée en bruit sans que rien n'indique la corruption.
         val frame = asScale(ByteArray(4), HuaweiFrameMagic.SCALE_CLEAR)[0]
         val corrupted = frame.copyOf().also { it[it.size - 1] = (it[it.size - 1] + 1).toByte() }
         assertNull(HuaweiFrameReassembler().feed(corrupted))
@@ -171,7 +158,6 @@ class HuaweiFramingTest {
 
     @Test
     fun `une trame orpheline ne demarre pas un recollage`() {
-        // Reprendre au milieu d'un message reviendrait à inventer les trames manquantes.
         val frames = asScale(ByteArray(40), HuaweiFrameMagic.SCALE_ENCRYPTED)
         assertNull(HuaweiFrameReassembler().feed(frames[1]))
         assertNull(HuaweiFrameReassembler().feed(frames[2]))
@@ -183,7 +169,6 @@ class HuaweiFramingTest {
         val frames = asScale(payload, HuaweiFrameMagic.SCALE_ENCRYPTED)
         val reassembler = HuaweiFrameReassembler()
         reassembler.feed(frames[0])
-        // La balance recommence son envoi : on repart de sa nouvelle première trame.
         reassembler.feed(frames[0])
         assertArrayEquals(payload, reassembler.feed(frames[1]))
     }

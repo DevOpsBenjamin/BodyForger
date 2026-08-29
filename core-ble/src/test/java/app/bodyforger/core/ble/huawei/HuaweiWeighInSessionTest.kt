@@ -21,10 +21,6 @@ import org.junit.Test
 import java.security.SecureRandom
 import java.time.LocalDateTime
 
-/**
- * La pesée complète, jouée contre un faux transport. C'est l'orchestration qui se trompe,
- * pas le Bluetooth — d'où l'intérêt de pouvoir la dérouler sans matériel.
- */
 class HuaweiWeighInSessionTest {
 
     private val model = HuaweiScaleModel.HUAWEI_SCALE_3_PRO
@@ -81,7 +77,6 @@ class HuaweiWeighInSessionTest {
 
         assertEquals(SessionPhase.DISCOVERING, phases.first())
         assertEquals(SessionPhase.MEASURING, phases.last())
-        // Une phase ne revient jamais en arrière.
         assertEquals(phases.sortedBy { it.ordinal }, phases)
     }
 
@@ -91,8 +86,6 @@ class HuaweiWeighInSessionTest {
         val stepOn = states.filterIsInstance<WeighInState.Progress>()
             .first { it.phase == SessionPhase.AWAITING_ATHLETE }
 
-        // Monter et saisir la poignée sont simultanés : les séparer ferait relâcher la
-        // poignée avant le relevé.
         assertEquals(2, stepOn.instructions.size)
     }
 
@@ -135,7 +128,6 @@ class HuaweiWeighInSessionTest {
 
     @Test
     fun `la balance recoit son acquittement pour clore la session`() = runTest {
-        // Sans lui, elle reste armée et la pesée suivante devra attendre son extinction.
         val transport = FakeScale()
         session(transport).run(association, association.huid, profile).toList()
 
@@ -208,7 +200,6 @@ class HuaweiWeighInSessionTest {
                 }
                 HuaweiCharacteristic.BIA_STREAM -> Unit
                 HuaweiCharacteristic.USER_PROFILE -> if (sendsTelemetry && journal.count { it == "write:USER_PROFILE" } == 1) {
-                    // La balance ne livre sa trame qu'une fois configurée.
                     val key = sessionKey ?: return true
                     val body = if (corruptTelemetry) ByteArray(4) else telemetryFrame
                     val iv = ByteArray(HuaweiCrypto.IV_BYTES) { 0x11 }

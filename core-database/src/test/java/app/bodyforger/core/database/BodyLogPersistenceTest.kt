@@ -14,7 +14,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * La traduction entre le relevé du domaine et ses lignes en base, vérifiée sans base : c'est
  * la correspondance qui se trompe, pas SQLite.
  */
 class BodyLogPersistenceTest {
@@ -50,8 +49,6 @@ class BodyLogPersistenceTest {
 
     @Test
     fun `chaque resistance est une ligne, jamais un texte`() {
-        // Une table fille rend la médiane sur une période calculable en SQL, là où un JSON
-        // imposerait de tout désérialiser en mémoire.
         assertEquals(12, log.impedanceRows().size)
         assertTrue(log.impedanceRows().all { it.bodyLogId == log.id })
     }
@@ -67,13 +64,11 @@ class BodyLogPersistenceTest {
 
         val restored = BodyLogWithImpedances(partial.toEntity(), partial.impedanceRows()).toDomain()
         assertEquals(1, restored.rawImpedances.ohmsByReading.size)
-        // Les onze autres trajets restent absents, et non renseignés à zéro.
         assertEquals(null, restored.rawImpedances[ImpedancePath.LEFT_HAND_TO_RIGHT_HAND, 50])
     }
 
     @Test
     fun `une pesee sans impedance reste un releve valide`() {
-        // Une balance à poids seul, ou une saisie manuelle : la masse et le taux suffisent.
         val weightOnly = log.copy(rawImpedances = RawImpedances.NONE)
         assertTrue(weightOnly.impedanceRows().isEmpty())
 
@@ -84,7 +79,6 @@ class BodyLogPersistenceTest {
 
     @Test
     fun `le trajet est stocke par son nom, jamais par son rang`() {
-        // Le rang dans la trame a déjà changé une fois (#30) : le stocker figerait un
         // historique sur une convention qui bouge.
         val rows = log.impedanceRows()
         assertTrue(rows.all { row -> ImpedancePath.entries.any { it.name == row.path } })

@@ -18,14 +18,10 @@ interface AthleteIdentityDao {
     suspend fun upsert(identity: AthleteIdentityEntity)
 
     /**
-     * Rend le HUID de l'athlète, en le créant s'il n'en existe aucun.
+     * Returns the athlete's HUID, creating one only if none exists.
      *
-     * ⚠️ **Ne régénère jamais un HUID existant.** Chaque nouveau HUID consomme un emplacement
-     * dans la mémoire flash de la balance, définitivement : en produire un second scinderait
-     * l'historique en deux personnes du point de vue du matériel (#19).
-     *
-     * Ce point d'entrée est aussi celui de la reprise après un appairage interrompu : le
-     * HUID ayant survécu, rejouer l'appairage réécrit sur le **même** emplacement.
+     * ⚠️ Never regenerates an existing HUID: each new one consumes a slot in the scale's flash
+     * memory for good.
      */
     @Transaction
     suspend fun huidOrCreate(nowEpochMs: Long): String {
@@ -35,12 +31,7 @@ interface AthleteIdentityDao {
         return generated
     }
 
-    /**
-     * Adopte le HUID reçu de l'autre appareil.
-     *
-     * Appelé quand la montre reçoit celui du téléphone, ou l'inverse : le premier arrivé fait
-     * foi, et l'appareil qui adopte abandonne le sien s'il en avait déjà généré un.
-     */
+    /** Adopts the HUID received from the peer device; the first one wins. */
     @Transaction
     suspend fun adopt(huid: String, nowEpochMs: Long) {
         upsert(
@@ -54,7 +45,6 @@ interface AthleteIdentityDao {
 
     private fun generateHuid(): String {
         val random = SecureRandom()
-        // Chiffres uniquement : la balance attend une chaîne ASCII numérique.
         return buildString(AthleteIdentityEntity.HUID_DIGITS) {
             repeat(AthleteIdentityEntity.HUID_DIGITS) { append(random.nextInt(10)) }
         }

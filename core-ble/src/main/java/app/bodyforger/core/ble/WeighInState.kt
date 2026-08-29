@@ -3,27 +3,21 @@ package app.bodyforger.core.ble
 import app.bodyforger.core.model.ScaleAssociation
 
 /**
- * L'avancement d'une pesée, exprimé dans le vocabulaire commun.
+ * How a weigh-in is progressing.
  *
- * Une pesée n'est pas une opération instantanée mais une séquence de plusieurs dizaines de
- * secondes, que l'athlète suit et peut interrompre. Le nombre d'étapes et leur ordre
- * appartiennent au pilote ; seul le vocabulaire est partagé.
+ * A weigh-in is a sequence of tens of seconds, which the athlete follows and can interrupt —
+ * `docs/BLE_PROTOCOL.md` §6.
  */
 sealed interface WeighInState {
 
     /**
-     * Étape [index] sur [totalSteps], telle que le pilote découpe sa séquence.
+     * Step [index] of [totalSteps], as the driver cuts its sequence.
      *
-     * Une pesée est multi-étapes au même titre qu'un appairage : réveil, handshake, balance
-     * prête, consigne à l'athlète, mesure. Le découpage appartient au pilote et sert à
-     * afficher une progression, pas à en déduire ce qui se passe.
+     * A step may ask for several simultaneous actions: stepping on and gripping the handle
+     * happen together, and separating them would have the handle released before the reading.
      *
-     * Une étape peut demander **plusieurs gestes à la fois** : monter sur le plateau et
-     * saisir la poignée sont simultanés, les séparer ferait relâcher la poignée avant la
-     * mesure.
-     *
-     * [detail] est un libellé propre au pilote, destiné au journal et au diagnostic — jamais
-     * à piloter l'interface, qui se fonde sur [phase] et [instructions].
+     * [detail] is a driver-owned label for logs and diagnosis, never for driving the
+     * interface, which reads [phase] and [instructions].
      */
     data class Progress(
         val index: Int,
@@ -33,37 +27,28 @@ sealed interface WeighInState {
         val detail: String? = null
     ) : WeighInState
 
-    /** Masse en cours de stabilisation, quand le matériel la diffuse en direct. */
+    /** Mass settling, where the hardware streams it live. */
     data class LiveWeight(val massKg: Double) : WeighInState
 
     /**
-     * La balance a livré sa mesure.
+     * The scale delivered its reading.
      *
-     * **C'est un succès même sans aucune impédance.** Une balance huit électrodes dont
-     * l'athlète n'a pas saisi la poignée émet une trame complète où seule la masse est
-     * renseignée, puis valide la pesée : la fidélité obtenue est simplement moindre.
+     * A success even with no impedance at all: an eight-electrode scale whose handle was not
+     * gripped emits a complete frame carrying mass alone, and acknowledges the weigh-in.
      */
     data class Completed(val telemetry: BiaTelemetry) : WeighInState
 
-    /** La pesée n'a pas abouti. */
     data class Failed(val reason: SessionFailure, val cause: Throwable? = null) : WeighInState
 }
 
 /**
- * L'avancement d'un appairage.
+ * How a pairing is progressing.
  *
- * Le déroulé dépend entièrement du matériel : certaines balances exigent une pesée de
- * validation pour graver un profil dans leur mémoire flash, d'autres n'ont rien à appairer.
- * Voir [PairingRequirement].
+ * The course depends entirely on the hardware — see [PairingRequirement] and
+ * `docs/BLE_PROTOCOL.md` §5.
  */
 sealed interface PairingState {
 
-    /**
-     * Étape [index] sur [totalSteps], telle que le pilote la découpe.
-     *
-     * Le découpage est propre au pilote : il sert à afficher une progression, pas à en
-     * déduire ce qui se passe.
-     */
     data class Progress(
         val index: Int,
         val totalSteps: Int,
@@ -73,32 +58,25 @@ sealed interface PairingState {
     ) : PairingState
 
     /**
-     * L'Association est établie et peut être partagée entre la montre et le téléphone.
+     * The association is established and can be shared between watch and phone.
      *
-     * [validation] porte la pesée de validation quand le matériel en produit une pendant
-     * l'appairage : l'athlète est déjà monté, autant conserver ce qu'il a mesuré plutôt que
-     * de lui demander de recommencer. Elle vaut `null` sur un matériel qui n'en fait pas.
+     * [validation] carries the reading taken during pairing where the hardware produces one:
+     * the athlete already stepped on, so keeping it spares asking again.
      */
     data class Completed(
         val association: ScaleAssociation,
         val validation: BiaTelemetry? = null
     ) : PairingState
 
-    /** L'appairage n'a pas abouti. */
     data class Failed(val reason: SessionFailure, val cause: Throwable? = null) : PairingState
 }
 
-/** Ce qu'un matériel exige avant de pouvoir être utilisé au quotidien. */
+/** What a piece of hardware requires before day-to-day use. */
 enum class PairingRequirement {
-    /** Rien à appairer : la balance se contente de diffuser ou de répondre. */
+    /** Nothing to pair: the scale broadcasts or simply answers. */
     NONE,
-
-    /** Une Association suffit, sans intervention physique de l'athlète. */
+    /** An association suffices, with no physical action from the athlete. */
     HANDSHAKE_ONLY,
-
-    /**
-     * Le matériel grave un profil dans sa mémoire et exige une **pesée de validation** :
-     * l'athlète doit monter sur la balance pendant l'appairage lui-même.
-     */
+    /** The hardware engraves a profile and requires a validation weigh-in. */
     WEIGH_IN_REQUIRED
 }

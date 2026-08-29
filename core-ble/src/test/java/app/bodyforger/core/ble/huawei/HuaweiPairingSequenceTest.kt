@@ -15,8 +15,6 @@ class HuaweiPairingSequenceTest {
         assertEquals(PairingRequirement.WEIGH_IN_REQUIRED, HuaweiPairingSequence.requirement)
 
         val steps = HuaweiPairingSequence.stepsFor(HuaweiScaleModel.HUAWEI_SCALE_3_PRO)
-        // Une pesée est bien exigée — de masse seule, la gravure n'étant confirmée que par
-        // une montée réelle sur le plateau.
         assertTrue(steps.any { AthleteInstruction.STEP_ON in it.instructions })
         assertEquals(SessionPhase.MEASURING, steps.last().phase)
     }
@@ -35,7 +33,6 @@ class HuaweiPairingSequenceTest {
 
     @Test
     fun `un modele sans plafond connu s'appaire comme les autres`() {
-        // La tare ne dépend d'aucune capacité : même un matériel dont le plafond est inconnu
         // sait rendre une masse.
         val family = HuaweiPairingSequence.stepsFor(HuaweiScaleModel.HAIGE_FAMILY)
 

@@ -35,12 +35,10 @@ interface BodyLogDao {
     suspend fun deleteImpedancesFor(bodyLogId: String)
 
     /**
-     * Enregistre un relevé et ses résistances **d'un seul tenant**.
+     * Stores a reading and its resistances in one transaction.
      *
-     * Sans transaction, un arrêt entre les deux écritures laisserait un relevé sans ses
-     * impédances — indiscernable d'une pesée qui n'en aurait pas mesuré, alors qu'elles ont
-     * bien été relevées. Les anciennes lignes sont effacées d'abord : réenregistrer un même
-     * relevé le remplace au lieu d'accumuler des résistances en double.
+     * Without it, a crash between the two writes would leave a reading with no impedances,
+     * indistinguishable from one that measured none.
      */
     @Transaction
     suspend fun save(log: BodyLogEntity, impedances: List<BodyLogImpedanceEntity>) {
@@ -49,13 +47,7 @@ interface BodyLogDao {
         if (impedances.isNotEmpty()) insertImpedances(impedances)
     }
 
-    /**
-     * Les résistances d'un trajet et d'une fréquence sur une période, pour en tirer une
-     * médiane.
-     *
-     * C'est la requête que la table fille rend possible : agréger une période sur la médiane
-     * des **résistances** plutôt que sur une moyenne de résultats (`CONTEXT.md`).
-     */
+    /** Resistances of one path and frequency over a period, for a median. */
     @Query(
         """
         SELECT i.ohms FROM body_log_impedances i

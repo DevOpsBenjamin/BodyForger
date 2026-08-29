@@ -1,9 +1,10 @@
 package app.bodyforger.core.model
 
 /**
- * Catégorie officielle d'activité pour les sessions Google Health Connect (ExerciseSessionRecord).
- * Permet au moteur de séance de découper et synchroniser automatiquement les blocs
- * d'exercices d'échauffement cardio (Vélo, Tapis, Rameur) et de renforcement (Musculation).
+ * Activity category of a Google Health Connect session.
+ *
+ * Lets the workout engine split and export cardio warm-up blocks separately from strength
+ * work.
  */
 enum class WorkoutActivityCategory(
     val displayName: String,

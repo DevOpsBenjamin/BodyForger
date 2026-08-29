@@ -4,18 +4,13 @@ import android.content.Context
 import androidx.room.Room
 
 /**
- * L'unique point d'ouverture de la base.
+ * The single place the database is opened.
  *
- * ⚠️ **Une seule instance doit exister par processus.** Ouvrir Room deux fois sur le même
- * fichier ne lève aucune erreur : les deux instances tiennent chacune leur cache, et les
- * écritures de l'une restent invisibles à l'autre jusqu'à relecture. Les données semblent
- * alors se perdre par intermittence, ce qui est bien plus coûteux à diagnostiquer qu'un
- * plantage franc.
+ * ⚠️ One instance per process. Opening Room twice on the same file raises nothing: each holds
+ * its own cache, and writes from one stay invisible to the other, so data seems to vanish
+ * intermittently.
  *
- * ⚠️ **Migration destructive assumée.** Tant que l'application n'est pas distribuée, une
- * évolution de schéma efface la base plutôt que d'exiger une migration écrite à la main. Ce
- * choix devra être retiré avant la première mise en circulation, faute de quoi une mise à
- * jour effacerait l'historique de l'athlète.
+ * ⚠️ Destructive migration is accepted until the app ships; it must be removed before then.
  */
 object BodyForgerDatabases {
 

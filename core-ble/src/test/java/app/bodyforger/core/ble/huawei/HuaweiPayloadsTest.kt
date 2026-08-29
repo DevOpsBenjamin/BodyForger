@@ -18,7 +18,6 @@ class HuaweiPayloadsTest {
 
     @Test
     fun `le profil fait exactement soixante-neuf octets`() {
-        // Structure positionnelle de taille fixe : un octet en trop décale tout le reste.
         assertEquals(HuaweiPayloads.PROFILE_BYTES, HuaweiPayloads.userProfile(huid, athlete).size)
     }
 
@@ -49,8 +48,6 @@ class HuaweiPayloadsTest {
 
     @Test
     fun `un poids inconnu part a zero plutot qu'invente`() {
-        // La référence retombe sur un ancien poids, voire zéro, et l'écrit dans la mémoire
-        // flash de la balance. Ne rien dire vaut mieux qu'annoncer un chiffre fabriqué.
         val unknown = athlete.copy(lastWeightKg = null)
         assertEquals(0, HuaweiPayloads.userProfile(huid, unknown).uint16(66))
     }
@@ -58,7 +55,6 @@ class HuaweiPayloadsTest {
     @Test(expected = IllegalArgumentException::class)
     fun `un HUID trop long est refuse plutot que tronque`() {
         // Tronquer produirait un identifiant valide mais different : un second emplacement
-        // consommé sur la balance, et un historique scindé en deux personnes.
         HuaweiPayloads.userProfile("3".repeat(31), athlete)
     }
 

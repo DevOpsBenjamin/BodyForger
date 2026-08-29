@@ -7,28 +7,24 @@ import app.bodyforger.core.model.ScaleAssociation
 import app.bodyforger.core.model.ScaleCapability
 
 /**
- * Le lien durable entre l'athlète et une balance.
+ * The lasting link between the athlete and a scale.
  *
- * ⚠️ **Le HUID n'est pas ici.** Il appartient à l'athlète et non à ce lien : généré une seule
- * fois à l'initialisation de la base, il survit à tout échec d'appairage, là où une
- * Association n'existe qu'une fois la tare relevée (#19). Les deux n'ont ni la même durée de
- * vie ni le même propriétaire.
- *
- * Une Association qui existe est donc, par construction, complète.
+ * ⚠️ The HUID is not here: it belongs to the athlete and outlives any association, which only
+ * exists once a tare has been read. An association that exists is therefore complete.
  */
 @Entity(tableName = "scale_associations")
 data class ScaleAssociationEntity(
-    /** Adresse physique issue du scan natif, jamais d'une saisie. C'est aussi la clé. */
+    /** Physical address from the native scan; also the key. */
     @PrimaryKey
     val deviceAddress: String,
     val tareKg: Double,
     val advertisedName: String,
-    /** Nombre d'électrodes du plafond matériel, ou `null` si le modèle est inconnu. */
+    /** Electrode count of the hardware ceiling, or `null` when the model is unknown. */
     val electrodeCount: String?,
-    /** Fréquences que le matériel sait relever, en kHz, séparées par des virgules. */
+    /** Frequencies the hardware can read, in kHz, comma separated. */
     val frequenciesKHz: String?,
     val associatedAtEpochMs: Long,
-    /** Suit l'ADR 001 §D : `LOCAL_ONLY`, `SYNCED_PEER`, `SYNCED_CLOUD`. */
+    /** Per ADR 001 §D: `LOCAL_ONLY`, `SYNCED_PEER`, `SYNCED_CLOUD`. */
     val syncState: String = "LOCAL_ONLY"
 )
 

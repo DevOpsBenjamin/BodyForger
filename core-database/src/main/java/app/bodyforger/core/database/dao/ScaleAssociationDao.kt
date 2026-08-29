@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ScaleAssociationDao {
 
-    /** Les balances associées, la plus récemment appairée en tête. */
+    /** Associated scales, most recently paired first. */
     @Query("SELECT * FROM scale_associations ORDER BY associatedAtEpochMs DESC")
     fun observeAll(): Flow<List<ScaleAssociationEntity>>
 
@@ -20,10 +20,7 @@ interface ScaleAssociationDao {
     @Query("SELECT * FROM scale_associations WHERE deviceAddress = :address LIMIT 1")
     suspend fun findByAddress(address: String): ScaleAssociationEntity?
 
-    /**
-     * Idempotent par adresse : réappairer la même balance remplace son Association plutôt
-     * que d'en créer une seconde (ADR 001 §A).
-     */
+    /** Idempotent by address: re-pairing replaces rather than duplicating. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(association: ScaleAssociationEntity)
 

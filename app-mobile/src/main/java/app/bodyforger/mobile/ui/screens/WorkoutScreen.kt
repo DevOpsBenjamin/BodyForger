@@ -87,7 +87,6 @@ fun WorkoutScreen(
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
-        // 1. Barre supérieure
         LiveWorkoutTopBar(
             currentHeartRate = currentHeartRate,
             sessionSeconds = sessionSeconds,
@@ -121,7 +120,6 @@ fun WorkoutScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // 3. Carte des séries
         LiveWorkoutSetsCard(
             sets = sets,
             onToggleSetDone = { idx ->
@@ -145,7 +143,6 @@ fun WorkoutScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 5. Boutons de validation et fin de séance
         Button(
             onClick = {
                 val nextIncomplete = sets.indexOfFirst { !it.isDone }
