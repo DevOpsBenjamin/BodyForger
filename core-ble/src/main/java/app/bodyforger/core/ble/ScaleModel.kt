@@ -18,7 +18,8 @@ import app.bodyforger.core.model.ScaleCapability
 enum class ScaleModel(
     private val nameFragments: List<String>,
     val displayName: String,
-    val capability: ScaleCapability?
+    val capability: ScaleCapability?,
+    val impedanceOhmDivisor: Double = HAIGE_OHM_DIVISOR
 ) {
     /**
      * `M00F` / `HAGRID-B29` — poignée rétractable, huit électrodes, bande haute fréquence.
@@ -66,6 +67,20 @@ enum class ScaleModel(
         nameFragments.any { advertisedName.contains(it, ignoreCase = true) }
 
     companion object {
+        /**
+         * Facteur d'échelle des résistances de la famille Haige : les compteurs bruts sont
+         * des **dixièmes d'ohm**.
+         *
+         * `TECH.md` §6.2 avertit que ce n'est pas universel dans la gamme Huawei — d'où un
+         * facteur porté par le modèle plutôt qu'en constante du décodeur. Nos deux captures
+         * réelles le confirment sur `M00F` (3658 → 365,8 Ω) comme sur `M00D` (5098 → 509,8 Ω).
+         *
+         * openScale désambiguïse par magnitude (`1..3999` lus en ohms, `4000..39999` divisés
+         * par dix) parce qu'il couvre cinquante-huit balances. Cette heuristique se trompe
+         * sur nos relevés : elle rendrait 3658 en 3658 Ω.
+         */
+        const val HAIGE_OHM_DIVISOR: Double = 10.0
+
         /**
          * Identifie un modèle depuis le nom annoncé dans l'advertisement BLE.
          *

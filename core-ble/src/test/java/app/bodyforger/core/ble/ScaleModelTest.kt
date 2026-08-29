@@ -66,4 +66,15 @@ class ScaleModelTest {
         assertEquals(setOf(ImpedancePath.LEFT_FOOT_TO_RIGHT_FOOT), capability.measurablePaths)
         assertEquals(1, capability.measurableReadings.size)
     }
+
+    @Test
+    fun `le facteur d'echelle des resistances est porte par le modele`() {
+        // TECH.md §6.2 : le dixième d'ohm n'est pas universel dans la gamme Huawei.
+        // Le facteur appartient donc au matériel, pas au décodeur — un modèle futur
+        // l'ajuste sans toucher au protocole.
+        for (model in ScaleModel.entries) {
+            assertEquals(ScaleModel.HAIGE_OHM_DIVISOR, model.impedanceOhmDivisor, 1e-9)
+        }
+        assertEquals(10.0, ScaleModel.HAIGE_OHM_DIVISOR, 1e-9)
+    }
 }

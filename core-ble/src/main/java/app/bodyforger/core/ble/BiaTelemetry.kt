@@ -52,33 +52,27 @@ object BiaTelemetryDecoder {
     private const val HIGH_FREQUENCY_BLOCK_OFFSET = 26
     private const val HEART_RATE_OFFSET = 24
 
-    /**
-     * Le facteur d'échelle des résistances est **fixe** sur cette famille : les compteurs
-     * bruts sont des dixièmes d'ohm.
-     *
-     * openScale désambiguïse par magnitude (`1..3999` lus en ohms, `4000..39999` divisés par
-     * dix). Cette heuristique se trompe sur nos relevés : une lecture Pro authentique vaut
-     * `3658`, qu'elle rendrait en 3658 Ω au lieu de 365,8 Ω.
-     */
-    private const val OHM_SCALE = 10.0
-
     /** Plage plausible d'un rythme cardiaque ; hors d'elle, la valeur est tenue pour absente. */
     private val PLAUSIBLE_HEART_RATE = 1..240
 
     /**
      * Décode une trame déchiffrée.
      *
+     * Le [model] est requis parce que le facteur d'échelle des résistances est une propriété
+     * du matériel, pas une constante du protocole : `TECH.md` §6.2 avertit qu'il n'est pas
+     * universel dans la gamme Huawei.
+     *
      * @return la télémétrie, ou `null` si la trame est trop courte pour être interprétée.
      */
-    fun decode(payload: ByteArray): BiaTelemetry? {
+    fun decode(payload: ByteArray, model: ScaleModel): BiaTelemetry? {
         if (payload.size < MIN_FRAME_BYTES) return null
 
         val hasHighFrequency = payload.size >= DUAL_FREQUENCY_FRAME_BYTES
 
         val readings = buildMap {
-            putBlock(payload, LOW_FREQUENCY_BLOCK_OFFSET, ImpedanceReading.LOW_FREQUENCY_KHZ)
+            putBlock(payload, LOW_FREQUENCY_BLOCK_OFFSET, ImpedanceReading.LOW_FREQUENCY_KHZ, model)
             if (hasHighFrequency) {
-                putBlock(payload, HIGH_FREQUENCY_BLOCK_OFFSET, ImpedanceReading.HIGH_FREQUENCY_KHZ)
+                putBlock(payload, HIGH_FREQUENCY_BLOCK_OFFSET, ImpedanceReading.HIGH_FREQUENCY_KHZ, model)
             }
         }
 
@@ -99,12 +93,13 @@ object BiaTelemetryDecoder {
     private fun MutableMap<ImpedanceReading, Double>.putBlock(
         payload: ByteArray,
         offset: Int,
-        frequencyKHz: Int
+        frequencyKHz: Int,
+        model: ScaleModel
     ) {
         for (path in ImpedancePath.BY_WIRE_INDEX) {
             val raw = u16(payload, offset + path.wireIndex * 2)
             if (raw > 0) {
-                put(ImpedanceReading(path, frequencyKHz), raw / OHM_SCALE)
+                put(ImpedanceReading(path, frequencyKHz), raw / model.impedanceOhmDivisor)
             }
         }
     }

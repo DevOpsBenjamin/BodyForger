@@ -36,7 +36,7 @@ class BiaTelemetryDecoderTest {
 
     @Test
     fun `une pesee Pro complete livre les douze resistances`() {
-        val telemetry = requireNotNull(BiaTelemetryDecoder.decode(proWithHandle))
+        val telemetry = requireNotNull(BiaTelemetryDecoder.decode(proWithHandle, ScaleModel.HUAWEI_SCALE_3_PRO))
 
         assertEquals(104.30, telemetry.massKg, 1e-9)
         assertEquals(32.9, telemetry.bodyFatPercentage!!, 1e-9)
@@ -51,7 +51,7 @@ class BiaTelemetryDecoderTest {
 
     @Test
     fun `les resistances sont des dixiemes d'ohm, sans heuristique de magnitude`() {
-        val telemetry = BiaTelemetryDecoder.decode(proWithHandle)!!
+        val telemetry = BiaTelemetryDecoder.decode(proWithHandle, ScaleModel.HUAWEI_SCALE_3_PRO)!!
 
         // Compteur brut 3658 : l'heuristique d'openScale le rendrait en 3658 Ω.
         assertEquals(
@@ -69,7 +69,7 @@ class BiaTelemetryDecoderTest {
     @Test
     fun `la haute frequence est systematiquement inferieure a la basse`() {
         for (frame in listOf(proWithHandle, proWithHandleSecond)) {
-            val impedances = BiaTelemetryDecoder.decode(frame)!!.rawImpedances
+            val impedances = BiaTelemetryDecoder.decode(frame, ScaleModel.HUAWEI_SCALE_3_PRO)!!.rawImpedances
             for (path in ImpedancePath.entries) {
                 val low = impedances[path, LOW_FREQUENCY_KHZ]!!
                 val high = impedances[path, HIGH_FREQUENCY_KHZ]!!
@@ -80,7 +80,7 @@ class BiaTelemetryDecoderTest {
 
     @Test
     fun `une Pro sans poignee reste une pesee valide, sans aucune impedance`() {
-        val telemetry = requireNotNull(BiaTelemetryDecoder.decode(proWithoutHandle))
+        val telemetry = requireNotNull(BiaTelemetryDecoder.decode(proWithoutHandle, ScaleModel.HUAWEI_SCALE_3_PRO))
 
         // La trame fait bien 38 octets : la longueur ne dit rien de la capacité.
         assertEquals(BiaTelemetryDecoder.DUAL_FREQUENCY_FRAME_BYTES, proWithoutHandle.size)
@@ -91,7 +91,7 @@ class BiaTelemetryDecoderTest {
 
     @Test
     fun `masse grasse et rythme cardiaque a zero sont des absences, pas des valeurs`() {
-        val telemetry = BiaTelemetryDecoder.decode(proWithoutHandle)!!
+        val telemetry = BiaTelemetryDecoder.decode(proWithoutHandle, ScaleModel.HUAWEI_SCALE_3_PRO)!!
 
         assertNull("un BodyLog à 0 % de masse grasse serait un mensonge", telemetry.bodyFatPercentage)
         assertNull(telemetry.heartRateBpm)
@@ -99,7 +99,7 @@ class BiaTelemetryDecoderTest {
 
     @Test
     fun `une balance quatre electrodes ne renseigne que le trajet pied a pied`() {
-        val telemetry = requireNotNull(BiaTelemetryDecoder.decode(plainScaleThree))
+        val telemetry = requireNotNull(BiaTelemetryDecoder.decode(plainScaleThree, ScaleModel.HUAWEI_SCALE_3))
 
         assertEquals(BiaTelemetryDecoder.MIN_FRAME_BYTES, plainScaleThree.size)
         assertEquals(86.25, telemetry.massKg, 1e-9)
@@ -120,7 +120,7 @@ class BiaTelemetryDecoderTest {
 
     @Test
     fun `une lecture reelle tombe sur l'ancienne valeur de repli — d'ou sa suppression`() {
-        val measured = BiaTelemetryDecoder.decode(plainScaleThree)!!
+        val measured = BiaTelemetryDecoder.decode(plainScaleThree, ScaleModel.HUAWEI_SCALE_3)!!
             .rawImpedances[ImpedancePath.LEFT_FOOT_TO_RIGHT_FOOT, LOW_FREQUENCY_KHZ]!!
 
         // L'ancien `?: 500.0` serait indiscernable de cette mesure authentique.
@@ -129,7 +129,7 @@ class BiaTelemetryDecoderTest {
 
     @Test
     fun `l'horodatage est lu tel que la balance l'emet`() {
-        val telemetry = BiaTelemetryDecoder.decode(proWithoutHandle)!!.measuredAt!!
+        val telemetry = BiaTelemetryDecoder.decode(proWithoutHandle, ScaleModel.HUAWEI_SCALE_3_PRO)!!.measuredAt!!
 
         assertEquals(2026, telemetry.year)
         assertEquals(8, telemetry.monthValue)
@@ -142,16 +142,16 @@ class BiaTelemetryDecoderTest {
     @Test
     fun `l'octet de statut est expose brut, sans interpretation`() {
         // Sur la Pro il vaut le jour ISO — 2026-08-23 est un dimanche, 2026-08-29 un samedi.
-        assertEquals(7, BiaTelemetryDecoder.decode(proWithHandle)!!.statusByte)
-        assertEquals(6, BiaTelemetryDecoder.decode(proWithoutHandle)!!.statusByte)
+        assertEquals(7, BiaTelemetryDecoder.decode(proWithHandle, ScaleModel.HUAWEI_SCALE_3_PRO)!!.statusByte)
+        assertEquals(6, BiaTelemetryDecoder.decode(proWithoutHandle, ScaleModel.HUAWEI_SCALE_3_PRO)!!.statusByte)
         // La capture M00D ne suit pas cette lecture : d'où l'absence d'interprétation.
-        assertEquals(0xa0, BiaTelemetryDecoder.decode(plainScaleThree)!!.statusByte)
+        assertEquals(0xa0, BiaTelemetryDecoder.decode(plainScaleThree, ScaleModel.HUAWEI_SCALE_3)!!.statusByte)
     }
 
     @Test
     fun `une trame trop courte est refusee`() {
-        assertNull(BiaTelemetryDecoder.decode(ByteArray(25)))
-        assertNull(BiaTelemetryDecoder.decode(ByteArray(0)))
+        assertNull(BiaTelemetryDecoder.decode(ByteArray(25), ScaleModel.HUAWEI_SCALE_3_PRO))
+        assertNull(BiaTelemetryDecoder.decode(ByteArray(0), ScaleModel.HUAWEI_SCALE_3_PRO))
     }
 
     private fun BiaTelemetry.fidelityElectrodeCount() =
