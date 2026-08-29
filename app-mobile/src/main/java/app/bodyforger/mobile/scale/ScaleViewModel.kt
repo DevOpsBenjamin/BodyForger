@@ -46,6 +46,13 @@ data class ScaleUiState(
     val huid: String? = null,
     val progress: WeighInState.Progress? = null,
     val lastLog: BodyLog? = null,
+    /**
+     * Une masse relevée que la balance n'a pas pu accompagner d'un taux de masse grasse.
+     *
+     * Rien n'est enregistré tant que ce taux manque : un relevé sans lui n'existe pas (#20).
+     * La mesure n'est pas perdue pour autant — elle attend une saisie.
+     */
+    val weightAwaitingBodyFat: Double? = null,
     val failure: SessionFailure? = null,
     /** Message d'un scan refusé par le système, à distinguer d'une absence de résultat. */
     val scanError: String? = null,
@@ -216,7 +223,12 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
         if (_state.value.isWeighing) return
 
         stopScan()
-        _state.value = _state.value.copy(isWeighing = true, failure = null, progress = null)
+        _state.value = _state.value.copy(
+            isWeighing = true,
+            failure = null,
+            progress = null,
+            weightAwaitingBodyFat = null
+        )
         viewModelScope.launch {
             val device = bluetoothDevice(association.deviceAddress)
             if (device == null) {
@@ -257,9 +269,17 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
 
                 // Le taux de la balance fait référence ; sans lui, le relevé attend une
                 // saisie plutôt que d'être enregistré avec un chiffre inventé (#20).
+                //
+                // Ce n'est pas une panne : une balance huit électrodes dont l'athlète n'a pas
+                // saisi la poignée renvoie une trame complète où seule la masse est
+                // renseignée, et acquitte la pesée. La fidélité obtenue est simplement
+                // moindre (#24).
                 val bodyFat = telemetry.bodyFatPercentage
                 if (bodyFat == null) {
-                    _state.value = _state.value.copy(failure = SessionFailure.DEVICE_ERROR, progress = null)
+                    _state.value = _state.value.copy(
+                        weightAwaitingBodyFat = telemetry.massKg,
+                        progress = null
+                    )
                     return
                 }
 

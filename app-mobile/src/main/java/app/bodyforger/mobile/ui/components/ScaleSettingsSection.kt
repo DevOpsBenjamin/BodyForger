@@ -64,6 +64,20 @@ fun ScaleSettingsSection(
             }
         }
         state.failure?.let { Failure(it) }
+        state.weightAwaitingBodyFat?.let { massKg ->
+            Card {
+                Text("Pesée relevée, sans composition", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text("%.2f kg".format(massKg), color = ElectricCyan, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    // Ce n'est pas une panne : sans la poignée, la balance ne mesure que la masse.
+                    "La balance n'a pas relevé d'impédance — la poignée n'a pas été saisie. " +
+                        "Le relevé attend une saisie du taux de masse grasse avant d'être conservé.",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+            }
+        }
         state.lastLog?.let { log ->
             Card {
                 Text("Dernière pesée", color = TextSecondary, fontSize = 11.sp)
