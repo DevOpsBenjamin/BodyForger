@@ -25,8 +25,7 @@ class HuaweiHandshake(
         val keys = model.keyMaterial
         val rootKey = HuaweiCrypto.deriveRootKey(keys, macAddress)
 
-        // d'écriture. Écrire avant de s'être abonné revient à parler dans le vide.
-        // pas empêcher une authentification qui, elle, ne dépend que des trois suivants.
+        // Event channels are useful but not required; the three below are.
         for (characteristic in OPTIONAL_CHANNELS) {
             if (!transport.subscribe(characteristic)) {
                 Log.w(TAG, "canal facultatif indisponible, on poursuit : $characteristic")
@@ -61,12 +60,10 @@ class HuaweiHandshake(
         }
         val expected = HuaweiCrypto.expectedScaleToken(keys, scaleNonce, clientNonce)
         if (!scaleToken.startsWithBytes(expected)) {
-            // Clés du modèle inadaptées, ou appareil qui n'est pas celui qu'il prétend.
             Log.w(TAG, "jeton de la balance invalide (${scaleToken.size} o)")
             return null
         }
 
-        //    elle-même.
         val sessionKey = ByteArray(HuaweiCrypto.KEY_BYTES).also(random::nextBytes)
         val iv = ByteArray(HuaweiCrypto.IV_BYTES).also(random::nextBytes)
         val sealed = HuaweiCrypto.encrypt(rootKey, iv, sessionKey)

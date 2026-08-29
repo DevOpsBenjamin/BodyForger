@@ -16,13 +16,10 @@ enum class HuaweiScaleModel(
     val capability: ScaleCapability?,
     val impedanceOhmDivisor: Double = HAIGE_OHM_DIVISOR,
     /**
-     * Le matériel cryptographique employé pour ce modèle.
+     * Key material used for this model.
      *
-     * ⚠️ Il n'a été **relevé que sur la Scale 3 Pro**. Les autres modèles reçoivent le même
-     * par défaut : c'est une **hypothèse volontairement testable**, pas un constat. Un
-     * possesseur d'une autre balance peut ainsi essayer avec du code complet, et un
-     * handshake refusé sur ce modèle **est** la réfutation — il faudra alors relever ses
-     * propres constantes.
+     * ⚠️ Only ever read from a Scale 3 Pro. Other models inherit it as a deliberately
+     * falsifiable hypothesis: a rejected handshake on such a model *is* the refutation.
      */
     val keyMaterial: HuaweiKeyMaterial = HuaweiKeyMaterial.SCALE_3_PRO,
     /** GATT map used for this model — `docs/BLE_PROTOCOL.md` §4. */
@@ -39,7 +36,6 @@ enum class HuaweiScaleModel(
                 ImpedanceReading.HIGH_FREQUENCY_KHZ
             )
         )
-        // Seul modèle sur lequel le matériel de clés a été effectivement relevé.
     ),
 
     /** `M00D` — four plate electrodes, low frequency only. */
@@ -50,8 +46,6 @@ enum class HuaweiScaleModel(
             electrodeCount = ElectrodeCount.FOUR,
             frequenciesKHz = listOf(ImpedanceReading.LOW_FREQUENCY_KHZ)
         )
-        // Hérite du matériel de la Pro faute d'un relevé propre : à confirmer ou infirmer
-        // par un handshake réel sur une M00D.
     ),
 
     /**
@@ -74,26 +68,20 @@ enum class HuaweiScaleModel(
 
     companion object {
         /**
-         * Facteur d'échelle des résistances de la famille Haige : les compteurs bruts sont
-         * des **dixièmes d'ohm**.
+         * Haige ohm scale factor: wire counters are **tenths of an ohm**.
          *
-         * `TECH.md` §6.2 avertit que ce n'est pas universel dans la gamme Huawei — d'où un
-         * facteur porté par le modèle plutôt qu'en constante du décodeur. Nos deux captures
-         *
-         * openScale désambiguïse par magnitude (`1..3999` lus en ohms, `4000..39999` divisés
-         * par dix) parce qu'il couvre cinquante-huit balances. Cette heuristique se trompe
+         * `TECH.md` §6.2 warns this is not universal across the Huawei range, hence a factor
+         * carried by the model rather than a decoder constant. openScale disambiguates by
+         * magnitude instead, which misreads any genuine value below 400 Ω.
          */
         const val HAIGE_OHM_DIVISOR: Double = 10.0
 
         /**
-         * Identifie un modèle depuis le nom annoncé dans l'advertisement BLE.
+         * Identifies a model from the advertised name.
          *
-         * L'ordre de déclaration fait foi : `Scale 3 Pro` est testé avant `Scale 3`, dont il
-         * contient le libellé. La correspondance est faite par **sous-chaîne** — le suffixe
-         * d'un nom annoncé est propre à l'exemplaire (`-467`) et l'athlète peut renommer sa
-         * balance.
-         *
-         * @return le modèle reconnu, ou `null` si l'appareil n'appartient pas à la famille.
+         * Declaration order decides: `Scale 3 Pro` is tested before `Scale 3`, whose label it
+         * contains. Matching is by **substring** — the suffix of an advertised name is unit
+         * specific and the athlete can rename the device.
          */
         fun identify(advertisedName: String?): HuaweiScaleModel? {
             if (advertisedName.isNullOrBlank()) return null
