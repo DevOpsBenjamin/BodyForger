@@ -47,6 +47,7 @@ import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.core.model.WorkoutSessionStatus
 import app.bodyforger.core.model.WorkoutSet
 import app.bodyforger.mobile.R
+import app.bodyforger.mobile.ui.components.DiscardWorkoutDialog
 import app.bodyforger.mobile.ui.components.LiveWorkoutExerciseCard
 import app.bodyforger.mobile.ui.components.LiveWorkoutRestTimerOverlay
 import app.bodyforger.mobile.ui.components.LiveWorkoutSetOptionsDialog
@@ -90,6 +91,7 @@ fun WorkoutScreen(
     var activeWeightUnitPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var showingSummaryDialog by remember { mutableStateOf(false) }
     var setOptionsTarget by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var showingDiscardDialog by remember { mutableStateOf(false) }
 
     // Compte depuis l'heure de depart plutot qu'en incrementant: reduire la seance
     // detruit ce composable, et un compteur repartirait de zero au retour.
@@ -121,7 +123,8 @@ fun WorkoutScreen(
         LiveWorkoutTopBar(
             currentHeartRate = currentHeartRate,
             sessionSeconds = sessionSeconds,
-            onMinimize = onMinimize
+            onMinimize = onMinimize,
+            onDiscard = { showingDiscardDialog = true }
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -237,7 +240,18 @@ fun WorkoutScreen(
             onConfirmSave = {
                 showingSummaryDialog = false
                 workoutViewModel.finish()?.let(onFinishWorkout)
-            }
+            },
+            onCancel = { showingSummaryDialog = false }
+        )
+    }
+
+    if (showingDiscardDialog) {
+        DiscardWorkoutDialog(
+            onConfirm = {
+                showingDiscardDialog = false
+                workoutViewModel.discard()?.let(onFinishWorkout)
+            },
+            onDismiss = { showingDiscardDialog = false }
         )
     }
 

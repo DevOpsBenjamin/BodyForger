@@ -149,4 +149,7 @@
     <string name="activity_category_hiit">HIIT &amp; circuit</string>
     <string name="activity_category_calisthenics">Poids du corps</string>
     <string name="activity_category_other">Autre</string>
+    <string name="workout_live_discard_title">Abandonner cette séance ?</string>
+    <string name="workout_live_discard_body">Les séries déjà saisies restent dans l\'historique, marquées abandonnées, et ne comptent dans aucune statistique. La séance ne pourra pas être reprise.</string>
+    <string name="workout_live_discard_confirm">ABANDONNER</string>
 </resources>

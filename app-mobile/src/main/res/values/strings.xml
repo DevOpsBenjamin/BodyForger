@@ -149,4 +149,7 @@
     <string name="activity_category_hiit">HIIT &amp; circuit</string>
     <string name="activity_category_calisthenics">Calisthenics</string>
     <string name="activity_category_other">Other</string>
+    <string name="workout_live_discard_title">Discard this workout?</string>
+    <string name="workout_live_discard_body">The sets already logged stay in your history, marked as discarded, and count towards no statistic. This workout cannot be resumed.</string>
+    <string name="workout_live_discard_confirm">DISCARD</string>
 </resources>

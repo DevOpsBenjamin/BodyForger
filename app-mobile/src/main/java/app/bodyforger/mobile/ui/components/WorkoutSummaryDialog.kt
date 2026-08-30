@@ -25,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -56,7 +57,8 @@ data class ActivitySegmentSummary(
 @Composable
 fun WorkoutSummaryDialog(
     session: WorkoutSession,
-    onConfirmSave: () -> Unit
+    onConfirmSave: () -> Unit,
+    onCancel: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -109,7 +111,7 @@ fun WorkoutSummaryDialog(
     }
 
     AlertDialog(
-        onDismissRequest = onConfirmSave,
+        onDismissRequest = onCancel,
         containerColor = SurfaceDark,
         title = {
             Column {
@@ -254,6 +256,16 @@ fun WorkoutSummaryDialog(
                         }
                     }
                 }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) {
+                Text(
+                    text = stringResource(R.string.action_cancel),
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         },
         confirmButton = {
