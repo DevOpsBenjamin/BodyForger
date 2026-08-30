@@ -153,3 +153,7 @@ fun WorkoutSet.toEntity(sessionId: String): WorkoutSetEntity = WorkoutSetEntity(
     restTimeSeconds = restTimeSeconds,
     completedAtEpochMs = completedAtEpochMs
 )
+
+/** Maps a whole set list onto one session, for the initial write of a workout. */
+fun List<WorkoutSet>.toSetEntities(sessionId: String): List<WorkoutSetEntity> =
+    map { it.toEntity(sessionId) }

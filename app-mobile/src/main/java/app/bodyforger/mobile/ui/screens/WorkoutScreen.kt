@@ -36,6 +36,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.mobile.workout.LiveWorkoutViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSetType
@@ -61,6 +63,7 @@ import java.util.UUID
 @Composable
 fun WorkoutScreen(
     initialRoutine: Routine? = null,
+    workoutViewModel: LiveWorkoutViewModel = viewModel(),
     onMinimize: () -> Unit = {},
     onOpenCatalogForAdd: () -> Unit = {},
     onOpenCatalogForReplace: (exerciseIndex: Int) -> Unit = {},
@@ -79,6 +82,8 @@ fun WorkoutScreen(
     var activeRestPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var activeWeightUnitPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var showingSummaryDialog by remember { mutableStateOf(false) }
+    val sessionId = remember { UUID.randomUUID().toString() }
+    val sessionTitle = stringResource(R.string.workout_live_free_session_title)
 
     // Liste des exercices et séries actives
     val workoutExercises = remember {
@@ -175,10 +180,23 @@ fun WorkoutScreen(
         }
     }
 
+    LaunchedEffect(sessionId) {
+        workoutViewModel.start(
+            session = WorkoutSession(
+                id = sessionId,
+                routineId = initialRoutine?.id,
+                title = initialRoutine?.name ?: sessionTitle,
+                startedAtEpochMs = sessionStartedAtEpochMs
+            ),
+            plannedSets = liveSets.toList()
+        )
+    }
+
     val liveSession = remember(workoutExercises.size, liveSets.toList(), sessionSeconds) {
         WorkoutSession(
+            id = sessionId,
             routineId = initialRoutine?.id,
-            title = initialRoutine?.name ?: "Séance Libre",
+            title = initialRoutine?.name ?: sessionTitle,
             startedAtEpochMs = sessionStartedAtEpochMs,
             endedAtEpochMs = if (showingSummaryDialog) System.currentTimeMillis() else null,
             status = if (showingSummaryDialog) WorkoutSessionStatus.COMPLETED else WorkoutSessionStatus.ACTIVE,
@@ -234,10 +252,12 @@ fun WorkoutScreen(
                         val setIdxInList = liveSets.indexOfFirst { it.id == targetSet.id }
                         if (setIdxInList != -1) {
                             val newCompleted = !targetSet.isCompleted
-                            liveSets[setIdxInList] = targetSet.copy(
+                            val recorded = targetSet.copy(
                                 isCompleted = newCompleted,
                                 completedAtEpochMs = if (newCompleted) System.currentTimeMillis() else null
                             )
+                            liveSets[setIdxInList] = recorded
+                            workoutViewModel.recordSet(recorded)
 
                             // Déclenche le chrono de repos si validé
                             if (newCompleted) {
@@ -395,6 +415,7 @@ fun WorkoutScreen(
             session = liveSession,
             onConfirmSave = {
                 showingSummaryDialog = false
+                workoutViewModel.finish(liveSession)
                 onFinishWorkout(liveSession)
             }
         )

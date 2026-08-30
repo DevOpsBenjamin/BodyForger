@@ -92,4 +92,5 @@
     <string name="workout_summary_muscle_volume">MUSCLE FATIGUE &amp; VOLUME</string>
     <string name="workout_summary_segments_title">HEALTH CONNECT SEGMENTS</string>
     <string name="workout_summary_save_btn">DONE &amp; SAVE</string>
+    <string name="workout_live_free_session_title">Free session</string>
 </resources>
