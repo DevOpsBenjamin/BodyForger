@@ -1,9 +1,10 @@
 package app.bodyforger.mobile.library
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.bodyforger.core.database.BodyForgerDatabases
+import app.bodyforger.core.database.dao.ExerciseDao
+import app.bodyforger.core.database.dao.RoutineDao
+import app.bodyforger.core.database.dao.WorkoutDao
 import app.bodyforger.core.database.data.DefaultExercises
 import app.bodyforger.core.database.entity.toDomain
 import app.bodyforger.core.database.entity.toEntity
@@ -24,12 +25,11 @@ import java.util.UUID
  * their own lists, so a routine saved on one screen is visible on every other without being
  * passed around.
  */
-class LibraryViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val database = BodyForgerDatabases.get(application)
-    private val routineDao = database.routineDao()
-    private val exerciseDao = database.exerciseDao()
-    private val workoutDao = database.workoutDao()
+class LibraryViewModel(
+    private val routineDao: RoutineDao,
+    private val exerciseDao: ExerciseDao,
+    private val workoutDao: WorkoutDao
+) : ViewModel() {
 
     init {
         viewModelScope.launch { seedCatalogueIfNeeded() }

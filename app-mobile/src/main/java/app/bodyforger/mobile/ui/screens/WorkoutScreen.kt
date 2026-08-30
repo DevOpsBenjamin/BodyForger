@@ -37,7 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.mobile.workout.LiveWorkoutViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSetType
@@ -63,7 +63,7 @@ import java.util.UUID
 @Composable
 fun WorkoutScreen(
     initialRoutine: Routine? = null,
-    workoutViewModel: LiveWorkoutViewModel = viewModel(),
+    workoutViewModel: LiveWorkoutViewModel = koinViewModel(),
     onMinimize: () -> Unit = {},
     onOpenCatalogForAdd: () -> Unit = {},
     onOpenCatalogForReplace: (exerciseIndex: Int) -> Unit = {},

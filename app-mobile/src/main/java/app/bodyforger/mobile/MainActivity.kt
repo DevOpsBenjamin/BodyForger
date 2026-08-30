@@ -20,7 +20,7 @@ import app.bodyforger.mobile.library.LibraryViewModel
 import app.bodyforger.mobile.library.RoutineDraftViewModel
 import app.bodyforger.mobile.ui.components.ResumeWorkoutDialog
 import app.bodyforger.mobile.workout.LiveWorkoutViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.Modifier
 import app.bodyforger.core.model.Exercise
 import app.bodyforger.core.model.Routine
@@ -70,9 +70,9 @@ fun BodyForgerApp() {
     var activeWorkoutRoutine by remember { mutableStateOf<Routine?>(null) }
     var showingSettingsScreen by remember { mutableStateOf(false) }
 
-    val library: LibraryViewModel = viewModel()
-    val workoutViewModel: LiveWorkoutViewModel = viewModel()
-    val routineDraft: RoutineDraftViewModel = viewModel()
+    val library: LibraryViewModel = koinViewModel()
+    val workoutViewModel: LiveWorkoutViewModel = koinViewModel()
+    val routineDraft: RoutineDraftViewModel = koinViewModel()
     val interruptedSession by workoutViewModel.resumable.collectAsState()
     val routines by library.routines.collectAsState()
     val customExercises by library.exercises.collectAsState()

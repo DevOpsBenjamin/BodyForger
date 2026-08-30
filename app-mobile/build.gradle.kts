@@ -48,6 +48,8 @@ dependencies {
     implementation(project(":core-bia"))
     implementation(project(":core-ble"))
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
     implementation(project(":core-database"))
     implementation(project(":core-healthconnect"))
     implementation(project(":core-sync"))
@@ -75,6 +77,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     testImplementation(libs.junit)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.koin.test.junit4)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import app.bodyforger.core.model.BiaProfile
 import app.bodyforger.mobile.scale.ScaleViewModel
 import app.bodyforger.mobile.ui.components.ScaleSettingsSection
@@ -43,7 +43,7 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 fun SettingsScreen(
     profile: BiaProfile,
     onBack: () -> Unit,
-    scaleViewModel: ScaleViewModel = viewModel()
+    scaleViewModel: ScaleViewModel = koinViewModel()
 ) {
     val state by scaleViewModel.state.collectAsState()
 

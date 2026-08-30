@@ -1,9 +1,8 @@
 package app.bodyforger.mobile.workout
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.bodyforger.core.database.BodyForgerDatabases
+import app.bodyforger.core.database.dao.WorkoutDao
 import app.bodyforger.core.database.entity.toDomain
 import app.bodyforger.core.database.entity.toEntity
 import app.bodyforger.core.database.entity.toSetEntities
@@ -23,9 +22,7 @@ import kotlinx.coroutines.launch
  * battery — keeps every set already done and can be picked up where it stopped. A session
  * written only at the end would lose an hour of work to a moment of bad luck.
  */
-class LiveWorkoutViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val workoutDao = BodyForgerDatabases.get(application).workoutDao()
+class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
 
     private val _resumable = MutableStateFlow<WorkoutSession?>(null)
 

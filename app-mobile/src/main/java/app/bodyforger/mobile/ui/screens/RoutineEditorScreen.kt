@@ -30,7 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.bodyforger.mobile.library.RoutineDraftViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,7 +60,7 @@ import java.util.UUID
 @Composable
 fun RoutineEditorScreen(
     initialRoutine: Routine? = null,
-    draftViewModel: RoutineDraftViewModel = viewModel(),
+    draftViewModel: RoutineDraftViewModel = koinViewModel(),
     onBack: () -> Unit = {},
     onOpenCatalogForAdd: () -> Unit = {},
     onOpenCatalogForReplace: (exerciseIndex: Int) -> Unit = {},

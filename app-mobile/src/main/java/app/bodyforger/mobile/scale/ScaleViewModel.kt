@@ -14,7 +14,9 @@ import app.bodyforger.core.ble.huawei.HuaweiScaleModel
 import app.bodyforger.core.ble.PairingState
 import app.bodyforger.core.ble.huawei.HuaweiPairingSession
 import app.bodyforger.core.ble.huawei.HuaweiWeighInSession
-import app.bodyforger.core.database.BodyForgerDatabases
+import app.bodyforger.core.database.dao.AthleteIdentityDao
+import app.bodyforger.core.database.dao.BodyLogDao
+import app.bodyforger.core.database.dao.ScaleAssociationDao
 import app.bodyforger.core.database.entity.impedanceRows
 import app.bodyforger.core.database.entity.toDomain
 import app.bodyforger.core.database.entity.toEntity
@@ -37,9 +39,13 @@ import java.util.UUID
  *
  * The driver and protocol live in `core-ble`; this only chains them and exposes progress.
  */
-class ScaleViewModel(application: Application) : AndroidViewModel(application) {
+class ScaleViewModel(
+    application: Application,
+    private val athleteIdentityDao: AthleteIdentityDao,
+    private val bodyLogDao: BodyLogDao,
+    private val scaleAssociationDao: ScaleAssociationDao
+) : AndroidViewModel(application) {
 
-    private val database = BodyForgerDatabases.get(application)
     private val scanner = AndroidScaleScanner(application)
     /** Le scan n'a besoin que de reconnaître un nom annoncé. */
     private val identifier = ScaleIdentifier(HuaweiScaleModel::recognise)
@@ -57,9 +63,9 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            val huid = database.athleteIdentityDao().huidOrCreate(System.currentTimeMillis())
-            val association = database.scaleAssociationDao().mostRecent()?.toDomain()
-            val lastLog = database.bodyLogDao().mostRecent()?.toDomain()
+            val huid = athleteIdentityDao.huidOrCreate(System.currentTimeMillis())
+            val association = scaleAssociationDao.mostRecent()?.toDomain()
+            val lastLog = bodyLogDao.mostRecent()?.toDomain()
             _state.value = _state.value.copy(
                 huid = huid,
                 association = association?.copy(huid = huid),
@@ -146,7 +152,7 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
                             pairingInstructions = emptyList()
                         )
                         is PairingState.Completed -> {
-                            database.scaleAssociationDao()
+                            scaleAssociationDao
                                 .upsert(state.association.toEntity(System.currentTimeMillis()))
                             _state.value = _state.value.copy(
                                 association = state.association,
@@ -168,7 +174,7 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
     fun forgetScale() {
         val address = _state.value.association?.deviceAddress ?: return
         viewModelScope.launch {
-            database.scaleAssociationDao().forget(address)
+            scaleAssociationDao.forget(address)
             _state.value = _state.value.copy(association = null, lastLog = null, progress = null)
         }
     }
@@ -244,7 +250,7 @@ class ScaleViewModel(application: Application) : AndroidViewModel(application) {
                     restingHeartRateBpm = telemetry.heartRateBpm
                 )
                 val address = _state.value.association?.deviceAddress
-                database.bodyLogDao().save(log.toEntity(address), log.impedanceRows())
+                bodyLogDao.save(log.toEntity(address), log.impedanceRows())
                 _state.value = _state.value.copy(lastLog = log, progress = null)
             }
         }
