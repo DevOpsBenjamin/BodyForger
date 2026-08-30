@@ -43,7 +43,7 @@ fun ScaleSettingsSection(
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
     onAssociate: (DiscoveredScale) -> Unit,
-    onForget: () -> Unit,
+    onForget: (deviceAddress: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -51,7 +51,11 @@ fun ScaleSettingsSection(
 
         when {
             state.isPairing -> Pairing(state)
-            state.association != null -> AssociatedScale(state, onForget)
+            // Chaque balance appairée a sa carte : appairer la seconde masquait la première,
+            // qu'on ne pouvait alors même plus oublier.
+            state.isAssociated -> state.associations.forEach { paired ->
+                AssociatedScale(paired, state) { onForget(paired.deviceAddress) }
+            }
             state.isScanning -> Scanning(state.discovered, onAssociate, onStopScan)
             else -> NotAssociated(onStartScan)
         }

@@ -193,4 +193,8 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="weigh_in_failed">Pesée interrompue</string>
     <string name="weigh_in_weight_only">Poids seul</string>
     <string name="weigh_in_weight_only_body">%1$.2f kg relevés, sans composition corporelle : la balance n\'a relevé aucune impédance. La poignée n\'a pas été saisie.</string>
+    <string name="scale_paired_with">Associée · %1$s</string>
+    <string name="scale_tare">Tare de calibration : %1$.2f kg</string>
+    <string name="scale_forget">Oublier cette balance</string>
+    <string name="scale_picker_title">Quelle balance ?</string>
 </resources>

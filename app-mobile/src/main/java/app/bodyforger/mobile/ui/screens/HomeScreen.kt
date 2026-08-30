@@ -21,6 +21,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.bodyforger.mobile.ui.components.ScalePickerDialog
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import java.time.LocalDate
 import org.koin.androidx.compose.koinViewModel
 import app.bodyforger.mobile.ui.components.WeighInFeedback
@@ -59,6 +63,18 @@ fun HomeScreen(
 
     // La pesée se pilote d'ici : c'est l'écran où l'athlète arrive avec sa balance sous les pieds.
     WeighInFeedback(state = scaleState, onDismiss = scaleViewModel::clearWeighInFeedback)
+
+    var pickingScale by remember { mutableStateOf(false) }
+    if (pickingScale) {
+        ScalePickerDialog(
+            scales = scaleState.associations,
+            onPick = { chosen ->
+                pickingScale = false
+                measurementProfile?.let { scaleViewModel.weighIn(chosen.deviceAddress, it) }
+            },
+            onDismiss = { pickingScale = false }
+        )
+    }
 
     val scrollState = rememberScrollState()
 
@@ -121,7 +137,12 @@ fun HomeScreen(
             onNavigateToWorkout = onNavigateToWorkout,
             onNavigateToBiometrics = onNavigateToBiometrics,
             isScaleReady = scaleState.isAssociated && measurementProfile != null,
-            onWeighIn = { measurementProfile?.let(scaleViewModel::weighIn) },
+            onWeighIn = {
+                // Une seule balance ne se choisit pas : on monte dessus.
+                val only = scaleState.onlyAssociation
+                if (only != null) measurementProfile?.let { scaleViewModel.weighIn(only.deviceAddress, it) }
+                else pickingScale = true
+            },
             onConfigureScale = onConfigureScale
         )
 

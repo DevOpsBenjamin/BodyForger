@@ -193,4 +193,8 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="weigh_in_failed">Weigh-in interrupted</string>
     <string name="weigh_in_weight_only">Weight only</string>
     <string name="weigh_in_weight_only_body">%1$.2f kg measured, with no body composition: the scale read no impedance. The handle was not held.</string>
+    <string name="scale_paired_with">Paired · %1$s</string>
+    <string name="scale_tare">Calibration tare: %1$.2f kg</string>
+    <string name="scale_forget">Forget this scale</string>
+    <string name="scale_picker_title">Which scale?</string>
 </resources>
