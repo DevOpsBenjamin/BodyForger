@@ -1,0 +1,10 @@
+rules_version = '2';
+
+// Refus par défaut. Voir docs/FIREBASE_SECURITY.md avant d'ouvrir quoi que ce soit.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

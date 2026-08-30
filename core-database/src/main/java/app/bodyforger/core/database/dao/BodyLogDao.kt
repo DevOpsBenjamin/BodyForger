@@ -22,6 +22,10 @@ interface BodyLogDao {
     suspend fun mostRecent(): BodyLogWithImpedances?
 
     @Transaction
+    @Query("SELECT * FROM body_logs ORDER BY measuredAtEpochMs DESC LIMIT 1")
+    fun observeMostRecent(): Flow<BodyLogWithImpedances?>
+
+    @Transaction
     @Query("SELECT * FROM body_logs WHERE dateIso = :dateIso LIMIT 1")
     suspend fun findByDate(dateIso: String): BodyLogWithImpedances?
 

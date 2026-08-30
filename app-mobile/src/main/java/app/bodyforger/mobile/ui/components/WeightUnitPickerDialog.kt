@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceDark
@@ -80,7 +81,7 @@ fun WeightUnitPickerDialog(
                     ) {
                         Column {
                             Text(
-                                text = unit.displayName,
+                                text = unit.label(),
                                 color = if (isSelected) ElectricCyan else TextPrimary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp

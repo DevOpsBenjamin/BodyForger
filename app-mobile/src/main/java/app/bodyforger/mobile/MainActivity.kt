@@ -14,11 +14,18 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
+import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.library.RoutineDraftViewModel
+import app.bodyforger.mobile.ui.components.ResumeWorkoutDialog
+import app.bodyforger.mobile.workout.LiveWorkoutViewModel
+import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import app.bodyforger.core.model.Exercise
 import app.bodyforger.core.model.Routine
-import app.bodyforger.mobile.data.DebugSampleRoutines
+import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.navigation.NavItem
 import app.bodyforger.mobile.ui.components.ActiveWorkoutMiniBar
 import app.bodyforger.mobile.ui.components.BodyForgerBottomNav
@@ -53,41 +60,54 @@ class MainActivity : ComponentActivity() {
 fun BodyForgerApp() {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showingRoutineEditor by remember { mutableStateOf(false) }
-    var editingRoutine by remember { mutableStateOf<Routine?>(null) }
     var showingCatalogScreen by remember { mutableStateOf(false) }
     var showingCreateExerciseScreen by remember { mutableStateOf(false) }
     var isCatalogForRoutineSelection by remember { mutableStateOf(false) }
     var catalogReplaceExerciseIndex by remember { mutableStateOf<Int?>(null) }
 
-    var isLiveWorkoutRunning by remember { mutableStateOf(false) }
     var showingLiveWorkoutScreen by remember { mutableStateOf(false) }
     var showingSettingsScreen by remember { mutableStateOf(false) }
 
-    val customExercises = remember { mutableStateListOf<Exercise>() }
-    val routines = remember {
-        mutableStateListOf<Routine>().apply {
-            addAll(DebugSampleRoutines.list)
-        }
-    }
+    val library: LibraryViewModel = koinViewModel()
+    val workoutViewModel: LiveWorkoutViewModel = koinViewModel()
+    val routineDraft: RoutineDraftViewModel = koinViewModel()
+    val interruptedSession by workoutViewModel.resumable.collectAsState()
+    // La séance en cours appartient au ViewModel: réduire l'écran ne doit rien lui coûter.
+    val liveWorkout by workoutViewModel.active.collectAsState()
+    val freeSessionTitle = stringResource(R.string.workout_live_free_session_title)
+    val routines by library.routines.collectAsState()
+    val customExercises by library.exercises.collectAsState()
+    val completedSessions by library.completedSessions.collectAsState()
 
     val navItems = listOf(NavItem.Home, NavItem.Planner, NavItem.Analytics, NavItem.Profile)
+
+    // A session left open by a previous run is offered before anything else: the athlete
+    // should not discover mid-workout that the previous one was never closed.
+    interruptedSession?.let { session ->
+        ResumeWorkoutDialog(
+            session = session,
+            onResume = {
+                workoutViewModel.resume(session)
+                showingLiveWorkoutScreen = true
+            },
+            onFinishAsIs = { workoutViewModel.finishInterrupted(session) },
+            onDelete = { workoutViewModel.deleteInterrupted(session) }
+        )
+    }
 
     if (showingCreateExerciseScreen) {
         CreateExerciseScreen(
             onBack = { showingCreateExerciseScreen = false },
             onExerciseCreated = { newExercise ->
-                customExercises.add(0, newExercise)
+                library.addCustomExercise(newExercise)
                 showingCreateExerciseScreen = false
             }
         )
     } else if (showingSettingsScreen) {
-        SettingsScreen(
-            profile = BiaProfile(BiologicalSex.MALE, ageYears = 30, heightCm = 180.0),
-            onBack = { showingSettingsScreen = false }
-        )
+        SettingsScreen(onBack = { showingSettingsScreen = false })
     } else if (showingCatalogScreen) {
         CatalogScreen(
-            customExercises = customExercises,
+            exercises = customExercises,
             isSelectionMode = isCatalogForRoutineSelection,
             onBack = {
                 showingCatalogScreen = false
@@ -96,18 +116,18 @@ fun BodyForgerApp() {
             },
             onOpenCreateExercise = { showingCreateExerciseScreen = true },
             onSelectExercise = { selectedExercise ->
-                if (isCatalogForRoutineSelection && showingRoutineEditor) {
-                    val currentDraft = editingRoutine ?: Routine(name = "")
-                    val newRoutineEx = selectedExercise.toRoutineExercise(currentDraft.id)
-                    val updatedExercises = currentDraft.exercises.toMutableList()
-
-                    if (catalogReplaceExerciseIndex != null && catalogReplaceExerciseIndex in updatedExercises.indices) {
-                        updatedExercises[catalogReplaceExerciseIndex!!] = newRoutineEx
+                if (isCatalogForRoutineSelection) {
+                    val replacedIndex = catalogReplaceExerciseIndex
+                    if (showingRoutineEditor) {
+                        val currentDraft = routineDraft.draft.value ?: Routine(name = "")
+                        val chosen = selectedExercise.toRoutineExercise(currentDraft.id)
+                        routineDraft.addExercise(chosen, replacing = replacedIndex)
                     } else {
-                        updatedExercises.add(newRoutineEx)
+                        // Ajout en pleine séance: l'exercice ne rejoint aucune routine.
+                        val chosen = selectedExercise.toRoutineExercise(routineId = "")
+                        if (replacedIndex != null) workoutViewModel.replaceExercise(replacedIndex, chosen)
+                        else workoutViewModel.addExercise(chosen)
                     }
-
-                    editingRoutine = currentDraft.copy(exercises = updatedExercises)
                     showingCatalogScreen = false
                     isCatalogForRoutineSelection = false
                     catalogReplaceExerciseIndex = null
@@ -116,10 +136,10 @@ fun BodyForgerApp() {
         )
     } else if (showingRoutineEditor) {
         RoutineEditorScreen(
-            initialRoutine = editingRoutine,
+            draftViewModel = routineDraft,
             onBack = {
                 showingRoutineEditor = false
-                editingRoutine = null
+                routineDraft.close()
             },
             onOpenCatalogForAdd = {
                 isCatalogForRoutineSelection = true
@@ -132,23 +152,32 @@ fun BodyForgerApp() {
                 showingCatalogScreen = true
             },
             onSaveRoutine = { savedRoutine ->
-                val existingIndex = routines.indexOfFirst { it.id == savedRoutine.id }
-                if (existingIndex != -1) {
-                    routines[existingIndex] = savedRoutine
-                } else {
-                    routines.add(0, savedRoutine)
-                }
+                library.saveRoutine(savedRoutine)
                 showingRoutineEditor = false
-                editingRoutine = null
+                routineDraft.close()
             }
         )
     } else if (showingLiveWorkoutScreen) {
         WorkoutScreen(
+            workoutViewModel = workoutViewModel,
             onMinimize = { showingLiveWorkoutScreen = false },
+            onOpenCatalogForAdd = {
+                isCatalogForRoutineSelection = true
+                catalogReplaceExerciseIndex = null
+                showingCatalogScreen = true
+            },
+            onOpenCatalogForReplace = { exIndex ->
+                isCatalogForRoutineSelection = true
+                catalogReplaceExerciseIndex = exIndex
+                showingCatalogScreen = true
+            },
             onFinishWorkout = {
-                isLiveWorkoutRunning = false
                 showingLiveWorkoutScreen = false
-                selectedTabIndex = 1
+                selectedTabIndex = 1 // Retour au planner
+            },
+            onLeaveWorkout = {
+                showingLiveWorkoutScreen = false
+                selectedTabIndex = 1 // Retour au planner
             }
         )
     } else {
@@ -158,7 +187,8 @@ fun BodyForgerApp() {
             bottomBar = {
                 Column {
                     ActiveWorkoutMiniBar(
-                        isVisible = isLiveWorkoutRunning,
+                        isVisible = liveWorkout != null,
+                        workoutTitle = liveWorkout?.session?.title.orEmpty(),
                         onClick = { showingLiveWorkoutScreen = true }
                     )
 
@@ -178,7 +208,7 @@ fun BodyForgerApp() {
                 when (selectedTabIndex) {
                     0 -> HomeScreen(
                         onNavigateToWorkout = {
-                            isLiveWorkoutRunning = true
+                            workoutViewModel.begin(routine = null, freeSessionTitle = freeSessionTitle)
                             showingLiveWorkoutScreen = true
                         },
                         onNavigateToBiometrics = { selectedTabIndex = 2 },
@@ -186,47 +216,36 @@ fun BodyForgerApp() {
                     )
                     1 -> PlannerScreen(
                         routines = routines,
-                        onStartWorkout = {
-                            isLiveWorkoutRunning = true
+                        onStartWorkout = { routineId ->
+                            workoutViewModel.begin(
+                                routine = routines.firstOrNull { it.id == routineId },
+                                freeSessionTitle = freeSessionTitle
+                            )
                             showingLiveWorkoutScreen = true
                         },
                         onCreateNewRoutine = {
-                            editingRoutine = null
+                                        routineDraft.open(null)
                             showingRoutineEditor = true
                         },
                         onEditRoutine = { routineToEdit ->
-                            editingRoutine = routineToEdit
+                            routineDraft.open(routineToEdit)
                             showingRoutineEditor = true
                         },
                         onDuplicateRoutine = { routineToDup ->
-                            val duplicated = routineToDup.copy(
-                                id = UUID.randomUUID().toString(),
-                                name = "${routineToDup.name} (Copie)",
-                                createdAtEpochMs = System.currentTimeMillis()
-                            )
-                            routines.add(0, duplicated)
+                            library.duplicateRoutine(routineToDup.id, "${routineToDup.name} (Copie)")
                         },
                         onDeleteRoutine = { routineToDel ->
-                            routines.remove(routineToDel)
+                            library.deleteRoutine(routineToDel.id)
                         },
                         onToggleRoutineDay = { routineId, dayInt ->
-                            val routineIndex = routines.indexOfFirst { it.id == routineId }
-                            if (routineIndex != -1) {
-                                val current = routines[routineIndex]
-                                val updatedDays = if (current.assignedDays.contains(dayInt)) {
-                                    current.assignedDays - dayInt
-                                } else {
-                                    current.assignedDays + dayInt
-                                }
-                                routines[routineIndex] = current.copy(assignedDays = updatedDays)
-                            }
+                            library.toggleRoutineDay(routineId, dayInt)
                         },
                         onOpenCatalog = {
                             isCatalogForRoutineSelection = false
                             showingCatalogScreen = true
                         }
                     )
-                    2 -> AnalyticsScreen()
+                    2 -> AnalyticsScreen(onOpenScale = { showingSettingsScreen = true })
                     3 -> ProfileScreen(onOpenSettings = { showingSettingsScreen = true })
                 }
             }

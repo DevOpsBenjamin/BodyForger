@@ -21,3 +21,15 @@ core-*/build/
 *.iml
 local.properties
 appscreen/
+
+# Compte de service ou clé privée : jamais versionnés, contrairement à
+# google-services.json qui est une configuration client — docs/FIREBASE_SECURITY.md
+*-service-account*.json
+serviceAccountKey*.json
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# Fichier de confort local : lien vers AGENTS.md, qui est la source suivie
+CLAUDE.md

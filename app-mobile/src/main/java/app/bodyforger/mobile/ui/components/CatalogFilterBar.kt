@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.EquipmentType
 import app.bodyforger.core.model.MuscleGroup
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
@@ -114,8 +115,8 @@ fun CatalogFilterBar(
             val hasMuscleFilter = selectedMuscles.isNotEmpty()
             val muscleLabel = when {
                 selectedMuscles.isEmpty() -> "Muscles : Tous"
-                selectedMuscles.size == 1 -> "Muscle : ${selectedMuscles.first().displayName}"
-                selectedMuscles.size == 2 -> "${selectedMuscles.elementAt(0).displayName}, ${selectedMuscles.elementAt(1).displayName}"
+                selectedMuscles.size == 1 -> "Muscle : ${selectedMuscles.first().label()}"
+                selectedMuscles.size == 2 -> "${selectedMuscles.elementAt(0).label()}, ${selectedMuscles.elementAt(1).label()}"
                 else -> "Muscles (${selectedMuscles.size})"
             }
 
@@ -149,8 +150,8 @@ fun CatalogFilterBar(
             val hasEquipFilter = selectedEquipments.isNotEmpty()
             val equipLabel = when {
                 selectedEquipments.isEmpty() -> "Matériel : Tout"
-                selectedEquipments.size == 1 -> "Matériel : ${selectedEquipments.first().displayName}"
-                selectedEquipments.size == 2 -> "${selectedEquipments.elementAt(0).displayName}, ${selectedEquipments.elementAt(1).displayName}"
+                selectedEquipments.size == 1 -> "Matériel : ${selectedEquipments.first().label()}"
+                selectedEquipments.size == 2 -> "${selectedEquipments.elementAt(0).label()}, ${selectedEquipments.elementAt(1).label()}"
                 else -> "Matériel (${selectedEquipments.size})"
             }
 

@@ -2,17 +2,18 @@ package app.bodyforger.core.model
 
 import java.util.UUID
 
-enum class RoutineSetType(val displayName: String, val shortBadge: String) {
-    NORMAL("Normale", "1"),
-    WARMUP("Échauffement", "ÉCH"),
-    DROPSET("Dégressive (Drop Set)", "DROP"),
-    FAILURE("À l'échec", "ÉCHEC"),
-    REST_PAUSE("Rest-Pause", "RP")
+enum class RoutineSetType {
+    NORMAL,
+    WARMUP,
+    DROPSET,
+    FAILURE,
+    REST_PAUSE
 }
 
-enum class WeightUnit(val symbol: String, val displayName: String) {
-    KG("kg", "Kilogrammes (kg)"),
-    LBS("lbs", "Livres (lbs)")
+/** [symbol] is written the same in every language; the full name is not. */
+enum class WeightUnit(val symbol: String) {
+    KG("kg"),
+    LBS("lbs")
 }
 
 data class RoutineSet(
