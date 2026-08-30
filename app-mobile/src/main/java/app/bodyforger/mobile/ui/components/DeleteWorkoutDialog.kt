@@ -14,19 +14,19 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
 /**
- * Confirms giving up on a workout, because the gesture cannot be taken back.
+ * Confirms deleting a workout, because the gesture cannot be taken back.
  *
- * The body says what survives: the sets stay in the history marked discarded, out of every
- * statistic (ADR 001 §A — the history is append-only, an abandoned session is information).
+ * The body says plainly that nothing is kept, rather than leaving the athlete to wonder where
+ * the session went.
  */
 @Composable
-fun DiscardWorkoutDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun DeleteWorkoutDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceDark,
         title = {
             Text(
-                text = stringResource(R.string.workout_live_discard_title),
+                text = stringResource(R.string.workout_live_delete_title),
                 color = AmberGold,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Black
@@ -34,7 +34,7 @@ fun DiscardWorkoutDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         },
         text = {
             Text(
-                text = stringResource(R.string.workout_live_discard_body),
+                text = stringResource(R.string.workout_live_delete_body),
                 color = TextSecondary,
                 fontSize = 13.sp,
                 lineHeight = 19.sp
@@ -43,7 +43,7 @@ fun DiscardWorkoutDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(
-                    text = stringResource(R.string.workout_live_discard_confirm),
+                    text = stringResource(R.string.workout_live_delete_confirm),
                     color = AmberGold,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Black

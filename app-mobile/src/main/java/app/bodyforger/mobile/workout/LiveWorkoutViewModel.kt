@@ -196,12 +196,20 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
     fun finish(): WorkoutSession? = close(WorkoutSessionStatus.COMPLETED)
 
     /**
-     * Marks a workout discarded rather than deleting it.
+     * Deletes the workout outright, sets included.
      *
-     * An append-only history keeps the trace: an abandoned session is information, and
-     * removing rows would break the idempotence the sync relies on (ADR 001 §A).
+     * Nothing is kept because nothing was ever shown: a session that is not `COMPLETED`
+     * appears in no history and no statistic, so keeping the row would only hide it in the
+     * database. ADR 001 §A makes *finished* sessions immutable — this one never finished.
+     *
+     * The sets go with it: `WorkoutSetEntity` cascades on the session.
      */
-    fun discard(): WorkoutSession? = close(WorkoutSessionStatus.DISCARDED)
+    fun deleteCurrent() {
+        val workout = _active.value ?: return
+        _active.value = null
+        _resumable.value = null
+        viewModelScope.launch { workoutDao.deleteSession(workout.session.id) }
+    }
 
     /** Discards a session offered for resumption that the athlete declined to pick up. */
     fun discard(session: WorkoutSession) {

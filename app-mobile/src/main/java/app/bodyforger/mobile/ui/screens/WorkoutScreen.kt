@@ -47,7 +47,7 @@ import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.core.model.WorkoutSessionStatus
 import app.bodyforger.core.model.WorkoutSet
 import app.bodyforger.mobile.R
-import app.bodyforger.mobile.ui.components.DiscardWorkoutDialog
+import app.bodyforger.mobile.ui.components.DeleteWorkoutDialog
 import app.bodyforger.mobile.ui.components.LiveWorkoutExerciseCard
 import app.bodyforger.mobile.ui.components.LiveWorkoutRestTimerOverlay
 import app.bodyforger.mobile.ui.components.LiveWorkoutSetOptionsDialog
@@ -71,7 +71,8 @@ fun WorkoutScreen(
     onMinimize: () -> Unit = {},
     onOpenCatalogForAdd: () -> Unit = {},
     onOpenCatalogForReplace: (exerciseIndex: Int) -> Unit = {},
-    onFinishWorkout: (WorkoutSession) -> Unit = {}
+    onFinishWorkout: (WorkoutSession) -> Unit = {},
+    onLeaveWorkout: () -> Unit = {}
 ) {
     // The workout belongs to the ViewModel: minimising the session leaves this composition,
     // and anything held here would go with it.
@@ -91,7 +92,7 @@ fun WorkoutScreen(
     var activeWeightUnitPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var showingSummaryDialog by remember { mutableStateOf(false) }
     var setOptionsTarget by remember { mutableStateOf<Pair<Int, Int>?>(null) }
-    var showingDiscardDialog by remember { mutableStateOf(false) }
+    var showingDeleteDialog by remember { mutableStateOf(false) }
 
     // Compte depuis l'heure de depart plutot qu'en incrementant: reduire la seance
     // detruit ce composable, et un compteur repartirait de zero au retour.
@@ -124,7 +125,7 @@ fun WorkoutScreen(
             currentHeartRate = currentHeartRate,
             sessionSeconds = sessionSeconds,
             onMinimize = onMinimize,
-            onDiscard = { showingDiscardDialog = true }
+            onDelete = { showingDeleteDialog = true }
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -245,13 +246,14 @@ fun WorkoutScreen(
         )
     }
 
-    if (showingDiscardDialog) {
-        DiscardWorkoutDialog(
+    if (showingDeleteDialog) {
+        DeleteWorkoutDialog(
             onConfirm = {
-                showingDiscardDialog = false
-                workoutViewModel.discard()?.let(onFinishWorkout)
+                showingDeleteDialog = false
+                workoutViewModel.deleteCurrent()
+                onLeaveWorkout()
             },
-            onDismiss = { showingDiscardDialog = false }
+            onDismiss = { showingDeleteDialog = false }
         )
     }
 

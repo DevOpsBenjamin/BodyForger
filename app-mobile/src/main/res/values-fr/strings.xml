@@ -71,7 +71,6 @@
     <!-- Live Workout -->
     <string name="workout_live_title">SÉANCE EN DIRECT</string>
     <string name="workout_live_finish_btn">TERMINER LA SÉANCE</string>
-    <string name="workout_live_discard_btn">Abandonner la séance</string>
     <string name="workout_live_validate_set">VALIDER LA SÉRIE</string>
     <string name="workout_live_rest_timer">CHRONOMÈTRE DE REPOS</string>
     <string name="workout_live_skip_rest">PASSER</string>
@@ -149,7 +148,8 @@
     <string name="activity_category_hiit">HIIT &amp; circuit</string>
     <string name="activity_category_calisthenics">Poids du corps</string>
     <string name="activity_category_other">Autre</string>
-    <string name="workout_live_discard_title">Abandonner cette séance ?</string>
-    <string name="workout_live_discard_body">Les séries déjà saisies restent dans l\'historique, marquées abandonnées, et ne comptent dans aucune statistique. La séance ne pourra pas être reprise.</string>
-    <string name="workout_live_discard_confirm">ABANDONNER</string>
+    <string name="workout_live_delete_btn">Supprimer la séance</string>
+    <string name="workout_live_delete_title">Supprimer cette séance ?</string>
+    <string name="workout_live_delete_body">Rien n\'est conservé : la séance et toutes les séries saisies disparaissent définitivement. Elle n\'apparaîtra dans aucun historique ni aucune statistique.</string>
+    <string name="workout_live_delete_confirm">SUPPRIMER</string>
 </resources>

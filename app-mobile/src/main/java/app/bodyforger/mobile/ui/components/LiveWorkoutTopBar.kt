@@ -40,7 +40,7 @@ fun LiveWorkoutTopBar(
     currentHeartRate: Int,
     sessionSeconds: Int,
     onMinimize: () -> Unit,
-    onDiscard: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -66,12 +66,12 @@ fun LiveWorkoutTopBar(
                 .clip(CircleShape)
                 .background(SurfaceElevated)
                 .border(1.dp, SurfaceBorder, CircleShape)
-                .clickable { onDiscard() },
+                .clickable { onDelete() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.DeleteOutline,
-                contentDescription = stringResource(R.string.workout_live_discard_btn),
+                contentDescription = stringResource(R.string.workout_live_delete_btn),
                 tint = AmberGold,
                 modifier = Modifier.size(18.dp)
             )

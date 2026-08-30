@@ -71,7 +71,6 @@
     <!-- Live Workout -->
     <string name="workout_live_title">LIVE WORKOUT</string>
     <string name="workout_live_finish_btn">FINISH WORKOUT</string>
-    <string name="workout_live_discard_btn">Discard Workout</string>
     <string name="workout_live_validate_set">VALIDATE SET</string>
     <string name="workout_live_rest_timer">REST TIMER</string>
     <string name="workout_live_skip_rest">SKIP</string>
@@ -149,7 +148,8 @@
     <string name="activity_category_hiit">HIIT &amp; circuit</string>
     <string name="activity_category_calisthenics">Calisthenics</string>
     <string name="activity_category_other">Other</string>
-    <string name="workout_live_discard_title">Discard this workout?</string>
-    <string name="workout_live_discard_body">The sets already logged stay in your history, marked as discarded, and count towards no statistic. This workout cannot be resumed.</string>
-    <string name="workout_live_discard_confirm">DISCARD</string>
+    <string name="workout_live_delete_btn">Delete workout</string>
+    <string name="workout_live_delete_title">Delete this workout?</string>
+    <string name="workout_live_delete_body">Nothing is kept: this workout and every set logged in it are removed for good. It appears in no history and no statistic.</string>
+    <string name="workout_live_delete_confirm">DELETE</string>
 </resources>

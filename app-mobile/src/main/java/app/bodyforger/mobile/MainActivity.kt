@@ -173,6 +173,10 @@ fun BodyForgerApp() {
             onFinishWorkout = {
                 showingLiveWorkoutScreen = false
                 selectedTabIndex = 1 // Retour au planner
+            },
+            onLeaveWorkout = {
+                showingLiveWorkoutScreen = false
+                selectedTabIndex = 1 // Retour au planner
             }
         )
     } else {
