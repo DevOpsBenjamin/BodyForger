@@ -1,3 +1,24 @@
 <resources>
-    <string name="app_name">BodyForger Wear</string>
+    <string name="app_name">BodyForger</string>
+    <string name="tile_name">BodyForger Quick Actions</string>
+    <string name="tile_description">Quickly start a live workout or trigger a BLE BIA weigh-in</string>
+    <string name="tile_header">BODYFORGER</string>
+    <string name="tile_status_ready">Ready to train</string>
+    <string name="action_start_workout">Start Workout</string>
+    <string name="action_start_weigh_in">BIA Weigh-In</string>
+
+    <string name="weigh_in_title">BIA WEIGH-IN</string>
+    <string name="weigh_in_state_scanning">Scanning scale…</string>
+    <string name="weigh_in_state_authenticating">GATT Handshake…</string>
+    <string name="weigh_in_state_step_on">Step on the scale</string>
+    <string name="weigh_in_state_measuring">Measuring 50 + 250 kHz…</string>
+    <string name="weigh_in_state_completed">Weigh-in recorded!</string>
+
+    <string name="workout_title">LIVE WORKOUT</string>
+    <string name="btn_validate_set">COMPLETE SET</string>
+    <string name="btn_skip_rest">SKIP</string>
+    <string name="label_rest">REST</string>
+    <string name="label_set">SET</string>
+    <string name="btn_finish_workout">FINISH</string>
+    <string name="btn_back_to_menu">BACK TO MENU</string>
 </resources>

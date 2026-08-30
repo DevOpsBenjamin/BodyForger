@@ -24,8 +24,8 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":core-model"))
-    implementation(libs.androidx.room.runtime)
+    api(project(":core-model"))
+    api(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)

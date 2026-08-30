@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":core-model"))
     implementation(project(":core-bia"))
     implementation(project(":core-ble"))
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(project(":core-database"))
     implementation(project(":core-healthconnect"))
     implementation(project(":core-sync"))
