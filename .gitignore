@@ -31,5 +31,5 @@ serviceAccountKey*.json
 *.p12
 *.pem
 
-# Revues de WIP : instantanés locaux, périmés dès le lendemain
-REVIEW_WIP_*.md
+# Fichier de confort local : lien vers AGENTS.md, qui est la source suivie
+CLAUDE.md
