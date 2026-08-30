@@ -79,9 +79,13 @@ fun CompactNumberInput(
     var awaitingEntryTap by remember { mutableStateOf(false) }
 
     LaunchedEffect(isFocused) {
-        if (isFocused) {
-            typed = typed.copy(selection = TextRange(0, typed.text.length))
+        typed = if (isFocused) {
             awaitingEntryTap = true
+            typed.copy(selection = TextRange(0, typed.text.length))
+        } else {
+            // Le surlignage se dessine sans le focus : sans ce repli, tous les champs déjà
+            // visités resteraient surlignés en même temps.
+            typed.copy(selection = TextRange(typed.text.length))
         }
     }
 
