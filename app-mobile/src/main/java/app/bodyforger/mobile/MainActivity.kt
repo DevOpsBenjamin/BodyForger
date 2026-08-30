@@ -14,12 +14,14 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
+import app.bodyforger.mobile.library.LibraryViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Modifier
 import app.bodyforger.core.model.Exercise
 import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.WorkoutSession
-import app.bodyforger.mobile.data.DebugSampleRoutines
 import app.bodyforger.mobile.navigation.NavItem
 import app.bodyforger.mobile.ui.components.ActiveWorkoutMiniBar
 import app.bodyforger.mobile.ui.components.BodyForgerBottomNav
@@ -65,13 +67,10 @@ fun BodyForgerApp() {
     var activeWorkoutRoutine by remember { mutableStateOf<Routine?>(null) }
     var showingSettingsScreen by remember { mutableStateOf(false) }
 
-    val customExercises = remember { mutableStateListOf<Exercise>() }
-    val routines = remember {
-        mutableStateListOf<Routine>().apply {
-            addAll(DebugSampleRoutines.list)
-        }
-    }
-    val completedSessions = remember { mutableStateListOf<WorkoutSession>() }
+    val library: LibraryViewModel = viewModel()
+    val routines by library.routines.collectAsState()
+    val customExercises by library.exercises.collectAsState()
+    val completedSessions by library.completedSessions.collectAsState()
 
     val navItems = listOf(NavItem.Home, NavItem.Planner, NavItem.Analytics, NavItem.Profile)
 
@@ -79,7 +78,7 @@ fun BodyForgerApp() {
         CreateExerciseScreen(
             onBack = { showingCreateExerciseScreen = false },
             onExerciseCreated = { newExercise ->
-                customExercises.add(0, newExercise)
+                library.addCustomExercise(newExercise)
                 showingCreateExerciseScreen = false
             }
         )
@@ -90,7 +89,7 @@ fun BodyForgerApp() {
         )
     } else if (showingCatalogScreen) {
         CatalogScreen(
-            customExercises = customExercises,
+            exercises = customExercises,
             isSelectionMode = isCatalogForRoutineSelection,
             onBack = {
                 showingCatalogScreen = false
@@ -135,12 +134,7 @@ fun BodyForgerApp() {
                 showingCatalogScreen = true
             },
             onSaveRoutine = { savedRoutine ->
-                val existingIndex = routines.indexOfFirst { it.id == savedRoutine.id }
-                if (existingIndex != -1) {
-                    routines[existingIndex] = savedRoutine
-                } else {
-                    routines.add(0, savedRoutine)
-                }
+                library.saveRoutine(savedRoutine)
                 showingRoutineEditor = false
                 editingRoutine = null
             }
@@ -159,8 +153,7 @@ fun BodyForgerApp() {
                 catalogReplaceExerciseIndex = exIndex
                 showingCatalogScreen = true
             },
-            onFinishWorkout = { finishedSession ->
-                completedSessions.add(0, finishedSession)
+            onFinishWorkout = {
                 isLiveWorkoutRunning = false
                 showingLiveWorkoutScreen = false
                 activeWorkoutRoutine = null
@@ -218,27 +211,13 @@ fun BodyForgerApp() {
                             showingRoutineEditor = true
                         },
                         onDuplicateRoutine = { routineToDup ->
-                            val duplicated = routineToDup.copy(
-                                id = UUID.randomUUID().toString(),
-                                name = "${routineToDup.name} (Copie)",
-                                createdAtEpochMs = System.currentTimeMillis()
-                            )
-                            routines.add(0, duplicated)
+                            library.duplicateRoutine(routineToDup.id, "${routineToDup.name} (Copie)")
                         },
                         onDeleteRoutine = { routineToDel ->
-                            routines.remove(routineToDel)
+                            library.deleteRoutine(routineToDel.id)
                         },
                         onToggleRoutineDay = { routineId, dayInt ->
-                            val routineIndex = routines.indexOfFirst { it.id == routineId }
-                            if (routineIndex != -1) {
-                                val current = routines[routineIndex]
-                                val updatedDays = if (current.assignedDays.contains(dayInt)) {
-                                    current.assignedDays - dayInt
-                                } else {
-                                    current.assignedDays + dayInt
-                                }
-                                routines[routineIndex] = current.copy(assignedDays = updatedDays)
-                            }
+                            library.toggleRoutineDay(routineId, dayInt)
                         },
                         onOpenCatalog = {
                             isCatalogForRoutineSelection = false

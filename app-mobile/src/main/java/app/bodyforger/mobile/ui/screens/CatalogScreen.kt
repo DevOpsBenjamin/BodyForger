@@ -39,7 +39,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.bodyforger.core.database.data.DefaultExercises
 import app.bodyforger.core.database.entity.toDomain
 import app.bodyforger.core.model.EquipmentType
 import app.bodyforger.core.model.Exercise
@@ -59,7 +58,7 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 
 @Composable
 fun CatalogScreen(
-    customExercises: List<Exercise> = emptyList(),
+    exercises: List<Exercise> = emptyList(),
     isSelectionMode: Boolean = false,
     onBack: () -> Unit = {},
     onOpenCreateExercise: () -> Unit = {},
@@ -74,9 +73,9 @@ fun CatalogScreen(
     var showingMuscleDialog by remember { mutableStateOf(false) }
     var showingEquipmentDialog by remember { mutableStateOf(false) }
 
-    val allExercises = remember(customExercises.size) {
-        customExercises + DefaultExercises.all.map { it.toDomain() }
-    }
+    // The catalogue now comes wholly from the database, built-in and custom alike; merging
+    // in the seed list again would show every exercise twice.
+    val allExercises = exercises
 
     val filteredExercises = allExercises.filter { exercise ->
         val matchesMuscle = selectedMuscles.isEmpty() ||
