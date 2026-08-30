@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
 import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.library.RoutineDraftViewModel
 import app.bodyforger.mobile.ui.components.ResumeWorkoutDialog
 import app.bodyforger.mobile.workout.LiveWorkoutViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -71,6 +72,7 @@ fun BodyForgerApp() {
 
     val library: LibraryViewModel = viewModel()
     val workoutViewModel: LiveWorkoutViewModel = viewModel()
+    val routineDraft: RoutineDraftViewModel = viewModel()
     val interruptedSession by workoutViewModel.resumable.collectAsState()
     val routines by library.routines.collectAsState()
     val customExercises by library.exercises.collectAsState()
@@ -118,7 +120,7 @@ fun BodyForgerApp() {
             onOpenCreateExercise = { showingCreateExerciseScreen = true },
             onSelectExercise = { selectedExercise ->
                 if (isCatalogForRoutineSelection && showingRoutineEditor) {
-                    val currentDraft = editingRoutine ?: Routine(name = "")
+                    val currentDraft = routineDraft.draft.value ?: Routine(name = "")
                     val newRoutineEx = selectedExercise.toRoutineExercise(currentDraft.id)
                     val updatedExercises = currentDraft.exercises.toMutableList()
 
@@ -128,7 +130,7 @@ fun BodyForgerApp() {
                         updatedExercises.add(newRoutineEx)
                     }
 
-                    editingRoutine = currentDraft.copy(exercises = updatedExercises)
+                    routineDraft.setExercises(updatedExercises)
                     showingCatalogScreen = false
                     isCatalogForRoutineSelection = false
                     catalogReplaceExerciseIndex = null
@@ -138,9 +140,11 @@ fun BodyForgerApp() {
     } else if (showingRoutineEditor) {
         RoutineEditorScreen(
             initialRoutine = editingRoutine,
+            draftViewModel = routineDraft,
             onBack = {
                 showingRoutineEditor = false
                 editingRoutine = null
+                routineDraft.close()
             },
             onOpenCatalogForAdd = {
                 isCatalogForRoutineSelection = true
@@ -156,6 +160,7 @@ fun BodyForgerApp() {
                 library.saveRoutine(savedRoutine)
                 showingRoutineEditor = false
                 editingRoutine = null
+                routineDraft.close()
             }
         )
     } else if (showingLiveWorkoutScreen) {
@@ -224,10 +229,12 @@ fun BodyForgerApp() {
                         },
                         onCreateNewRoutine = {
                             editingRoutine = null
+                            routineDraft.open(null)
                             showingRoutineEditor = true
                         },
                         onEditRoutine = { routineToEdit ->
                             editingRoutine = routineToEdit
+                            routineDraft.open(routineToEdit)
                             showingRoutineEditor = true
                         },
                         onDuplicateRoutine = { routineToDup ->

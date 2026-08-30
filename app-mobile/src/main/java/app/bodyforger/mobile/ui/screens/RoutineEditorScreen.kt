@@ -22,11 +22,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import app.bodyforger.mobile.library.RoutineDraftViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,17 +60,27 @@ import java.util.UUID
 @Composable
 fun RoutineEditorScreen(
     initialRoutine: Routine? = null,
+    draftViewModel: RoutineDraftViewModel = viewModel(),
     onBack: () -> Unit = {},
     onOpenCatalogForAdd: () -> Unit = {},
     onOpenCatalogForReplace: (exerciseIndex: Int) -> Unit = {},
     onSaveRoutine: (Routine) -> Unit = {}
 ) {
-    var routineName by remember { mutableStateOf(initialRoutine?.name ?: "") }
-    var routineNotes by remember { mutableStateOf(initialRoutine?.notes ?: "") }
+    // The draft lives above this screen: adding an exercise leaves for the catalogue, and a
+    // state held here would not survive the round trip.
+    val draft by draftViewModel.draft.collectAsState()
+    val routineName = draft?.name.orEmpty()
+    val routineNotes = draft?.notes.orEmpty()
+
     val exercises = remember {
         mutableStateListOf<RoutineExercise>().apply {
-            addAll(initialRoutine?.exercises ?: emptyList())
+            addAll(draft?.exercises ?: emptyList())
         }
+    }
+
+    // Every local edit goes back to the draft, which alone survives leaving for the catalogue.
+    LaunchedEffect(exercises.toList()) {
+        draftViewModel.setExercises(exercises.toList())
     }
 
     var activeRestDialogExerciseIndex by remember { mutableStateOf<Int?>(null) }
@@ -101,10 +115,10 @@ fun RoutineEditorScreen(
                 onSave = {
                     if (routineName.isNotBlank()) {
                         val updatedRoutine = Routine(
-                            id = initialRoutine?.id ?: UUID.randomUUID().toString(),
+                            id = draft?.id ?: UUID.randomUUID().toString(),
                             name = routineName.trim(),
                             notes = routineNotes.trim(),
-                            assignedDays = initialRoutine?.assignedDays ?: emptySet(),
+                            assignedDays = draft?.assignedDays ?: emptySet(),
                             exercises = exercises.mapIndexed { index, ex ->
                                 ex.copy(orderIndex = index)
                             },
@@ -127,9 +141,9 @@ fun RoutineEditorScreen(
                 item {
                     RoutineEditorInfoCard(
                         routineName = routineName,
-                        onRoutineNameChange = { routineName = it },
+                        onRoutineNameChange = { draftViewModel.rename(it) },
                         routineNotes = routineNotes,
-                        onRoutineNotesChange = { routineNotes = it }
+                        onRoutineNotesChange = { draftViewModel.setNotes(it) }
                     )
                 }
 
