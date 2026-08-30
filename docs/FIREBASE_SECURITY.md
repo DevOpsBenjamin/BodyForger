@@ -20,11 +20,20 @@ La clé donne l'adresse du backend ; seules les règles décident de ce qu'on pe
 
 ## 2. Règles versionnées
 
-| Fichier | Portée |
-| --- | --- |
-| `firestore.rules` | Base de données |
-| `storage.rules` | Stockage de fichiers |
-| `firebase.json` | Associe chaque fichier à son service |
+| Fichier | Portée | Déployé |
+| --- | --- | --- |
+| `firestore.rules` | Base de données | oui, le 2026-08-30 |
+| `storage.rules` | Stockage de fichiers | non — le service n'est pas activé |
+| `firebase.json` | Associe chaque fichier à son service | — |
+
+Firebase Storage n'est pas activé sur le projet, donc `firebase.json` ne le référence pas :
+l'y laisser ferait échouer chaque déploiement. `storage.rules` reste versionné pour le jour où
+le service sera activé — il faudra alors rajouter la section `storage` dans `firebase.json`.
+
+⚠️ Avant le 2026-08-30, le projet n'avait **ni base Firestore ni bucket Storage** : l'API
+Firestore n'était même pas activée. Rien n'a donc jamais été exposé, quelles qu'aient été les
+règles par défaut. La base `(default)` a été créée par ce premier déploiement, vide et en refus
+total.
 
 Les deux sont en **refus total**. Aucun code de l'application n'appelle Firebase à ce jour : les
 SDK sont déclarés dans `app-mobile/build.gradle.kts` en prévision de la sauvegarde cloud
@@ -35,7 +44,7 @@ resterait ouvert d'une configuration en mode test.
 lancée, la console garde les règles qu'elle avait :
 
 ```sh
-firebase deploy --only firestore:rules,storage
+firebase deploy --only firestore:rules
 ```
 
 ## 3. Ouvrir un chemin quand la synchronisation arrivera
