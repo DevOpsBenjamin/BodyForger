@@ -30,3 +30,6 @@ serviceAccountKey*.json
 *.keystore
 *.p12
 *.pem
+
+# Revues de WIP : instantanés locaux, périmés dès le lendemain
+REVIEW_WIP_*.md
