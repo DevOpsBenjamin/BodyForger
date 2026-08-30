@@ -117,12 +117,11 @@ class ScaleViewModel(
      * on. Replaying overwrites the same slot, the HUID never changing.
      */
     fun associate(scale: DiscoveredScale, profile: BiaProfile) {
-        // Un appareil non reconnu n'a pas de pilote : tenter une gravure dessus serait
+        // Un appareil non reconnu n'a pas de pilote : graver dessus échouerait sans message.
         if (!scale.isCompatible) return
         val huid = _state.value.huid ?: return
         if (_state.value.isPairing) return
 
-        // connexion sans message.
         stopScan()
         _state.value = _state.value.copy(isPairing = true, failure = null, progress = null)
         viewModelScope.launch {
@@ -229,8 +228,8 @@ class ScaleViewModel(
                     ?.atZone(ZoneId.systemDefault())?.toInstant()
                     ?: Instant.now()
 
-                //
-                // moindre (#24).
+                // Une pesée sans BIA — pieds nus manquants, contact incomplet — rend un poids
+                // seul : on l'annonce plutôt que de le taire (#24).
                 val bodyFat = telemetry.bodyFatPercentage
                 if (bodyFat == null) {
                     _state.value = _state.value.copy(

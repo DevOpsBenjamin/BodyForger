@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.ble.DiscoveredScale
 import app.bodyforger.core.ble.SessionFailure
+import app.bodyforger.core.model.BiaProfile
 import app.bodyforger.mobile.scale.ScaleUiState
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
@@ -38,6 +39,7 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 @Composable
 fun ScaleSettingsSection(
     state: ScaleUiState,
+    measurementProfile: BiaProfile?,
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
     onAssociate: (DiscoveredScale) -> Unit,
@@ -47,6 +49,19 @@ fun ScaleSettingsSection(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         SectionTitle("BALANCE CONNECTÉE")
+
+        // La balance calcule elle-même la masse grasse à partir du profil : sans lui, une
+        // pesée rendrait un pourcentage faux qu'on stockerait pour de bon.
+        if (measurementProfile == null) {
+            Card {
+                Text(
+                    text = "Renseignez d'abord votre profil de mesure ci-dessus.",
+                    color = TextSecondary,
+                    fontSize = 12.sp
+                )
+            }
+            return@Column
+        }
 
         when {
             state.isPairing -> Pairing(state)

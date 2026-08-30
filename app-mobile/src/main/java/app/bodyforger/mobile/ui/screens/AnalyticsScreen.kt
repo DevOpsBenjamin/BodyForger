@@ -36,7 +36,7 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 import kotlinx.coroutines.launch
 
 @Composable
-fun AnalyticsScreen() {
+fun AnalyticsScreen(onOpenScale: () -> Unit = {}) {
     val pagerState = rememberPagerState(pageCount = { 2 })
     val coroutineScope = rememberCoroutineScope()
 
@@ -119,7 +119,7 @@ fun AnalyticsScreen() {
         ) { page ->
             when (page) {
                 0 -> AnalyticsPerformanceTab()
-                1 -> AnalyticsBiometricsTab()
+                1 -> AnalyticsBiometricsTab(onOpenScale = onOpenScale)
             }
         }
     }

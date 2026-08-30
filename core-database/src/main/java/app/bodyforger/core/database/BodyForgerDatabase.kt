@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
         RoutineExerciseEntity::class,
         RoutineSetEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class BodyForgerDatabase : RoomDatabase() {

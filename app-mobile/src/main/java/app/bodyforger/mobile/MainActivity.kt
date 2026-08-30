@@ -103,10 +103,7 @@ fun BodyForgerApp() {
             }
         )
     } else if (showingSettingsScreen) {
-        SettingsScreen(
-            profile = BiaProfile(BiologicalSex.MALE, ageYears = 30, heightCm = 180.0),
-            onBack = { showingSettingsScreen = false }
-        )
+        SettingsScreen(onBack = { showingSettingsScreen = false })
     } else if (showingCatalogScreen) {
         CatalogScreen(
             exercises = customExercises,
@@ -243,7 +240,7 @@ fun BodyForgerApp() {
                             showingCatalogScreen = true
                         }
                     )
-                    2 -> AnalyticsScreen()
+                    2 -> AnalyticsScreen(onOpenScale = { showingSettingsScreen = true })
                     3 -> ProfileScreen(onOpenSettings = { showingSettingsScreen = true })
                 }
             }
