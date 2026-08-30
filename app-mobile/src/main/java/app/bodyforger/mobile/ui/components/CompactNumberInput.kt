@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,7 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -64,15 +64,36 @@ fun CompactNumberInput(
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     var typed by remember { mutableStateOf(TextFieldValue(value)) }
+    var lastSeenValue by remember { mutableStateOf(value) }
 
-    // Hors saisie, le champ suit la valeur du modèle ; pendant la saisie, il suit le doigt.
-    if (!isFocused && typed.text != value) {
-        typed = TextFieldValue(value)
+    // On n'adopte la valeur du modèle que lorsqu'elle bouge d'elle-même — un report de la
+    // dernière séance. Un appelant qui refuse une saisie illisible laisse sa valeur inchangée,
+    // et le champ garde alors ce qui est tapé, y compris vide.
+    if (value != lastSeenValue) {
+        lastSeenValue = value
+        if (value != typed.text) typed = TextFieldValue(value, TextRange(value.length))
+    }
+
+    // Le tap qui donne le focus place aussi le curseur, et cette pose arrive après la
+    // sélection. Sans en neutraliser exactement une, un tap sur deux ne sélectionnait rien.
+    var awaitingEntryTap by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            typed = typed.copy(selection = TextRange(0, typed.text.length))
+            awaitingEntryTap = true
+        }
     }
 
     BasicTextField(
         value = typed,
         onValueChange = { edited ->
+            val isEntryTap = awaitingEntryTap && edited.text == typed.text
+            awaitingEntryTap = false
+            // Le repositionnement du tap d'entrée est ignoré ; tout tap ultérieur passe, pour
+            // que l'athlète puisse quand même poser son curseur où il veut.
+            if (isEntryTap) return@BasicTextField
+
             // La limite est tenue ici, sinon le texte affiché dépasserait la valeur retenue.
             if (maxLength != null && edited.text.length > maxLength) return@BasicTextField
             typed = edited
@@ -117,10 +138,6 @@ fun CompactNumberInput(
                 innerTextField()
             }
         },
-        modifier = modifier.onFocusChanged { focus ->
-            if (focus.isFocused) {
-                typed = typed.copy(selection = TextRange(0, typed.text.length))
-            }
-        }
+        modifier = modifier
     )
 }
