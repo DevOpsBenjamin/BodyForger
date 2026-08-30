@@ -197,4 +197,18 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="scale_tare">Calibration tare: %1$.2f kg</string>
     <string name="scale_forget">Forget this scale</string>
     <string name="scale_picker_title">Which scale?</string>
+    <string name="profile_stat_sessions">Sessions</string>
+    <string name="profile_stat_tonnage">Total tonnage</string>
+    <string name="profile_stat_hours">Hours trained</string>
+    <string name="unit_tonnes">%1$.1f T</string>
+    <string name="unit_hours">%1$.0f h</string>
+    <string name="profile_history_empty">No session yet. Your finished workouts appear here.</string>
+    <string name="stats_weekly_tonnage">Weekly tonnage</string>
+    <string name="stats_records_empty">No record yet. They appear once you have logged sets with a load.</string>
+    <string name="stats_record_best_set">%1$.1f kg × %2$d reps</string>
+    <string name="unit_kilograms">%1$.1f kg</string>
+    <string name="stats_one_rep_max">1RM: %1$s</string>
+    <string name="stats_record_prefix">Best: %1$s</string>
+    <string name="home_weight_measured">%1$d weigh-in(s)</string>
+    <string name="profile_sessions_this_week">%1$d session(s) this week</string>
 </resources>

@@ -17,6 +17,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.bodyforger.mobile.R
+import androidx.compose.ui.res.stringResource
+import app.bodyforger.mobile.stats.TrainingStats
+import app.bodyforger.core.model.WorkoutSession
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +35,7 @@ import app.bodyforger.mobile.ui.theme.SurfaceElevated
 import app.bodyforger.mobile.ui.theme.TextMuted
 
 @Composable
-fun ActivityHeatmapCard(modifier: Modifier = Modifier) {
+fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -53,7 +57,10 @@ fun ActivityHeatmapCard(modifier: Modifier = Modifier) {
                     letterSpacing = 1.sp
                 )
                 Text(
-                    text = "4 séances cette semaine",
+                    text = stringResource(
+                        R.string.profile_sessions_this_week,
+                        TrainingStats.sessionsThisWeek(sessions, System.currentTimeMillis())
+                    ),
                     color = NeonLime,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold
@@ -62,7 +69,7 @@ fun ActivityHeatmapCard(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ActivityHeatmapGrid()
+            ActivityHeatmapGrid(sessions)
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -86,30 +93,20 @@ fun ActivityHeatmapCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ActivityHeatmapGrid() {
-    val activeDays = remember {
-        setOf(
-            1, 3, 5, 8, 10, 12, 15, 17, 19, 22, 24, 26, 29, 31, 33, 36, 38, 40,
-            43, 45, 47, 50, 52, 54, 57, 59, 61, 64, 66, 68, 71, 73, 75, 78, 80, 82
-        )
+fun ActivityHeatmapGrid(sessions: List<WorkoutSession>) {
+    val activeDays = remember(sessions) {
+        TrainingStats.activeDayOffsets(sessions, System.currentTimeMillis(), HEATMAP_DAYS)
     }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        for (col in 0 until 14) {
+        for (col in 0 until HEATMAP_COLUMNS) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                for (row in 0 until 5) {
-                    val dayIndex = col * 5 + row
-                    val isActive = activeDays.contains(dayIndex)
-                    val isHeavy = dayIndex % 3 == 0
-
-                    val boxColor = when {
-                        !isActive -> SurfaceElevated
-                        isHeavy -> NeonLime
-                        else -> NeonLime.copy(alpha = 0.5f)
-                    }
+                for (row in 0 until HEATMAP_ROWS) {
+                    val dayIndex = col * HEATMAP_ROWS + row
+                    val boxColor = if (activeDays.contains(dayIndex)) NeonLime else SurfaceElevated
 
                     Box(
                         modifier = Modifier
@@ -122,3 +119,8 @@ fun ActivityHeatmapGrid() {
         }
     }
 }
+
+/** The grid covers the last ten weeks, read column by column. */
+private const val HEATMAP_COLUMNS = 14
+private const val HEATMAP_ROWS = 5
+private const val HEATMAP_DAYS = HEATMAP_COLUMNS * HEATMAP_ROWS

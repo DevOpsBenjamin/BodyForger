@@ -35,7 +35,7 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 @Composable
 fun ActiveWorkoutMiniBar(
     isVisible: Boolean,
-    workoutTitle: String = "Push Hypertrophie • 42:15",
+    workoutTitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
