@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
         RoutineSetEntity::class
     ],
     version = 5,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class BodyForgerDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao

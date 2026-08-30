@@ -23,6 +23,13 @@ kotlin {
     jvmToolchain(21)
 }
 
+// Le schéma de chaque version est versionné dans schemas/ : une migration s'écrit depuis
+// l'état exact de la version précédente, et MigrationTestHelper le rejoue depuis ce fichier.
+// Voir docs/DATABASE_MIGRATIONS.md
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     api(project(":core-model"))
     api(libs.androidx.room.runtime)

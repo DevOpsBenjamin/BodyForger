@@ -10,7 +10,9 @@ import androidx.room.Room
  * its own cache, and writes from one stay invisible to the other, so data seems to vanish
  * intermittently.
  *
- * ⚠️ Destructive migration is accepted until the app ships; it must be removed before then.
+ * ⚠️ Destructive migration is accepted until the app ships; it must be removed before then —
+ * `docs/DATABASE_MIGRATIONS.md` and #43. Each version's schema is already exported under
+ * `core-database/schemas/`, so the migrations can be written from a known state.
  */
 object BodyForgerDatabases {
 
