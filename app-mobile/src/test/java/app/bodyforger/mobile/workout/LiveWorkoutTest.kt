@@ -4,10 +4,12 @@ import app.bodyforger.core.model.EquipmentType
 import app.bodyforger.core.model.MuscleGroup
 import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSet
+import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.core.model.UnilateralSide
 import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.core.model.WorkoutSession
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -129,6 +131,39 @@ class LiveWorkoutTest {
             .updateSet(ids[1]) { it.copy(weightKg = 100.0, reps = 5, isCompleted = false) }
 
         assertEquals(500.0, done.completedVolumeKg(), 0.0)
+    }
+
+    @Test
+    fun `changing a set type reaches both sides of a unilateral set`() {
+        val workout = workoutOf(exercise("Fentes", unilateral = true))
+            .setType(0, setIndex = 1, type = RoutineSetType.WARMUP)
+
+        val first = workout.setsOf(0).filter { it.setIndex == 1 }
+        assertEquals(2, first.size)
+        assertTrue(first.all { it.type == RoutineSetType.WARMUP })
+        assertTrue(workout.setsOf(0).filter { it.setIndex == 2 }.all { it.type == RoutineSetType.NORMAL })
+    }
+
+    @Test
+    fun `deleting a set drops both sides and renumbers what remains`() {
+        val threeSets = listOf(RoutineSet(setIndex = 1), RoutineSet(setIndex = 2), RoutineSet(setIndex = 3))
+        val workout = workoutOf(exercise("Fentes", unilateral = true, sets = threeSets))
+            .removeSetAt(0, setIndex = 1)
+
+        assertEquals(listOf(1, 1, 2, 2), workout.setsOf(0).map { it.setIndex })
+    }
+
+    @Test
+    fun `the last set of an exercise cannot be deleted`() {
+        val workout = workoutOf(exercise("Squat", sets = listOf(RoutineSet(setIndex = 1))))
+        assertFalse(workout.canRemoveSet(0))
+        assertEquals(workout, workout.removeSetAt(0, setIndex = 1))
+    }
+
+    @Test
+    fun `a set added after a deletion does not reuse an index`() {
+        val workout = workoutOf(exercise("Squat")).removeSetAt(0, setIndex = 1).addSet(0)
+        assertEquals(listOf(1, 2), workout.setsOf(0).map { it.setIndex })
     }
 
     @Test

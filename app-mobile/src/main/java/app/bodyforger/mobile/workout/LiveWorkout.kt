@@ -1,6 +1,7 @@
 package app.bodyforger.mobile.workout
 
 import app.bodyforger.core.model.RoutineExercise
+import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.core.model.UnilateralSide
 import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.core.model.WorkoutSession
@@ -71,7 +72,46 @@ data class LiveWorkout(
         return copy(sets = sets + added)
     }
 
-    fun removeSet(setId: String): LiveWorkout = copy(sets = sets.filterNot { it.id == setId })
+    /**
+     * Changes what a set is: a warm-up, a drop set, an all-out one.
+     *
+     * A unilateral set is two rows sharing one index — both change, because the athlete
+     * performs one set on two sides, not two different sets.
+     */
+    fun setType(exerciseIndex: Int, setIndex: Int, type: RoutineSetType): LiveWorkout = copy(
+        sets = sets.map {
+            if (it.orderIndex == exerciseIndex && it.setIndex == setIndex) it.copy(type = type) else it
+        }
+    )
+
+    /**
+     * Drops a set, both sides included, and renumbers what remains.
+     *
+     * The last set of an exercise stays: an exercise with no set is not a plan, and dropping
+     * the exercise itself is what the athlete means then.
+     */
+    fun removeSetAt(exerciseIndex: Int, setIndex: Int): LiveWorkout {
+        if (!canRemoveSet(exerciseIndex)) return this
+        val kept = sets.filterNot { it.orderIndex == exerciseIndex && it.setIndex == setIndex }
+        return copy(sets = kept).renumberSetsOf(exerciseIndex)
+    }
+
+    /** Whether an exercise still has a set to spare. */
+    fun canRemoveSet(exerciseIndex: Int): Boolean =
+        distinctSetIndicesOf(exerciseIndex).size > MINIMUM_SETS_PER_EXERCISE
+
+    private fun distinctSetIndicesOf(exerciseIndex: Int): List<Int> =
+        sets.filter { it.orderIndex == exerciseIndex }.map { it.setIndex }.distinct().sorted()
+
+    /** Set indices are shown to the athlete, so they count from one, without gaps. */
+    private fun renumberSetsOf(exerciseIndex: Int): LiveWorkout {
+        val ranks = distinctSetIndicesOf(exerciseIndex).withIndex().associate { (rank, index) -> index to rank + 1 }
+        return copy(
+            sets = sets.map {
+                if (it.orderIndex == exerciseIndex) it.copy(setIndex = ranks.getValue(it.setIndex)) else it
+            }
+        )
+    }
 
     fun updateSet(setId: String, change: (WorkoutSet) -> WorkoutSet): LiveWorkout =
         copy(sets = sets.map { if (it.id == setId) change(it) else it })
@@ -107,6 +147,9 @@ data class LiveWorkout(
 
         /** What a set holds when the routine states no target — never a load, only a count. */
         const val DEFAULT_REPS = 10
+
+        /** An exercise keeps at least one set: with none, it is no longer part of the workout. */
+        const val MINIMUM_SETS_PER_EXERCISE = 1
 
         /**
          * Opens a workout from a routine, or an empty one when the athlete trains freely.

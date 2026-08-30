@@ -73,7 +73,7 @@ fun LiveWorkoutExerciseCard(
     onUpdateSetWeight: (WorkoutSet, Double) -> Unit,
     onUpdateSetReps: (WorkoutSet, Int) -> Unit,
     onAddSet: () -> Unit,
-    onDeleteSet: (WorkoutSet) -> Unit,
+    onOpenSetOptions: (WorkoutSet) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -248,7 +248,8 @@ fun LiveWorkoutExerciseCard(
                     weightUnit = weightUnit,
                     onToggleCompleted = { onToggleSetCompleted(setItem) },
                     onWeightChange = { newWeight -> onUpdateSetWeight(setItem, newWeight) },
-                    onRepsChange = { newReps -> onUpdateSetReps(setItem, newReps) }
+                    onRepsChange = { newReps -> onUpdateSetReps(setItem, newReps) },
+                    onOpenOptions = { onOpenSetOptions(setItem) }
                 )
                 Spacer(modifier = Modifier.height(6.dp))
             }

@@ -8,6 +8,7 @@ import app.bodyforger.core.database.entity.toEntity
 import app.bodyforger.core.database.entity.toSetEntities
 import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.RoutineExercise
+import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.core.model.WorkoutSessionStatus
@@ -114,9 +115,21 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
         extended
     }
 
-    fun removeSet(setId: String) = mutate { workout ->
-        viewModelScope.launch { workoutDao.deleteSet(setId) }
-        workout.removeSet(setId)
+    /** Changes what a set is — a warm-up, a drop set — on both sides of a unilateral one. */
+    fun setType(exerciseIndex: Int, setIndex: Int, type: RoutineSetType) = mutate { workout ->
+        workout.setType(exerciseIndex, setIndex, type).also { persistSetsOf(it) }
+    }
+
+    /** Drops a set and renumbers the ones that follow, in the database as on screen. */
+    fun removeSetAt(exerciseIndex: Int, setIndex: Int) = mutate { workout ->
+        if (!workout.canRemoveSet(exerciseIndex)) return@mutate workout
+        val dropped = workout.sets.filter { it.orderIndex == exerciseIndex && it.setIndex == setIndex }
+        val without = workout.removeSetAt(exerciseIndex, setIndex)
+        viewModelScope.launch {
+            dropped.forEach { workoutDao.deleteSet(it.id) }
+            persist(without)
+        }
+        without
     }
 
     /** Records a set as done, or takes that back — the one write the tonnage depends on. */
@@ -197,7 +210,11 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
     }
 
     private fun persistSetsOf(workout: LiveWorkout) {
-        viewModelScope.launch { workoutDao.insertSets(workout.sets.toSetEntities(workout.session.id)) }
+        viewModelScope.launch { persist(workout) }
+    }
+
+    private suspend fun persist(workout: LiveWorkout) {
+        workoutDao.insertSets(workout.sets.toSetEntities(workout.session.id))
     }
 
     private fun mutate(change: (LiveWorkout) -> LiveWorkout) {

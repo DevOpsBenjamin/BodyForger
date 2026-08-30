@@ -49,6 +49,7 @@ import app.bodyforger.core.model.WorkoutSessionStatus
 import app.bodyforger.core.model.WorkoutSet
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.components.LiveWorkoutExerciseCard
+import app.bodyforger.mobile.ui.components.LiveWorkoutSetOptionsDialog
 import app.bodyforger.mobile.ui.components.LiveWorkoutRestTimerOverlay
 import app.bodyforger.mobile.ui.components.LiveWorkoutTopBar
 import app.bodyforger.mobile.ui.components.RestTimePickerDialog
@@ -85,6 +86,7 @@ fun WorkoutScreen(
     var activeRestPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var activeWeightUnitPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var showingSummaryDialog by remember { mutableStateOf(false) }
+    var setOptionsTarget by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     // Compte depuis l'heure de depart plutot qu'en incrementant: reduire la seance
     // detruit ce composable, et un compteur repartirait de zero au retour.
@@ -160,7 +162,7 @@ fun WorkoutScreen(
                         workoutViewModel.setReps(targetSet.id, newReps)
                     },
                     onAddSet = { workoutViewModel.addSet(exIdx) },
-                    onDeleteSet = { targetSet -> workoutViewModel.removeSet(targetSet.id) }
+                    onOpenSetOptions = { targetSet -> setOptionsTarget = exIdx to targetSet.setIndex }
                 )
             }
 
@@ -230,6 +232,20 @@ fun WorkoutScreen(
                 workoutViewModel.finish()?.let(onFinishWorkout)
             }
         )
+    }
+
+    setOptionsTarget?.let { (exIdx, setIdx) ->
+        val target = workout.setsOf(exIdx).firstOrNull { it.setIndex == setIdx }
+        if (target != null) {
+            LiveWorkoutSetOptionsDialog(
+                setIndexDisplay = setIdx,
+                currentType = target.type,
+                canDelete = workout.canRemoveSet(exIdx),
+                onTypeSelected = { newType -> workoutViewModel.setType(exIdx, setIdx, newType) },
+                onDeleteSet = { workoutViewModel.removeSetAt(exIdx, setIdx) },
+                onDismiss = { setOptionsTarget = null }
+            )
+        }
     }
 
     activeWeightUnitPickerExerciseIndex?.let { exIdx ->

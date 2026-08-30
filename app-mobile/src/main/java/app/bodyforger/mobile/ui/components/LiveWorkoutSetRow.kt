@@ -43,6 +43,7 @@ fun LiveWorkoutSetRow(
     onToggleCompleted: () -> Unit,
     onWeightChange: (Double) -> Unit,
     onRepsChange: (Int) -> Unit,
+    onOpenOptions: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isCompleted = set.isCompleted
@@ -61,7 +62,7 @@ fun LiveWorkoutSetRow(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.width(44.dp)
+            modifier = Modifier.width(44.dp).clickable(onClick = onOpenOptions)
         ) {
             val labelText = if (set.side != UnilateralSide.NONE) {
                 "${set.setIndex}${set.side.shortBadge}"
@@ -76,12 +77,14 @@ fun LiveWorkoutSetRow(
                 fontSize = 13.sp
             )
 
-            if (set.type == RoutineSetType.WARMUP) {
+            if (set.type != RoutineSetType.NORMAL) {
                 Spacer(modifier = Modifier.width(3.dp))
-                Text(text = "ÉCH", color = AmberGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-            } else if (set.type == RoutineSetType.DROPSET) {
-                Spacer(modifier = Modifier.width(3.dp))
-                Text(text = "DROP", color = AmberGold, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = set.type.shortBadge,
+                    color = AmberGold,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
