@@ -9,10 +9,15 @@ enum class UnilateralSide {
     RIGHT
 }
 
+/**
+ * A session is either being trained or it is over.
+ *
+ * There is no discarded state: a session the athlete gives up on is deleted, because a status
+ * that appears in no history and no statistic would only hide a row in the database.
+ */
 enum class WorkoutSessionStatus {
     ACTIVE,
-    COMPLETED,
-    DISCARDED
+    COMPLETED
 }
 
 data class WorkoutSet(

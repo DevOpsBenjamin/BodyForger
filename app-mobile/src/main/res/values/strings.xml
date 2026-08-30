@@ -152,4 +152,10 @@
     <string name="workout_live_delete_title">Delete this workout?</string>
     <string name="workout_live_delete_body">Nothing is kept: this workout and every set logged in it are removed for good. It appears in no history and no statistic.</string>
     <string name="workout_live_delete_confirm">DELETE</string>
+    <string name="resume_workout_title">Interrupted workout</string>
+    <string name="resume_workout_sets_done">%1$d set(s) already logged.</string>
+    <string name="resume_workout_no_sets">No set had been logged yet.</string>
+    <string name="resume_workout_resume">RESUME</string>
+    <string name="resume_workout_finish">FINISH AS IS</string>
+    <string name="resume_workout_delete">DELETE</string>
 </resources>

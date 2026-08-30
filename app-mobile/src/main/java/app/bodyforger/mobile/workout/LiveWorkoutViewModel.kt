@@ -211,10 +211,26 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
         viewModelScope.launch { workoutDao.deleteSession(workout.session.id) }
     }
 
-    /** Discards a session offered for resumption that the athlete declined to pick up. */
-    fun discard(session: WorkoutSession) {
+    /**
+     * Closes an interrupted session on what was actually done.
+     *
+     * The sets it holds were performed: they belong in the history and in the statistics, even
+     * though the athlete does not want to carry on.
+     */
+    fun finishInterrupted(session: WorkoutSession) {
         _resumable.value = null
-        viewModelScope.launch { workoutDao.updateSession(closed(session, WorkoutSessionStatus.DISCARDED).toEntity()) }
+        val volume = LiveWorkout.resumed(session).completedVolumeKg()
+        viewModelScope.launch {
+            workoutDao.updateSession(
+                closed(session.copy(totalVolumeKg = volume), WorkoutSessionStatus.COMPLETED).toEntity()
+            )
+        }
+    }
+
+    /** Throws away an interrupted session, sets included — they cascade on the session. */
+    fun deleteInterrupted(session: WorkoutSession) {
+        _resumable.value = null
+        viewModelScope.launch { workoutDao.deleteSession(session.id) }
     }
 
     private fun close(status: WorkoutSessionStatus): WorkoutSession? {

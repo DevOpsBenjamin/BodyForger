@@ -152,4 +152,10 @@
     <string name="workout_live_delete_title">Supprimer cette séance ?</string>
     <string name="workout_live_delete_body">Rien n\'est conservé : la séance et toutes les séries saisies disparaissent définitivement. Elle n\'apparaîtra dans aucun historique ni aucune statistique.</string>
     <string name="workout_live_delete_confirm">SUPPRIMER</string>
+    <string name="resume_workout_title">Séance interrompue</string>
+    <string name="resume_workout_sets_done">%1$d série(s) déjà validée(s).</string>
+    <string name="resume_workout_no_sets">Aucune série n\'avait encore été validée.</string>
+    <string name="resume_workout_resume">REPRENDRE</string>
+    <string name="resume_workout_finish">TERMINER EN L\'ÉTAT</string>
+    <string name="resume_workout_delete">SUPPRIMER</string>
 </resources>

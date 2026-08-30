@@ -90,7 +90,8 @@ fun BodyForgerApp() {
                 workoutViewModel.resume(session)
                 showingLiveWorkoutScreen = true
             },
-            onDiscard = { workoutViewModel.discard(session) }
+            onFinishAsIs = { workoutViewModel.finishInterrupted(session) },
+            onDelete = { workoutViewModel.deleteInterrupted(session) }
         )
     }
 
