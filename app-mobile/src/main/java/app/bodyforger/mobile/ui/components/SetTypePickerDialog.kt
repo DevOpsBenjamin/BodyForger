@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.RoutineSet
 import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.mobile.R
+import app.bodyforger.mobile.ui.text.badge
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
@@ -81,13 +83,13 @@ fun SetTypePickerDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = type.displayName,
+                            text = type.label(),
                             color = if (isSelected) NeonLime else TextPrimary,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             fontSize = 13.sp
                         )
                         Text(
-                            text = type.shortBadge,
+                            text = type.badge(),
                             color = if (isSelected) NeonLime else TextMuted,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold

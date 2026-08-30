@@ -2,10 +2,11 @@ package app.bodyforger.core.model
 
 import java.util.UUID
 
-enum class UnilateralSide(val displayName: String, val shortBadge: String) {
-    NONE("Bilatéral", ""),
-    LEFT("Côté Gauche", "G"),
-    RIGHT("Côté Droit", "D")
+/** Which side a set is performed on. How it reads on screen belongs to the UI. */
+enum class UnilateralSide {
+    NONE,
+    LEFT,
+    RIGHT
 }
 
 enum class WorkoutSessionStatus {

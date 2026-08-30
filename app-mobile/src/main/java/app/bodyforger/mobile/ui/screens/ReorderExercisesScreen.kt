@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import app.bodyforger.core.model.RoutineExercise
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.Obsidian
@@ -183,7 +184,7 @@ fun ReorderExercisesScreen(
                                 maxLines = 1
                             )
                             Text(
-                                text = "${exercise.primaryMuscle.displayName} • ${exercise.sets.size} séries",
+                                text = "${exercise.primaryMuscle.label()} • ${exercise.sets.size} séries",
                                 color = TextMuted,
                                 fontSize = 11.sp
                             )

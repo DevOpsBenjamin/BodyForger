@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.MuscleGroup
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceDark
@@ -88,7 +89,7 @@ fun CatalogMuscleFilterDialog(
                                     Spacer(modifier = Modifier.width(3.dp))
                                 }
                                 Text(
-                                    text = muscle.displayName,
+                                    text = muscle.label(),
                                     color = if (isSelected) Color.Black else TextSecondary,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 11.sp

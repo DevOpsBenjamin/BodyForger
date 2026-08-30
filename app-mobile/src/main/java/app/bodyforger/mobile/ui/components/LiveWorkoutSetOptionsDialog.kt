@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.RoutineSetType
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
@@ -106,7 +107,7 @@ private fun SetTypeChoice(type: RoutineSetType, isSelected: Boolean, onClick: ()
             .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
         Text(
-            text = type.displayName,
+            text = type.label(),
             color = if (isSelected) ElectricCyan else TextPrimary,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold

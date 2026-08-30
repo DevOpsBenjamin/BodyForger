@@ -29,6 +29,7 @@ import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.core.model.UnilateralSide
 import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.core.model.WorkoutSet
+import app.bodyforger.mobile.ui.text.badge
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
@@ -65,7 +66,7 @@ fun LiveWorkoutSetRow(
             modifier = Modifier.width(44.dp).clickable(onClick = onOpenOptions)
         ) {
             val labelText = if (set.side != UnilateralSide.NONE) {
-                "${set.setIndex}${set.side.shortBadge}"
+                "${set.setIndex}${set.side.badge()}"
             } else {
                 set.setIndex.toString()
             }
@@ -80,7 +81,7 @@ fun LiveWorkoutSetRow(
             if (set.type != RoutineSetType.NORMAL) {
                 Spacer(modifier = Modifier.width(3.dp))
                 Text(
-                    text = set.type.shortBadge,
+                    text = set.type.badge(),
                     color = AmberGold,
                     fontSize = 8.sp,
                     fontWeight = FontWeight.Bold

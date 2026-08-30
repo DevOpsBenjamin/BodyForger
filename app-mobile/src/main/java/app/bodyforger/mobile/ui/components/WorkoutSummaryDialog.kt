@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
+import app.bodyforger.core.model.WorkoutActivityCategory
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
@@ -47,7 +49,7 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
 data class ActivitySegmentSummary(
-    val categoryName: String,
+    val category: WorkoutActivityCategory,
     val setCount: Int
 )
 
@@ -94,14 +96,14 @@ fun WorkoutSummaryDialog(
                 count++
             } else {
                 if (currentCat != null) {
-                    list.add(ActivitySegmentSummary(currentCat.displayName, count))
+                    list.add(ActivitySegmentSummary(currentCat, count))
                 }
                 currentCat = set.activityCategory
                 count = 1
             }
         }
         if (currentCat != null) {
-            list.add(ActivitySegmentSummary(currentCat.displayName, count))
+            list.add(ActivitySegmentSummary(currentCat, count))
         }
         list
     }
@@ -213,7 +215,7 @@ fun WorkoutSummaryDialog(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(text = muscle.displayName, color = TextPrimary, fontSize = 12.sp)
+                                Text(text = muscle.label(), color = TextPrimary, fontSize = 12.sp)
                                 Text(text = "$setCount séries", color = NeonLime, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -246,7 +248,7 @@ fun WorkoutSummaryDialog(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(text = "Segment ${idx + 1} : ${segmentItem.categoryName}", color = TextPrimary, fontSize = 12.sp)
+                                Text(text = "Segment ${idx + 1} : ${segmentItem.category.label()}", color = TextPrimary, fontSize = 12.sp)
                                 Text(text = "${segmentItem.setCount} séries", color = AmberGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }

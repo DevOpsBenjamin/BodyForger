@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.RoutineSet
 import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.mobile.R
+import app.bodyforger.mobile.ui.text.badge
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.CrimsonRed
 import app.bodyforger.mobile.ui.theme.ElectricCyan
@@ -84,7 +85,7 @@ fun RoutineSetRow(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = if (routineSet.type == RoutineSetType.NORMAL) "${setIndex + 1}" else routineSet.type.shortBadge,
+                text = if (routineSet.type == RoutineSetType.NORMAL) "${setIndex + 1}" else routineSet.type.badge(),
                 color = when (routineSet.type) {
                     RoutineSetType.NORMAL -> TextPrimary
                     RoutineSetType.WARMUP -> AmberGold
@@ -92,7 +93,7 @@ fun RoutineSetRow(
                     RoutineSetType.FAILURE -> CrimsonRed
                     RoutineSetType.REST_PAUSE -> NeonLime
                 },
-                fontSize = if (routineSet.type.shortBadge.length > 2) 9.sp else 12.sp,
+                fontSize = if (routineSet.type.badge().length > 2) 9.sp else 12.sp,
                 fontWeight = FontWeight.Bold
             )
         }

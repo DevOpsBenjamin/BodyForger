@@ -23,8 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -37,8 +37,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.bodyforger.mobile.workout.LiveWorkoutViewModel
-import org.koin.androidx.compose.koinViewModel
 import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.RoutineExercise
 import app.bodyforger.core.model.RoutineSetType
@@ -49,18 +47,21 @@ import app.bodyforger.core.model.WorkoutSessionStatus
 import app.bodyforger.core.model.WorkoutSet
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.components.LiveWorkoutExerciseCard
-import app.bodyforger.mobile.ui.components.LiveWorkoutSetOptionsDialog
 import app.bodyforger.mobile.ui.components.LiveWorkoutRestTimerOverlay
+import app.bodyforger.mobile.ui.components.LiveWorkoutSetOptionsDialog
 import app.bodyforger.mobile.ui.components.LiveWorkoutTopBar
 import app.bodyforger.mobile.ui.components.RestTimePickerDialog
 import app.bodyforger.mobile.ui.components.WeightUnitPickerDialog
 import app.bodyforger.mobile.ui.components.WorkoutSummaryDialog
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.CrimsonRed
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.Obsidian
-import kotlinx.coroutines.delay
+import app.bodyforger.mobile.workout.LiveWorkoutViewModel
 import java.util.UUID
+import kotlinx.coroutines.delay
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun WorkoutScreen(
@@ -135,9 +136,9 @@ fun WorkoutScreen(
 
                 LiveWorkoutExerciseCard(
                     exerciseName = exItem.exerciseName,
-                    primaryMuscleName = exItem.primaryMuscle.displayName,
-                    equipmentName = exItem.equipment.displayName,
-                    activityCategoryName = exItem.activityCategory.displayName,
+                    primaryMuscleName = exItem.primaryMuscle.label(),
+                    equipmentName = exItem.equipment.label(),
+                    activityCategoryName = exItem.activityCategory.label(),
                     isUnilateral = exItem.isUnilateral,
                     weightUnit = exItem.weightUnit,
                     restTimeSeconds = exItem.restTimeSeconds,

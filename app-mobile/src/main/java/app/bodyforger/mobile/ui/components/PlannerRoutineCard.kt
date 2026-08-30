@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.Routine
 import app.bodyforger.mobile.R
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.CrimsonRed
 import app.bodyforger.mobile.ui.theme.ElectricCyan
@@ -89,7 +90,7 @@ fun PlannerRoutineCard(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    val muscles = routine.exercises.map { it.primaryMuscle.displayName }.distinct()
+                    val muscles = routine.exercises.map { it.primaryMuscle.label() }.distinct()
                     if (muscles.isNotEmpty()) {
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
