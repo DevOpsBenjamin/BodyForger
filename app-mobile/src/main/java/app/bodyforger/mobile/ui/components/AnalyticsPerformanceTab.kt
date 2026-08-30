@@ -51,7 +51,6 @@ fun AnalyticsPerformanceTab(modifier: Modifier = Modifier) {
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 6.dp)
     ) {
-        // 1. Tonnage Total Hebdomadaire & Séances
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)

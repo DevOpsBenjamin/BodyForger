@@ -81,7 +81,6 @@ fun RoutineExerciseCard(
             .border(1.dp, SurfaceBorder, RoundedCornerShape(16.dp))
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            // 1. En-tête de l'exercice
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -177,7 +176,6 @@ fun RoutineExerciseCard(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // 2. Sélecteur Chrono de Repos
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
@@ -206,7 +204,6 @@ fun RoutineExerciseCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 3. En-tête des colonnes de séries avec Unité cliquable (KG / LBS ▾)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -222,7 +219,6 @@ fun RoutineExerciseCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Bouton interactif pour l'unité (KG ▾ ou LBS ▾)
                 Row(
                     modifier = Modifier
                         .weight(1f)
@@ -261,7 +257,6 @@ fun RoutineExerciseCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 4. Liste des séries
             exercise.sets.forEachIndexed { setIdx, setItem ->
                 RoutineSetRow(
                     setIndex = setIdx,

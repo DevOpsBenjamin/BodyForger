@@ -5,12 +5,10 @@ import app.bodyforger.core.model.ImpedanceReading
 import app.bodyforger.core.model.RawImpedances
 
 /**
- * Une pesée bi-fréquence **fictive**, pour faire vivre les écrans tant qu'aucune balance
- * n'est appairée.
+ * A **fictional** dual-frequency reading, to keep the screens alive until a scale is paired.
  *
- * Les résistances ne sont copiées de personne : elles sont reconstruites par les lois des
- * mailles à partir d'un corps théorique — quatre membres longs et étroits, un tronc de large
- * section. Elles sont donc physiquement cohérentes sans être la mesure de quiconque.
+ * The resistances are copied from nobody: they are rebuilt from a theoretical body by the
+ * loop laws, so they are physically coherent without being anyone's measurement.
  */
 object DebugSampleBia {
 

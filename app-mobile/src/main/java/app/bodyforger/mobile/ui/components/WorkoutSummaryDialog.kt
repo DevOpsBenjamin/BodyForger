@@ -78,7 +78,6 @@ fun WorkoutSummaryDialog(
     val completedSets = session.sets.filter { it.isCompleted }
     val totalVolumeKg = completedSets.sumOf { it.weightKg * it.reps }
 
-    // Décomposition de fatigue par groupe musculaire
     val muscleVolumeMap = completedSets
         .groupBy { it.primaryMuscle }
         .mapValues { it.value.size }
@@ -142,12 +141,10 @@ fun WorkoutSummaryDialog(
                     .fillMaxWidth()
                     .verticalScroll(scrollState)
             ) {
-                // 1. Métriques Clés en Cartes
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Durée
                     Card(
                         modifier = Modifier.weight(1f).border(1.dp, SurfaceBorder, RoundedCornerShape(12.dp)),
                         colors = CardDefaults.cardColors(containerColor = SurfaceElevated),
@@ -180,7 +177,6 @@ fun WorkoutSummaryDialog(
                         }
                     }
 
-                    // Séries
                     Card(
                         modifier = Modifier.weight(1f).border(1.dp, SurfaceBorder, RoundedCornerShape(12.dp)),
                         colors = CardDefaults.cardColors(containerColor = SurfaceElevated),

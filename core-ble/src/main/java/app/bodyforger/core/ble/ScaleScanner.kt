@@ -3,62 +3,40 @@ package app.bodyforger.core.ble
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Une balance repérée pendant un scan, avant toute connexion.
+ * A scale spotted during a scan, before any connection.
  *
- * [deviceAddress] vient du **scan natif**, jamais d'une saisie : c'est ce qui rend
- * l'appairage réalisable depuis la montre, et c'est aussi la graine de la clé racine.
+ * [recognised] is `null` for an unknown device. Unknown devices are shown rather than hidden:
+ * seeing the name actually advertised is the only way to notice a scale the name filter
+ * misses — `docs/BLE_PROTOCOL.md` §1.
  */
 data class DiscoveredScale(
     val deviceAddress: String,
     val advertisedName: String,
-    /**
-     * Ce qu'un pilote a reconnu, ou `null` pour un appareil inconnu.
-     *
-     * Les inconnus sont montrés plutôt que masqués : voir le nom réellement annoncé est le
-     * seul moyen de comprendre qu'une balance est bien là mais que notre filtre la rate. Un
-     * scan qui ne montre que ce qu'il reconnaît ne peut jamais dire qu'il s'est trompé.
-     */
     val recognised: RecognisedScale?,
-    /** Puissance reçue, en dBm — utile pour proposer la plus proche quand plusieurs répondent. */
     val signalStrengthDbm: Int
 ) {
     val isCompatible: Boolean get() = recognised != null
 }
 
+/** The scan was refused by the system, which is not the same as finding nothing. */
+class ScanRejected(val errorCode: Int, override val message: String) : Exception(message)
+
 /**
- * La découverte des balances alentour.
+ * All a scan needs in order to sort what it hears: recognise a scale by its advertised name.
  *
- * ⚠️ Le nom examiné est celui **annoncé dans l'advertisement**, pas le nom GAP de l'appareil.
- * Les deux diffèrent : la famille Haige annonce son modèle (`HUAWEI Scale 3 Pro-467`) tout en
- * portant un nom GAP générique (`HaigeBLE`). Se fier au second empêcherait de reconnaître le
- * modèle — c'est ce qui a été établi en #24.
- */
-/**
- * Le strict nécessaire pour trier un scan : reconnaître une balance à son nom annoncé.
- *
- * Contrat volontairement plus étroit que [ScaleDriver] : scanner n'exige pas de savoir
- * appairer ni peser, et le demander obligerait à écrire un pilote complet avant d'avoir
- * repéré le premier appareil.
+ * Narrower than [ScaleDriver] on purpose — scanning does not require knowing how to pair or
+ * weigh, and demanding it would mean writing a full driver before spotting a first device.
  */
 fun interface ScaleIdentifier {
     fun identify(advertisedName: String?): RecognisedScale?
 }
 
-/**
- * Le scan a été refusé par le système.
- *
- * Distinguer un refus d'une absence de résultat est indispensable : les deux se traduisent
- * autrement par un écran qui cherche indéfiniment.
- */
-class ScanRejected(val errorCode: Int, override val message: String) : Exception(message)
-
 interface ScaleScanner {
-
     /**
-     * Émet les appareils qui s'annoncent tant que le flux est collecté, reconnus ou non.
+     * Emits advertising devices while collected, recognised or not.
      *
-     * Le même appareil peut être émis plusieurs fois : une balance s'annonce en boucle, et sa
-     * puissance reçue varie. C'est à l'appelant de dédupliquer par adresse.
+     * A scale advertises repeatedly, so the same device is emitted many times with a varying
+     * signal strength; deduplicating by address is the caller's business.
      */
     fun scan(identifier: ScaleIdentifier): Flow<DiscoveredScale>
 }

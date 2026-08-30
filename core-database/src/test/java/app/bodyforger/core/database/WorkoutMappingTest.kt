@@ -171,7 +171,6 @@ class WorkoutMappingTest {
         val domain = relation.toDomain()
         assertEquals("sess_full", domain.id)
         assertEquals(2, domain.sets.size)
-        // Vérifie le tri correct : orderIndex 0 (Bench) avant orderIndex 1 (Squat)
         assertEquals("bf_bench", domain.sets[0].exerciseId)
         assertEquals("bf_squat", domain.sets[1].exerciseId)
     }

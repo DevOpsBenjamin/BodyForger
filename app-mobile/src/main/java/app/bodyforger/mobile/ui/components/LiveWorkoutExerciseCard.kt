@@ -201,7 +201,6 @@ fun LiveWorkoutExerciseCard(
                     modifier = Modifier.width(42.dp)
                 )
 
-                // Sélecteur d'unité KG / LBS
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
@@ -243,7 +242,6 @@ fun LiveWorkoutExerciseCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Lignes de séries actives
             sets.forEach { setItem ->
                 LiveWorkoutSetRow(
                     set = setItem,

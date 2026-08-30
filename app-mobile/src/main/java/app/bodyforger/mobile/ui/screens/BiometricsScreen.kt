@@ -74,7 +74,6 @@ fun BiometricsScreen() {
             profile = profile,
             impedances = DebugSampleBia.dualFrequencyReading
         )
-        // Sans impédances relevées, il n'y a pas de composition à montrer : le moteur rend
         // `null` plutôt que d'inventer un chiffre.
     } ?: return
 
@@ -85,7 +84,6 @@ fun BiometricsScreen() {
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
-        // En-tête
         Text(
             text = "BIOMÉTRIE & BIA DEXA",
             color = ElectricCyan,
@@ -143,7 +141,6 @@ fun BiometricsScreen() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Barre de répartition Masse Grasse vs Masse Maigre
                 val fatMass = ((userMassKg - report.fatFreeMassKg) * 10).toInt() / 10.0
                 val leanMass = report.fatFreeMassKg
                 val leanRatio = (leanMass / userMassKg).toFloat().coerceIn(0f, 1f)
@@ -169,7 +166,6 @@ fun BiometricsScreen() {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Répartition Segmentaire 5 Zones
         Text(
             text = "ANALYSE SEGMENTAIRE 5 ZONES",
             color = TextSecondary,
@@ -249,7 +245,6 @@ fun BiometricsScreen() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Bouton Pesée BLE Huawei Scale 3
         Button(
             onClick = {
                 userMassKg = if (userMassKg == 78.5) 78.2 else 78.5

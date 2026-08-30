@@ -12,12 +12,10 @@ import app.bodyforger.core.model.ImpedanceReading
 import app.bodyforger.core.model.RawImpedances
 
 /**
- * Un relevé corporel tel qu'il est conservé.
+ * A body reading as it is stored.
  *
- * Le taux de masse grasse est **celui que la balance a envoyé**, ou celui que l'athlète a
- * saisi : c'est une donnée reçue, pas un calcul. Le nôtre n'est jamais persisté — il se
- * recalcule à la demande depuis les résistances, de sorte que tout l'historique se mette à
- * jour le jour où les équations s'améliorent (#20).
+ * The body fat percentage is the one the scale sent, or the one the athlete entered: received
+ * data, not a computation. Ours is never persisted — it recomputes from the resistances.
  */
 @Entity(tableName = "body_logs")
 data class BodyLogEntity(
@@ -28,19 +26,16 @@ data class BodyLogEntity(
     val massKg: Double,
     val bodyFatPercentage: Double,
     val restingHeartRateBpm: Int?,
-    /** Adresse de la balance qui a produit ce relevé, ou `null` pour une saisie manuelle. */
+    /** Address of the scale that produced this reading, or `null` for a manual entry. */
     val sourceDeviceAddress: String? = null
 )
 
 /**
- * Une résistance mesurée, une ligne.
+ * One measured resistance, one row.
  *
- * Une **table fille plutôt qu'une colonne JSON**, pour deux raisons. La première est que
- * l'agrégation d'une période se fait sur la **médiane des résistances** et non sur une
- * moyenne de résultats : c'est un calcul que SQL sait mener sur des lignes, pas sur du texte
- * désérialisé en mémoire. La seconde est qu'une grandeur non mesurée reste ici une **ligne
- * absente**, jamais un zéro encodé — le zéro est la façon dont la balance dit « je n'ai pas
- * mesuré » (#24).
+ * A child table rather than a JSON column: a period is aggregated on the median of the
+ * resistances, which SQL computes over rows, and an unmeasured quantity stays an absent row
+ * rather than an encoded zero.
  */
 @Entity(
     tableName = "body_log_impedances",
@@ -58,13 +53,13 @@ data class BodyLogImpedanceEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val bodyLogId: String,
-    /** Nom du trajet anatomique, jamais son rang dans la trame — celui-ci a déjà changé. */
+    /** Path name, never its index in the frame — that index has already changed once. */
     val path: String,
     val frequencyKHz: Int,
     val ohms: Double
 )
 
-/** Un relevé et ses résistances, tels qu'ils se lisent ensemble. */
+/** A reading and its resistances, as they are read together. */
 data class BodyLogWithImpedances(
     @Embedded val log: BodyLogEntity,
     @Relation(parentColumn = "id", entityColumn = "bodyLogId")

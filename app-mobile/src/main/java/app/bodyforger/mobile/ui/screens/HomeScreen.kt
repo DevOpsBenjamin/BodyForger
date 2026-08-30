@@ -100,7 +100,6 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- 3. CARTES D'ACTION RAPIDE (Séance & Pesée) ---
         HomeActionCards(
             onNavigateToWorkout = onNavigateToWorkout,
             onNavigateToBiometrics = onNavigateToBiometrics

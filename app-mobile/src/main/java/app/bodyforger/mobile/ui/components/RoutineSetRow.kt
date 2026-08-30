@@ -56,7 +56,6 @@ fun RoutineSetRow(
             .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Badge du type de série (Carré propre 34dp)
         Box(
             modifier = Modifier
                 .size(34.dp)
@@ -100,7 +99,6 @@ fun RoutineSetRow(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // 2. Champ Poids (+KG) avec CompactNumberInput (Zéro coupure verticale)
         val weightStr = routineSet.targetWeightKg?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: ""
         CompactNumberInput(
             value = weightStr,
@@ -112,7 +110,6 @@ fun RoutineSetRow(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // 3. Champ Répétitions (Fixes ou Plage)
         if (!routineSet.isRepsRange) {
             val repsStr = routineSet.reps?.toString() ?: ""
             CompactNumberInput(
@@ -155,7 +152,6 @@ fun RoutineSetRow(
 
         Spacer(modifier = Modifier.width(4.dp))
 
-        // 4. Bouton Supprimer la série (✕)
         IconButton(
             onClick = { if (canDelete) onDeleteSet() },
             enabled = canDelete,

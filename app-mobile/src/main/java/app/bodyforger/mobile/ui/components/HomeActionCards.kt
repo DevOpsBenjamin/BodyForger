@@ -45,7 +45,6 @@ fun HomeActionCards(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Carte Gauche : Séance du Jour
         Card(
             modifier = Modifier
                 .weight(1f)
@@ -114,7 +113,6 @@ fun HomeActionCards(
             }
         }
 
-        // Carte Droite : Nouvelle Pesée BLE
         Card(
             modifier = Modifier
                 .weight(1f)

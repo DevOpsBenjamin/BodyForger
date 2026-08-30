@@ -4,11 +4,9 @@ import app.bodyforger.core.model.RawImpedances
 import java.time.LocalDateTime
 
 /**
- * Ce qu'une pesée a livré, indépendamment du matériel qui l'a produite.
+ * What a reading delivered, whatever hardware produced it.
  *
- * Toute grandeur que l'appareil n'a pas mesurée est `null` — jamais un zéro, jamais un
- * défaut. Les pilotes traduisent les conventions d'absence propres à leur famille (champ
- * à zéro, valeur sentinelle, champ absent de la trame) en `null` avant d'arriver ici.
+ * Anything the device did not measure is `null` — never a zero, never a default.
  */
 data class BiaTelemetry(
     val massKg: Double,

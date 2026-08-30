@@ -19,17 +19,10 @@ import java.security.SecureRandom
 import java.time.LocalDateTime
 
 /**
- * L'appairage **Mode 1** : graver le profil de l'athlète dans la mémoire flash de la
- * balance, puis relever la tare.
+ * Pairing, mode 1: engrave the athlete's profile into the scale's flash, then read the tare.
  *
- * ⚠️ **La gravure précède la pesée et consomme un emplacement, définitivement.** L'ordre
- * n'est pas un détail : quand l'athlète est invité à monter, le slot est déjà pris. C'est ce
- * qui rend un abandon bénin — il n'y a plus rien à préserver — mais aussi ce qui interdit de
- * lancer cette séquence à la légère.
- *
- * Le HUID est fourni par l'appelant et **jamais généré ici** : il appartient à l'athlète, a
- * été créé une seule fois à l'ouverture de la base, et rejouer un appairage doit réécrire le
- * **même** emplacement plutôt que d'en consommer un second (#19).
+ * ⚠️ Engraving precedes the weigh-in and consumes a memory slot for good — the HUID comes
+ * from the caller and is never generated here. `docs/BLE_PROTOCOL.md` §5.
  */
 class HuaweiPairingSession(
     private val transport: ScaleTransport,
@@ -45,8 +38,6 @@ class HuaweiPairingSession(
         huid: String,
         profile: ScaleUserProfile
     ): Flow<PairingState> = flow {
-        // Un scope englobant : écouter une réponse doit pouvoir démarrer **avant** l'écriture
-        // qui la provoque, sans quoi une réponse immédiate serait perdue.
         coroutineScope {
         val steps = HuaweiPairingSequence.stepsFor(model)
         var index = 0
@@ -80,8 +71,6 @@ class HuaweiPairingSession(
         }
 
         advance() // Gravure du HUID — irréversible à partir d'ici
-        // La tare répond sur la même caractéristique : on écoute avant d'écrire, faute de
-        // quoi une réponse immédiate serait perdue.
         val tareAwaited = async {
             transport.incoming.first { it.characteristic == HuaweiCharacteristic.HUID_REGISTRATION }
         }
@@ -100,9 +89,6 @@ class HuaweiPairingSession(
         advance() // Attente de la tare : l'athlète doit monter
         val tareKg = awaitTare(sessionKey, tareAwaited)
         if (tareKg == null) {
-            // La référence poursuit ici avec une tare de zéro, ou un ancien poids, et l'écrit
-            // dans la mémoire flash. Nous refusons : une Association sans tare n'existe pas,
-            // et l'appairage se rejouera sur le même HUID sans rien coûter (#19).
             transport.write(HuaweiCharacteristic.BINDING_CONTROL, HuaweiPayloads.bindingControl(armed = false))
             emit(PairingState.Failed(SessionFailure.TIMED_OUT))
             return@coroutineScope
@@ -127,15 +113,9 @@ class HuaweiPairingSession(
         val validationAwaited = async {
             transport.incoming.first { it.characteristic == HuaweiCharacteristic.BIA_STREAM }
         }
-        // S'abonner ne suffit pas : le flux doit être armé pour que la balance émette.
         transport.writeRaw(HuaweiCharacteristic.BIA_STREAM, HuaweiCommands.QUERY)
 
         advance() // Relevé de validation, puis acquittement
-        // ⚠️ Attente **courte** et volontairement distincte de celle de la tare : cette trame
-        // est un bonus, pas une condition. Rien n'établit que tout matériel en produise une
-        // pendant l'appairage — `TECH.md` §5 la montre, l'implémentation de référence s'arrête
-        // à la tare. Lui accorder le délai d'attente de l'athlète ferait paraître l'appairage
-        // bloqué deux minutes durant, pour une valeur facultative.
         val validation = withTimeoutOrNull(VALIDATION_TIMEOUT_MS) { validationAwaited.await() }
             .also { if (it == null) validationAwaited.cancel() }
         val telemetry = validation
@@ -171,12 +151,7 @@ class HuaweiPairingSession(
         }
     }
 
-    /**
-     * La balance renvoie la tare sur la caractéristique de gravure, une fois l'athlète monté.
-     *
-     * C'est **l'acquittement de la gravure autant que la mesure** : recevoir cette valeur
-     * prouve que l'emplacement a bien été écrit.
-     */
+    /** Reads the tare from the engraving answer, which opens with a status byte. */
     private suspend fun awaitTare(
         sessionKey: ByteArray,
         awaited: Deferred<ScaleNotification>
@@ -190,9 +165,6 @@ class HuaweiPairingSession(
         val clear = HuaweiCrypto.decrypt(sessionKey, notification.payload) ?: return null
         if (clear.size < STATUS_BYTES + WEIGHT_BYTES) return null
 
-        // La réponse s'ouvre sur un octet de statut, et le poids ne vient qu'ensuite. Le lire
-        // dès le premier octet mêlait le statut à la moitié basse du poids, ce qui donnait une
-        // tare absurde sans que rien ne le signale.
         val status = clear[0].toInt() and 0xFF
         if (status != STATUS_OK) {
             Log.w(TAG, "gravure refusée par la balance (statut $status)")
@@ -200,7 +172,6 @@ class HuaweiPairingSession(
         }
 
         val hundredths = (clear[1].toInt() and 0xFF) or ((clear[2].toInt() and 0xFF) shl 8)
-        // Un zéro n'est pas une tare : c'est l'absence de pesée.
         return (hundredths / 100.0).takeIf { it > 0.0 }
     }
 
@@ -216,22 +187,18 @@ class HuaweiPairingSession(
     companion object {
         private const val TAG = "BodyForgerBle"
 
-        /** La réponse s'ouvre sur un octet de statut ; zéro vaut acceptation. */
+        /** Status byte; zero means accepted. */
         private const val STATUS_BYTES = 1
         private const val WEIGHT_BYTES = 2
         private const val STATUS_OK = 0
 
-        /** Champ HUID de la trame de gravure : trente octets, complétés de zéros. */
+        /** HUID field of the engraving frame, zero-padded. */
         const val HUID_FIELD_BYTES = 30
 
-        /** L'athlète doit se déchausser et monter : la référence attend vingt-cinq secondes. */
+        /** Undressing and stepping on takes time; a protocol-sized timeout would fail. */
         const val DEFAULT_TARE_TIMEOUT_MS = 120_000L
 
-        /**
-         * Attente de la trame de validation, facultative. L'athlète est déjà sur la balance
-         * et la mesure d'impédance suit la stabilisation de quelques secondes ; au-delà, elle
-         * ne viendra pas, et l'appairage n'a pas à l'attendre.
-         */
+        /** The validation frame is a bonus, not a condition: a short, separate wait. */
         const val VALIDATION_TIMEOUT_MS = 20_000L
     }
 }

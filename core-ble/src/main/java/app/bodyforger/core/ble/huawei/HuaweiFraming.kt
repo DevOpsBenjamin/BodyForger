@@ -1,9 +1,6 @@
 package app.bodyforger.core.ble.huawei
 
-/**
- * D'où vient une trame, et si son contenu est chiffré. L'octet magique porte les deux
- * informations à la fois.
- */
+/** Where a frame comes from, and whether its body is encrypted. */
 enum class HuaweiFrameMagic(val byte: Int, val fromScale: Boolean, val encrypted: Boolean) {
     HOST_CLEAR(0xDB, fromScale = false, encrypted = false),
     HOST_ENCRYPTED(0xDC, fromScale = false, encrypted = true),
@@ -16,17 +13,9 @@ enum class HuaweiFrameMagic(val byte: Int, val fromScale: Boolean, val encrypted
 }
 
 /**
- * La couche de trame propriétaire posée par-dessus le MTU du BLE.
+ * The proprietary framing layer above the BLE MTU.
  *
- * ```
- * +---------+------------+--------------+------------------+---------------+
- * | magique | longueur   | séquence     | charge (0..15 o) | CRC-16 (LE)   |
- * +---------+------------+--------------+------------------+---------------+
- * ```
- *
- * La longueur annoncée compte la charge **plus trois** ; l'octet de séquence loge le nombre
- * total de trames dans son quartet haut et l'index courant dans le quartet bas. Quatre bits
- * pour chacun : une charge ne peut donc pas dépasser seize trames de quinze octets.
+ * Structure and the two CRC variants: `docs/BLE_PROTOCOL.md` §3.
  */
 object HuaweiFraming {
 
@@ -41,13 +30,9 @@ object HuaweiFraming {
     const val POLYNOMIAL = 0x1021
 
     /**
-     * La table du CRC-16 CCITT, figée ici pour n'être calculée qu'une fois — au moment
-     * d'écrire ce fichier, jamais à l'exécution.
+     * CRC-16 CCITT table, generated from [POLYNOMIAL] rather than transcribed.
      *
-     * Elle n'a pas été recopiée à la main : elle a été **générée** depuis [POLYNOMIAL], et un
-     * test la régénère pour vérifier qu'elle n'a pas dérivé. Une table transcrite est une
-     * source d'erreur silencieuse — openScale en porte une entachée d'une coquille — et ce
-     * test rend la coquille impossible.
+     * A test regenerates it — `docs/BLE_PROTOCOL.md` §3.
      */
     val CRC_TABLE: IntArray = intArrayOf(
         0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
@@ -84,12 +69,7 @@ object HuaweiFraming {
         0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
     )
 
-    /**
-     * Le CRC des trames que **nous émettons** : CCITT, registre initialisé à zéro.
-     *
-     * C'est celui de la table ci-dessus, employé par l'implémentation de référence éprouvée
-     * en production. Les trames construites ainsi sont acceptées par le matériel.
-     */
+    /** CRC of the frames we send: CCITT, register starting at zero. */
     fun crc16(data: ByteArray, length: Int = data.size): Int {
         var register = 0
         for (i in 0 until length) {
@@ -100,14 +80,9 @@ object HuaweiFraming {
     }
 
     /**
-     * Le CRC des trames que **la balance émet** : MODBUS — polynôme `0x8005`, registre
-     * initialisé à `0xFFFF`, réfléchi en entrée comme en sortie.
+     * CRC of the frames the scale sends: MODBUS.
      *
-     * ⚠️ **Les deux sens n'emploient pas le même CRC**, et c'est un constat de terrain, pas
-     * une théorie : deux trames d'authentification réellement capturées le donnent sans
-     * ambiguïté, là où le CCITT sortant se trompe de plusieurs milliers. `TECH.md` §3.2 ne
-     * documente que le premier, et l'implémentation de référence ne vérifie jamais les trames
-     * reçues — elle n'avait donc aucune occasion de s'en apercevoir.
+     * The two directions do not share a CRC — `docs/BLE_PROTOCOL.md` §3.
      */
     fun receivedCrc16(data: ByteArray, length: Int = data.size): Int {
         var register = 0xFFFF
@@ -124,27 +99,18 @@ object HuaweiFraming {
         return register and 0xFFFF
     }
 
-    /** Polynôme MODBUS `0x8005`, sous sa forme réfléchie. */
+    /** MODBUS polynomial `0x8005`, in reflected form. */
     private const val MODBUS_REFLECTED_POLYNOMIAL = 0xA001
 
-    /**
-     * Découpe une charge utile en trames prêtes à écrire sur la caractéristique.
-     *
-     * Une charge vide produit **une** trame et non zéro : certaines commandes n'ont pas de
-     * corps et doivent quand même être émises.
-     */
+    /** Splits a payload into frames. An empty payload yields one frame, not none. */
     fun split(
         payload: ByteArray,
         magic: HuaweiFrameMagic,
-        /**
-         * La signature à apposer. Les deux sens n'emploient pas le même CRC : ce paramètre
-         * existe pour pouvoir reconstituer une trame **telle que la balance l'émet**, ce dont
-         * les tests ont besoin et que le code de production n'a jamais à faire.
-         */
+        /** The signature to apply; lets a test rebuild a frame as the scale emits it. */
         crc: (ByteArray, Int) -> Int = ::crc16
     ): List<ByteArray> {
         require(payload.size <= MAX_PAYLOAD_BYTES) {
-            "Charge de ${payload.size} octets : le séquencement sur quatre bits en admet $MAX_PAYLOAD_BYTES au plus"
+            "Payload of ${payload.size} bytes; four-bit sequencing allows $MAX_PAYLOAD_BYTES at most"
         }
         val total = maxOf(1, (payload.size + PAYLOAD_BYTES_PER_FRAME - 1) / PAYLOAD_BYTES_PER_FRAME)
         return List(total) { index ->
@@ -164,27 +130,17 @@ object HuaweiFraming {
 }
 
 /**
- * Recolle les trames reçues jusqu'à reconstituer la charge utile.
+ * Reassembles received frames into a payload.
  *
- * ⚠️ **Le CRC est vérifié ici, contrairement à l'implémentation de référence** qui lit la
- * longueur et la séquence sans jamais contrôler l'intégrité. Une trame corrompue y était
- * recollée telle quelle, puis déchiffrée en bruit — d'où une charge absurde sans que rien
- * n'indique la corruption.
- *
- * L'instance n'est pas sûre vis-à-vis des accès concurrents : une par connexion.
+ * Unlike the reference implementation, the CRC is verified here. Not thread-safe: one per
+ * connection.
  */
 class HuaweiFrameReassembler {
 
     private val chunks = mutableListOf<ByteArray>()
     private var expectedFrames = 0
 
-    /**
-     * Pourquoi la dernière trame a été écartée, ou `null` si elle a été acceptée.
-     *
-     * Une trame incomplète et une trame rejetée rendent toutes deux `null` : sans cette
-     * distinction, un défaut de recollage est indiscernable d'un message qui arrive en
-     * plusieurs morceaux.
-     */
+    /** Why the last frame was discarded, or `null` when it was accepted. */
     var lastRejection: String? = null
         private set
 
@@ -193,32 +149,27 @@ class HuaweiFrameReassembler {
         private set
 
     /**
-     * Injecte une trame reçue et rend la charge complète, ou `null` tant qu'il en manque.
+     * Feeds a received frame, returning the payload once complete.
      *
-     * Une trame malformée, au CRC faux ou hors séquence est **écartée** et remet le
-     * recollage à zéro : mieux vaut perdre une charge et la voir retransmise que d'en
-     * assembler une fausse.
+     * A malformed, mis-signed or out-of-sequence frame is discarded and resets the
+     * reassembly: better to lose a payload and see it retransmitted than to build a wrong one.
      */
     fun feed(raw: ByteArray): ByteArray? {
         lastRejection = null
-        if (raw.size < 5) return discard("trame de ${raw.size} octets, trop courte")
+        if (raw.size < 5) return discard("frame of ${raw.size} bytes, too short")
         val frameMagic = HuaweiFrameMagic.of(raw[0].toInt())
-            ?: return discard(
-                // La réponse de capacités emploie son propre format, hors de cette couche de
-                // trame — d'où un octet de tête qui n'en est pas un.
-                "octet magique inconnu : 0x%02x".format(raw[0].toInt() and 0xFF)
-            )
+            ?: return discard("unknown magic byte: 0x%02x".format(raw[0].toInt() and 0xFF))
 
         val declared = (raw[1].toInt() and 0xFF) - 3
         if (declared < 0 || 3 + declared + 2 > raw.size) {
-            return discard("longueur annoncée ${raw[1].toInt() and 0xFF} incompatible avec ${raw.size} octets")
+            return discard("declared length ${raw[1].toInt() and 0xFF} inconsistent with ${raw.size} bytes")
         }
 
         val expectedCrc = HuaweiFraming.receivedCrc16(raw, 3 + declared)
         val actualCrc = (raw[3 + declared].toInt() and 0xFF) or
             ((raw[4 + declared].toInt() and 0xFF) shl 8)
         if (expectedCrc != actualCrc) {
-            return discard("CRC attendu 0x%04x, reçu 0x%04x".format(expectedCrc, actualCrc))
+            return discard("CRC expected 0x%04x, received 0x%04x".format(expectedCrc, actualCrc))
         }
 
         val sequence = raw[2].toInt() and 0xFF
@@ -230,8 +181,7 @@ class HuaweiFrameReassembler {
             expectedFrames = total
             magic = frameMagic
         } else if (index != chunks.size || total != expectedFrames || frameMagic != magic) {
-            // Trame orpheline, ou d'un autre message : on ne devine pas ce qui manque.
-            return discard("trame $index/$total hors séquence (${chunks.size} déjà reçues)")
+            return discard("frame $index/$total out of sequence (${chunks.size} received)")
         }
 
         chunks += raw.copyOfRange(3, 3 + declared)
@@ -248,7 +198,7 @@ class HuaweiFrameReassembler {
         return payload
     }
 
-    /** Abandonne le recollage en cours — à appeler sur déconnexion. */
+    /** Drops the reassembly in progress; call on disconnection. */
     fun reset() {
         chunks.clear()
         expectedFrames = 0

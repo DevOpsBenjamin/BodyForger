@@ -62,8 +62,10 @@ interface WorkoutDao {
     suspend fun getSetsForSession(sessionId: String): List<WorkoutSetEntity>
 
     /**
-     * Validation atomique immédiate d'une série avec recalcul du tonnage total de la séance
-     * pour assurer une résilience absolue aux crashs et à l'extinction de batterie.
+     * Records one validated set and the session tonnage that follows, in one transaction.
+     *
+     * Recomputing the tonnage here rather than storing it separately keeps the aggregate and
+     * its rows from disagreeing after a partial write.
      */
     @Transaction
     suspend fun atomicCompleteSet(
@@ -84,7 +86,6 @@ interface WorkoutDao {
         )
         updateSet(updatedSet)
 
-        // Recalcul du tonnage cumulé de la séance
         val allSets = getSetsForSession(currentSet.sessionId)
         val totalVolume = allSets.filter { it.isCompleted }.sumOf { it.weightKg * it.reps }
         

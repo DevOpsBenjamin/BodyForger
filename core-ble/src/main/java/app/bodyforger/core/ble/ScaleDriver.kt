@@ -5,53 +5,34 @@ import app.bodyforger.core.model.ScaleUserProfile
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Le composant d'adaptation matérielle dédié à une famille de balances.
+ * The hardware adapter for a family of scales.
  *
- * Le pilote possède **son propre contrat** : sa séquence d'appairage, ses étapes, ses
- * trames, sa cryptographie. Le cœur ne connaît que le vocabulaire commun — [SessionPhase],
- * [AthleteInstruction], [SessionFailure] — et ne présume ni du nombre d'étapes, ni de leur
- * ordre, ni de la nécessité d'une connexion.
- *
- * Rien de propre à un constructeur ne traverse cette interface : ni énumération de modèles,
- * ni décalage de trame, ni identifiant GATT.
+ * A driver owns its own sequences, frames and cryptography. The core knows only the shared
+ * vocabulary and assumes nothing about step count, order, or even that a connection exists.
+ * Nothing vendor-specific crosses this interface.
  */
 interface ScaleDriver : ScaleIdentifier {
 
-    /** Identifiant stable du pilote, par exemple `huawei_haige`. */
+    /** Stable driver id, such as `huawei_haige`. */
     val id: String
 
-    /** Nom lisible de la famille prise en charge. */
+    /** Readable name of the supported family. */
     val name: String
 
-    /** Ce que ce matériel exige avant de pouvoir être utilisé au quotidien. */
+    /** What this hardware requires before day-to-day use. */
     val pairingRequirement: PairingRequirement
 
-    /**
-     * Examine le nom annoncé dans l'advertisement BLE.
-     *
-     * @return la balance reconnue, ou `null` si elle n'appartient pas à cette famille.
-     */
+    /** Recognises a scale from its advertised name, or `null` when it is not ours. */
     override fun identify(advertisedName: String?): RecognisedScale?
 
-    /**
-     * Déroule l'appairage initial et produit l'Association.
-     *
-     * Le flux se termine sur [PairingState.Completed] ou [PairingState.Failed]. Un pilote
-     * dont le [pairingRequirement] vaut [PairingRequirement.NONE] peut aboutir sans émettre
-     * la moindre étape.
-     */
+    /** Runs the initial pairing and produces the association. */
     fun pair(
         deviceAddress: String,
         advertisedName: String,
         profile: ScaleUserProfile
     ): Flow<PairingState>
 
-    /**
-     * Déroule une pesée sur la balance associée.
-     *
-     * Le flux se termine sur [WeighInState.Completed] ou [WeighInState.Failed].
-     * L'annulation du flux interrompt la pesée.
-     */
+    /** Runs one weigh-in against an established association. */
     fun weighIn(
         association: ScaleAssociation,
         profile: ScaleUserProfile
@@ -59,10 +40,10 @@ interface ScaleDriver : ScaleIdentifier {
 }
 
 /**
- * Le registre des pilotes : choisit celui qui sait dialoguer avec une balance donnée.
+ * The driver registry: picks the one able to talk to a given scale.
  *
- * L'ordre de la liste fait foi en cas de recouvrement — un pilote spécifique doit précéder
- * un pilote générique, tel que le profil Bluetooth SIG standard.
+ * List order decides overlaps — a specific driver must precede a generic one, such as the
+ * standard Bluetooth SIG profile.
  */
 class ScaleDriverRegistry(private val drivers: List<ScaleDriver>) {
 

@@ -15,11 +15,8 @@ import org.junit.Test
 import java.security.SecureRandom
 
 /**
- * Le handshake se vérifie sans matériel : c'est précisément pour cela que le transport est
  * un contrat et non une classe Android.
  *
- * Le faux transport joue le rôle d'une balance qui répond correctement, et chaque test le
- * fait dévier sur un point pour observer si la négociation s'en aperçoit.
  */
 class HuaweiHandshakeTest {
 
@@ -47,7 +44,6 @@ class HuaweiHandshakeTest {
 
     @Test
     fun `l'abonnement precede toute ecriture`() = runTest {
-        // Les réponses arrivent par notification : écrire avant de s'être abonné revient à
         // parler dans le vide.
         val transport = FakeScale()
         HuaweiHandshake(transport, model, predictable).negotiate(mac)
@@ -59,8 +55,6 @@ class HuaweiHandshakeTest {
 
     @Test
     fun `un jeton de balance faux interrompt la negociation`() = runTest {
-        // La référence calculait ce jeton sans jamais le comparer : n'importe quel appareil
-        // annonçant le bon nom aurait été accepté, puis aurait reçu le profil de l'athlète.
         val transport = FakeScale(scaleTokenValid = false)
         assertNull(HuaweiHandshake(transport, model, predictable).negotiate(mac))
     }
@@ -82,7 +76,6 @@ class HuaweiHandshakeTest {
 
     @Test
     fun `un alea trop court est refuse`() = runTest {
-        // Un aléa tronqué complété par des zéros affaiblirait l'authentification sans que
         // rien ne le signale.
         val transport = FakeScale(scaleNonceBytes = 8)
         assertNull(HuaweiHandshake(transport, model, predictable).negotiate(mac))

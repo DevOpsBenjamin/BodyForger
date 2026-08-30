@@ -33,8 +33,6 @@ class HuaweiGattProfileTest {
 
     @Test
     fun `seul le transport de la cle de session est protege par la cle racine`() {
-        // La clé de session ne peut évidemment pas se protéger elle-même : c'est la clé
-        // racine, dérivée du MAC, qui convoie son échange.
         val rootProtected = HuaweiCharacteristic.entries
             .filter { it.protection == HuaweiCharacteristic.Protection.ROOT_KEY }
         assertEquals(listOf(HuaweiCharacteristic.SESSION_KEY), rootProtected)
@@ -42,10 +40,8 @@ class HuaweiGattProfileTest {
 
     @Test
     fun `l'authentification se joue en clair, ce qui la suit ne l'est plus`() {
-        // Rien n'est encore négocié pendant le handshake : il ne peut pas être chiffré.
         assertEquals(HuaweiCharacteristic.Protection.CLEAR, HuaweiCharacteristic.AUTH_REQUEST.protection)
         assertEquals(HuaweiCharacteristic.Protection.CLEAR, HuaweiCharacteristic.AUTH_TOKENS.protection)
-        // Tout ce qui touche à l'athlète, en revanche, voyage chiffré.
         for (sensitive in listOf(
             HuaweiCharacteristic.HUID_REGISTRATION,
             HuaweiCharacteristic.USER_PROFILE,
@@ -57,8 +53,6 @@ class HuaweiGattProfileTest {
 
     @Test
     fun `les caracteristiques standard du SIG se reconnaissent a leur forme`() {
-        // Motif `0000XXXX-0000-1000-8000-00805f9b34fb` : allouées par le Bluetooth SIG, elles
-        // ne dépendent d'aucun modèle. Les onze autres sont propriétaires.
         val sigSuffix = "-0000-1000-8000-00805f9b34fb"
         val standard = profile.characteristics.filterValues { it.toString().endsWith(sigSuffix) }
         assertEquals(
@@ -74,8 +68,6 @@ class HuaweiGattProfileTest {
 
     @Test
     fun `tous les modeles partent du profil de la Pro, comme hypothese testable`() {
-        // Relevé sur la Pro seule ; une caractéristique absente à la découverte des services
-        // réfute l'hypothèse pour un autre modèle — et se diagnostique, elle.
         for (model in HuaweiScaleModel.entries) {
             assertEquals(HuaweiGattProfile.SCALE_3_PRO, model.gattProfile)
         }

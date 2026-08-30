@@ -4,37 +4,30 @@ import app.bodyforger.core.ble.huawei.HuaweiCharacteristic
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Ce qu'une couche de transport doit savoir faire pour qu'un pilote puisse dialoguer avec
- * une balance : se connecter, s'abonner, écrire, et livrer ce qui arrive.
+ * What a transport must offer for a driver to talk to a scale.
  *
- * Ce contrat existe pour que l'orchestration du protocole — la partie qui compte, et qui se
- * trompe — reste vérifiable sans matériel. Le vrai transport Bluetooth n'a rien à décider :
- * il transporte.
+ * This contract exists so the protocol orchestration — the part that matters, and that gets
+ * things wrong — stays verifiable without hardware.
  */
 interface ScaleTransport {
 
-    /** Les charges reçues, déjà recollées et rattachées à leur caractéristique. */
+    /** Incoming payloads, already reassembled and attributed to a characteristic. */
     val incoming: Flow<ScaleNotification>
 
-    /** Établit la connexion et découvre les services. `false` si l'un des deux échoue. */
+    /** Connects and discovers services. */
     suspend fun connect(): Boolean
 
     /**
-     * Active les notifications d'une caractéristique.
+     * Enables notifications on a characteristic.
      *
-     * Sans cet abonnement, la balance écrit dans le vide : la plupart de ses réponses
-     * arrivent par notification et non en retour d'écriture.
+     * Most answers arrive as notifications rather than write returns, so writing before
+     * subscribing means talking into the void — `docs/BLE_PROTOCOL.md` §7.
      */
     suspend fun subscribe(characteristic: HuaweiCharacteristic): Boolean
 
-    /** Coupe les notifications d'une caractéristique. */
     suspend fun unsubscribe(characteristic: HuaweiCharacteristic): Boolean
 
-    /**
-     * Écrit une charge, en la découpant en trames si nécessaire.
-     *
-     * @param withResponse `false` pour les caractéristiques en écriture sans réponse.
-     */
+    /** Writes a payload, splitting it into frames as needed. */
     suspend fun write(
         characteristic: HuaweiCharacteristic,
         payload: ByteArray,
@@ -42,13 +35,10 @@ interface ScaleTransport {
     ): Boolean
 
     /**
-     * Écrit des octets **tels quels**, sans les encadrer.
+     * Writes bytes as they are, without framing.
      *
-     * Le protocole mêle deux sortes d'écritures, et les confondre fait tout échouer. Les
-     * charges applicatives — profil, horloge, HUID — sont découpées et encadrées par
-     * [write]. Mais certaines commandes fixes sont **déjà des trames complètes**, magique et
-     * CRC compris : les repasser dans l'encadrement produirait une trame contenant une
-     * trame, que la balance rejette sans un mot.
+     * Some fixed commands are already complete frames; framing them again produces a frame
+     * inside a frame — `docs/BLE_PROTOCOL.md` §3.
      */
     suspend fun writeRaw(
         characteristic: HuaweiCharacteristic,
@@ -56,15 +46,15 @@ interface ScaleTransport {
         withResponse: Boolean = true
     ): Boolean
 
-    /** Ferme la connexion et libère les ressources. Idempotent. */
+    /** Closes the connection and releases resources. Idempotent. */
     fun close()
 }
 
-/** Une charge complète reçue d'une caractéristique, telle que la balance l'a émise. */
+/** A complete payload received from a characteristic, as the scale emitted it. */
 data class ScaleNotification(
     val characteristic: HuaweiCharacteristic,
     val payload: ByteArray,
-    /** Vrai si la charge est chiffrée par la clé de session et reste à déchiffrer. */
+    /** True when the payload is session-encrypted and still to be decrypted. */
     val encrypted: Boolean
 ) {
     override fun equals(other: Any?): Boolean = this === other || (other is ScaleNotification &&

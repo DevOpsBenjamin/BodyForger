@@ -1,78 +1,46 @@
 package app.bodyforger.core.ble
 
 /**
- * Le vocabulaire commun à toutes les balances.
+ * Terms shared by every scale, whatever its family.
  *
- * Le cœur ne connaît **que** ces termes ; c'est le pilote qui décide de sa séquence, de son
- * nombre d'étapes et de leur ordre. Une balance en diffusion pure n'a ni connexion ni
- * authentification et n'émettra jamais [SessionPhase.PREPARING] ; une balance qui exige une
- * pesée d'appairage émettra [AthleteInstruction.STEP_ON_BAREFOOT] pendant l'appairage, là où
- * une autre n'en aura pas besoin.
+ * The core knows only these; a driver owns its own sequence, its step count and their order.
  */
 enum class SessionPhase {
-    /** Recherche de l'appareil parmi ceux qui s'annoncent. */
     DISCOVERING,
-
-    /** Connexion, authentification, transmission du profil — sans intervention de l'athlète. */
+    /** Connecting, authenticating, configuring — no athlete involvement. */
     PREPARING,
-
-    /** Le matériel attend un geste physique : voir [AthleteInstruction]. */
+    /** The hardware waits on a physical action: see [AthleteInstruction]. */
     AWAITING_ATHLETE,
-
-    /** Stabilisation de la masse puis relevé des impédances. */
     MEASURING
 }
 
 /**
- * Un geste physique demandé à l'athlète.
+ * A physical action asked of the athlete.
  *
- * Ensemble volontairement clos et petit : l'interface sait rendre chacun de ces gestes, et
- * les pilotes se limitent à choisir lesquels demander et dans quel ordre. Ajouter un geste
- * est une décision de conception, pas un détail de pilote.
+ * Deliberately small and closed: the interface knows how to render each one, and drivers only
+ * choose which to ask for and when. Adding one is a design decision, not a driver detail.
  */
 enum class AthleteInstruction {
-    /** Tapoter la balance pour qu'elle s'annonce ; sans cela elle reste invisible au scan. */
+    /** Tap the scale so it advertises; without this it stays invisible to the scan. */
     TAP_SCALE_TO_WAKE,
-
-    /** Rester hors du plateau pendant la négociation. */
     STAY_OFF_PLATFORM,
-
-    /**
-     * Monter sur la balance pour une **pesée de masse seule**.
-     *
-     * Distincte de [STEP_ON_BAREFOOT] : sans mesure d'impédance, le contact de la peau avec
-     * les électrodes n'importe pas, et exiger les pieds nus serait une contrainte gratuite.
-     * C'est le cas de la tare relevée pendant l'appairage.
-     */
+    /** Step on for a weight-only reading, where skin contact does not matter. */
     STEP_ON,
-
-    /** Monter pieds nus sur les électrodes, le contact conditionnant la mesure d'impédance. */
+    /** Step on barefoot, contact conditioning the impedance reading. */
     STEP_ON_BAREFOOT,
-
-    /** Saisir la poignée rétractable des deux mains — sans quoi aucune impédance ne sera relevée. */
+    /** Grip the retractable handle with both hands; without it no impedance is read. */
     GRIP_HANDLE,
-
-    /** Descendre du plateau. */
     STEP_OFF
 }
 
-/** Pourquoi une session s'est arrêtée avant d'aboutir. */
+/** Why a session stopped before completing. */
 enum class SessionFailure {
-    /** Aucun appareil correspondant ne s'est annoncé dans le délai imparti. */
     DEVICE_NOT_FOUND,
-
-    /** La liaison a été perdue en cours de séquence. */
     CONNECTION_LOST,
-
-    /** Le matériel a rejeté l'authentification ou le profil utilisateur. */
+    /** The hardware rejected the authentication or the user profile. */
     REJECTED_BY_DEVICE,
-
-    /** L'athlète n'est pas intervenu, ou la mesure ne s'est jamais stabilisée. */
+    /** The athlete never acted, or the reading never stabilised. */
     TIMED_OUT,
-
-    /** Aucune Association connue : il faut d'abord appairer la balance. */
     NOT_ASSOCIATED,
-
-    /** Le matériel a signalé une condition qu'il est seul à connaître. */
     DEVICE_ERROR
 }

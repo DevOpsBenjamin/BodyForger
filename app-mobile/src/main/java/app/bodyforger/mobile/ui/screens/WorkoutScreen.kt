@@ -85,7 +85,6 @@ fun WorkoutScreen(
     val sessionId = remember { UUID.randomUUID().toString() }
     val sessionTitle = stringResource(R.string.workout_live_free_session_title)
 
-    // Liste des exercices et séries actives
     val workoutExercises = remember {
         mutableStateListOf<RoutineExercise>().apply {
             addAll(initialRoutine?.exercises ?: emptyList())
@@ -161,7 +160,6 @@ fun WorkoutScreen(
         }
     }
 
-    // Ticker durée de séance
     LaunchedEffect(Unit) {
         while (true) {
             delay(1000)
@@ -213,7 +211,6 @@ fun WorkoutScreen(
             .statusBarsPadding()
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
-        // 1. Barre supérieure
         LiveWorkoutTopBar(
             currentHeartRate = currentHeartRate,
             sessionSeconds = sessionSeconds,
@@ -259,10 +256,8 @@ fun WorkoutScreen(
                             liveSets[setIdxInList] = recorded
                             workoutViewModel.recordSet(recorded)
 
-                            // Déclenche le chrono de repos si validé
                             if (newCompleted) {
                                 val shouldTriggerRest = if (targetSet.side == UnilateralSide.LEFT) {
-                                    // Attend que le côté droit soit fait aussi
                                     val rightSide = liveSets.find { it.orderIndex == exIdx && it.setIndex == targetSet.setIndex && it.side == UnilateralSide.RIGHT }
                                     rightSide?.isCompleted == true
                                 } else {
@@ -374,7 +369,6 @@ fun WorkoutScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 3. Chronomètre de Repos Interactif
         LiveWorkoutRestTimerOverlay(
             isVisible = isResting,
             secondsRemaining = restSecondsRemaining,
@@ -409,7 +403,6 @@ fun WorkoutScreen(
         }
     }
 
-    // Dialogue Récapitulatif Bilan de Fin de Séance
     if (showingSummaryDialog) {
         WorkoutSummaryDialog(
             session = liveSession,
@@ -421,7 +414,6 @@ fun WorkoutScreen(
         )
     }
 
-    // Modale Unité de Poids
     activeWeightUnitPickerExerciseIndex?.let { exIdx ->
         val currentUnit = workoutExercises.getOrNull(exIdx)?.weightUnit ?: WeightUnit.KG
         WeightUnitPickerDialog(
@@ -429,7 +421,6 @@ fun WorkoutScreen(
             onUnitSelected = { newUnit ->
                 val currentEx = workoutExercises[exIdx]
                 workoutExercises[exIdx] = currentEx.copy(weightUnit = newUnit)
-                // Met à jour les sets associés
                 liveSets.replaceAll {
                     if (it.orderIndex == exIdx) it.copy(weightUnit = newUnit) else it
                 }

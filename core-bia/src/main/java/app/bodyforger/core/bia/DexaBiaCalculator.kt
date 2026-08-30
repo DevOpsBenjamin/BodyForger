@@ -1,7 +1,6 @@
 package app.bodyforger.core.bia
 
 import app.bodyforger.core.model.BiaProfile
-import app.bodyforger.core.model.BiologicalSex
 import app.bodyforger.core.model.BodyCompositionReport
 import app.bodyforger.core.model.ImpedancePath
 import app.bodyforger.core.model.ImpedanceReading
@@ -10,120 +9,63 @@ import app.bodyforger.core.model.SegmentalImpedances
 import app.bodyforger.core.model.SegmentalMuscleMass
 
 /**
- * Le moteur de composition corporelle bi-fréquence.
+ * Turns measured resistances into a body composition.
  *
- * **Il n'invente aucun chiffre.** Une grandeur que le matériel n'a pas mesurée est absente,
- * jamais remplacée par un défaut : un nombre fabriqué serait indiscernable d'une mesure
- * réelle dans l'historique. Là où l'ancienne version repliait une impédance manquante sur
- * `500,0 Ω`, celle-ci rend `null`.
+ * Model, coefficients and their provenance: `docs/BIA_ENGINE.md`.
  *
- * Le taux de masse grasse qu'il produit est **le nôtre**, calculé depuis les résistances
- * brutes. Il vit à côté de celui que la balance envoie, et ne le remplace pas — les deux
- * s'affichent ensemble. Comme il est une fonction pure des ohms conservés, il n'est jamais
- * persisté : le jour où les équations s'améliorent, tout l'historique se recalcule.
- *
- * ⚠️ La comparaison avec les chiffres du constructeur est un **détecteur de grosse erreur,
- * pas une cible de précision** : sa tolérance est le kilogramme. Réduire un écart inférieur
- * au kilo n'est jamais en soi une raison de toucher au modèle.
+ * A quantity the hardware did not measure is absent, never replaced by a default: a
+ * fabricated figure would be indistinguishable from a real measurement in the history.
  */
 object DexaBiaCalculator {
 
-    /**
-     * Régression de masse maigre bi-fréquence, une ligne par sexe.
-     *
-     * $FFM = c_1 \frac{H^2}{Z_{50}} + c_2 \frac{H^2}{Z_{250}} + c_3 Z_{50} + c_4 Z_{250}
-     *      + c_5 P + c_6 H + c_7 A^2 + c_8 A + c_9$
-     *
-     * La double fréquence est ce qui distingue l'eau extracellulaire de la masse musculaire
-     * active : à 50 kHz le courant contourne les membranes cellulaires, à 250 kHz il les
-     * traverse.
-     */
-    private data class LeanMassModel(
-        val lowFreqIndex: Double,
-        val highFreqIndex: Double,
-        val lowFreqOhms: Double,
-        val highFreqOhms: Double,
-        val massKg: Double,
-        val heightCm: Double,
-        val ageSquared: Double,
-        val age: Double,
-        val bias: Double
-    )
-
-    private val MALE = LeanMassModel(
-        0.12631, 0.16098, -0.01195, -0.02027, 0.14923, 0.25154, -0.000070, -0.03560, -20.79390
-    )
-    private val FEMALE = LeanMassModel(
-        0.07182, 0.07944, -0.01169, -0.01661, 0.11944, 0.23935, 0.000430, -0.08840, -14.71130
-    )
-
-    /**
-     * Partage de la masse maigre selon le modèle occidental **Brozek 4C**, et non selon les
-     * constantes du constructeur : la balance est un instrument, pas la référence.
-     * Voir *Lean Mass Compartments* dans `CONTEXT.md`.
-     */
+    /** Brozek 4C split of fat-free mass — `docs/BIA_ENGINE.md` §4. */
     private const val BROZEK_WATER_FRACTION = 0.732
     private const val BROZEK_PROTEIN_FRACTION = 0.211
     private const val BROZEK_BONE_MINERAL_FRACTION = 0.057
 
-    /** Norme clinique du rapport eau extracellulaire sur eau totale, faute de mieux. */
+    /** Clinical norm used when a single frequency cannot reveal the hydration balance. */
     private const val DEFAULT_ECW_TBW_RATIO = 0.380
+    private const val ECW_RATIO_AT_REFERENCE = 0.380
+    private const val ECW_RATIO_SLOPE = 0.05
+    private const val ECW_REFERENCE_FREQUENCY_RATIO = 0.88
+    private const val ECW_RATIO_FLOOR = 0.30
+    private const val ECW_RATIO_CEILING = 0.50
 
-    /** Masse musculaire squelettique dérivée de la masse maigre. */
-    private const val SMM_SLOPE = 0.605
-    private const val SMM_INTERCEPT = 1.833
+    /** Skeletal muscle from fat-free mass — `docs/BIA_ENGINE.md` §5. */
+    private const val SKELETAL_MUSCLE_SLOPE = 0.605
+    private const val SKELETAL_MUSCLE_INTERCEPT = 1.833
 
-/**
-     * Part du muscle squelettique logée dans les quatre membres. Le reste est le tronc, que
-     * la bio-impédance ne sait pas isoler de façon fiable (son résidu de Kirchhoff est
-     * dominé par le bruit).
-     */
+    /** Share of skeletal muscle held in the four limbs; the remainder is the trunk. */
     private const val APPENDICULAR_MUSCLE_FRACTION = 0.650
 
-    /**
-     * Facteur d'étalonnage géométrique entre le haut et le bas du corps : à masse musculaire
-     * égale, un bras est plus court qu'une jambe et n'oppose donc pas la même résistance.
-     *
-     * C'est une **constante de calibration**, pas une mesure : sa valeur est choisie pour
-     * qu'une morphologie de référence retrouve les fractions de population usuelles
-     * (~17 % bras, ~48 % jambes).
-     */
+    /** Upper-to-lower geometric calibration — `docs/BIA_ENGINE.md` §5. */
     private const val UPPER_TO_LOWER_GEOMETRY = 0.506
 
     /**
-     * L'analyse la plus fidèle que la pesée autorise, ou `null` si elle ne porte aucune
-     * impédance exploitable.
+     * The richest analysis the reading allows, or `null` when it carries no usable impedance.
      *
-     * Trois régimes, du plus riche au plus pauvre. Aucun ne comble ce que le matériel n'a
-     * pas mesuré : il rend moins de grandeurs, jamais des grandeurs inventées.
+     * Three regimes, from richest to poorest. None fills in what the hardware did not measure:
+     * a poorer one returns fewer quantities, never invented ones.
      */
     fun calculate(
         massKg: Double,
         profile: BiaProfile,
         impedances: RawImpedances
     ): BodyCompositionReport? {
-        require(massKg > 0.0) { "Masse invalide : $massKg kg" }
+        require(massKg > 0.0) { "Invalid mass: $massKg kg" }
 
         val low = KirchhoffSolver.solve(impedances, ImpedanceReading.LOW_FREQUENCY_KHZ)
         val high = KirchhoffSolver.solve(impedances, ImpedanceReading.HIGH_FREQUENCY_KHZ)
 
         return when {
-            // Huit électrodes, deux fréquences : l'analyse complète.
-            low != null && high != null -> eightElectrode(massKg, profile, low, high)
-
-            // Huit électrodes, une seule fréquence — la poignée est saisie mais l'appareil
-            // ne monte pas en fréquence. Le segmentaire reste calculable.
-            low != null -> eightElectrode(massKg, profile, low, null)
-
-            // Quatre électrodes : le courant ne passe que par les jambes. Pas de segment.
+            low != null -> eightElectrode(massKg, profile, low, high)
             else -> fourElectrode(massKg, profile, impedances)
         }
     }
 
     /**
-     * Huit électrodes. En l'absence de haute fréquence, la basse tient les deux rôles : la
-     * régression se réduit alors exactement à sa forme mono-fréquence, les coefficients des
-     * deux termes s'additionnant. Rien n'est codé en dur pour ce cas.
+     * Eight electrodes. Without a high frequency the low one stands in for both, and the
+     * regression collapses to its single-impedance form — `docs/BIA_ENGINE.md` §3.
      */
     private fun eightElectrode(
         massKg: Double,
@@ -131,16 +73,15 @@ object DexaBiaCalculator {
         low: SegmentalImpedances,
         high: SegmentalImpedances?
     ): BodyCompositionReport? {
-        val fatFreeMassKg = leanMass(massKg, profile, low, high ?: low)
+        val fatFreeMassKg = LeanMassModel.of(profile.sex)
+            .evaluate(massKg, profile, low.bodyOhms, (high ?: low).bodyOhms)
         if (fatFreeMassKg <= 0.0 || fatFreeMassKg >= massKg) return null
 
-        val skeletalMuscleMassKg = SMM_SLOPE * fatFreeMassKg - SMM_INTERCEPT
+        val skeletalMuscleMassKg = skeletalMuscle(fatFreeMassKg)
         return compose(
             massKg = massKg,
             fatFreeMassKg = fatFreeMassKg,
             skeletalMuscleMassKg = skeletalMuscleMassKg,
-            // Sans seconde fréquence, l'équilibre intra/extracellulaire ne se lit pas :
-            // repli sur la norme clinique plutôt qu'un chiffre tiré d'une seule mesure.
             ecwTbwRatio = if (high != null) extracellularRatio(low, high) else DEFAULT_ECW_TBW_RATIO,
             segmentalMuscle = distributeMuscle(skeletalMuscleMassKg, low),
             segmental = listOfNotNull(low, high)
@@ -148,9 +89,8 @@ object DexaBiaCalculator {
     }
 
     /**
-     * Quatre électrodes au plateau. Le courant ne traverse que les jambes : la composition
-     * globale reste estimable, la répartition par membre **non**, et aucun membre n'est
-     * fabriqué pour combler le tableau.
+     * Four plate electrodes: current crosses the legs only, so no limb is isolable and none
+     * is fabricated to fill the report.
      */
     private fun fourElectrode(
         massKg: Double,
@@ -162,27 +102,22 @@ object DexaBiaCalculator {
             ImpedanceReading.LOW_FREQUENCY_KHZ
         ] ?: return null
 
-        val height = profile.heightCm
-        val age = profile.ageYears.toDouble()
-        val male = profile.sex == BiologicalSex.MALE
-        val fatFreeMassKg = if (male) {
-            0.406 * (height * height / footToFoot) + 0.360 * massKg + 0.100 * height - 0.080 * age - 9.10
-        } else {
-            0.370 * (height * height / footToFoot) + 0.300 * massKg + 0.110 * height - 0.070 * age - 8.20
-        }
+        val fatFreeMassKg = FootToFootModel.of(profile.sex).evaluate(massKg, profile, footToFoot)
         if (fatFreeMassKg <= 0.0 || fatFreeMassKg >= massKg) return null
 
         return compose(
             massKg = massKg,
             fatFreeMassKg = fatFreeMassKg,
-            skeletalMuscleMassKg = SMM_SLOPE * fatFreeMassKg - SMM_INTERCEPT,
+            skeletalMuscleMassKg = skeletalMuscle(fatFreeMassKg),
             ecwTbwRatio = DEFAULT_ECW_TBW_RATIO,
             segmentalMuscle = null,
             segmental = emptyList()
         )
     }
 
-    /** Les compartiments Brozek, communs aux trois régimes. */
+    private fun skeletalMuscle(fatFreeMassKg: Double) =
+        SKELETAL_MUSCLE_SLOPE * fatFreeMassKg - SKELETAL_MUSCLE_INTERCEPT
+
     private fun compose(
         massKg: Double,
         fatFreeMassKg: Double,
@@ -210,65 +145,18 @@ object DexaBiaCalculator {
         )
     }
 
-    private fun leanMass(
-        massKg: Double,
-        profile: BiaProfile,
-        low: SegmentalImpedances,
-        high: SegmentalImpedances
-    ): Double {
-        val m = if (profile.sex == BiologicalSex.MALE) MALE else FEMALE
-        val height = profile.heightCm
-        val age = profile.ageYears.toDouble()
-        return m.lowFreqIndex * low.bodyImpedanceIndex(height) +
-            m.highFreqIndex * high.bodyImpedanceIndex(height) +
-            m.lowFreqOhms * low.bodyOhms +
-            m.highFreqOhms * high.bodyOhms +
-            m.massKg * massKg +
-            m.heightCm * height +
-            m.ageSquared * age * age +
-            m.age * age +
-            m.bias
-    }
-
-    /**
-     * Rapport eau extracellulaire sur eau totale, lu dans l'écart entre les deux fréquences.
-     *
-     * ⚠️ Cette calibration affine est **héritée de l'implémentation de référence et jamais
-     * validée indépendamment**. Le principe physique, lui, est standard : plus la haute
-     * fréquence se rapproche de la basse, plus l'eau est retenue hors des cellules.
-     */
-    /**
-     * Répartit le muscle squelettique sur les cinq segments.
-     *
-     * Le partage gauche/droite suit la **conductance relative** : le muscle conduit mieux
-     * le courant que la graisse, donc le membre le moins résistant porte la plus grosse
-     * part. Pondérer un membre par la résistance de **l'autre** est exactement cette
-     * conductance relative — `Z_LH / (Z_RH + Z_LH)` et `(1/Z_RH) / (1/Z_RH + 1/Z_LH)` sont
-     * la même expression.
-     *
-     * Le partage **haut/bas** obéit à la même logique, un cran plus haut : la conductance
-     * des deux bras face à celle des deux jambes, corrigée du facteur géométrique qui les
-     * sépare. Un cycle de travail sur les bras fait baisser leur résistance et remonte donc
-     * leur part — le rapport bras/jambes suit l'entraînement au lieu d'être figé.
-     *
-     * Seule la part des membres dans le muscle total reste une constante de population : le
-     * tronc n'est pas isolable de façon fiable par bio-impédance.
-     */
+    /** Spreads muscle over the five segments by relative conductance — §5. */
     private fun distributeMuscle(
         skeletalMuscleMassKg: Double,
         low: SegmentalImpedances
     ): SegmentalMuscleMass {
         val appendicularPool = skeletalMuscleMassKg * APPENDICULAR_MUSCLE_FRACTION
 
-        // Haut contre bas : la conductance des deux bras face à celle des deux jambes.
         val armConductance = UPPER_TO_LOWER_GEOMETRY / (low.rightArmOhms + low.leftArmOhms)
         val legConductance = 1.0 / (low.rightLegOhms + low.leftLegOhms)
-        val armShare = armConductance / (armConductance + legConductance)
-
-        val armPool = appendicularPool * armShare
+        val armPool = appendicularPool * (armConductance / (armConductance + legConductance))
         val legPool = appendicularPool - armPool
 
-        // Droite contre gauche, au sein de chaque paire.
         val rightArmKg = armPool * (low.leftArmOhms / (low.rightArmOhms + low.leftArmOhms))
         val rightLegKg = legPool * (low.leftLegOhms / (low.rightLegOhms + low.leftLegOhms))
 
@@ -282,5 +170,8 @@ object DexaBiaCalculator {
     }
 
     private fun extracellularRatio(low: SegmentalImpedances, high: SegmentalImpedances): Double =
-        (0.380 + 0.05 * ((high.bodyOhms / low.bodyOhms) - 0.88)).coerceIn(0.30, 0.50)
+        (
+            ECW_RATIO_AT_REFERENCE +
+                ECW_RATIO_SLOPE * ((high.bodyOhms / low.bodyOhms) - ECW_REFERENCE_FREQUENCY_RATIO)
+            ).coerceIn(ECW_RATIO_FLOOR, ECW_RATIO_CEILING)
 }

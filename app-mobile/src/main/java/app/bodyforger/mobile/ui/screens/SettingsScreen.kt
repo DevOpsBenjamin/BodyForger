@@ -35,10 +35,9 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
 /**
- * Les paramètres de l'application.
+ * Application settings.
  *
- * Première section : la balance connectée. Le reste — nommer son profil, exporter et
- * importer ses données en JSON — viendra s'ajouter ici.
+ * First section: the connected scale. Naming a profile and exporting data will follow — #34.
  */
 @Composable
 fun SettingsScreen(
@@ -66,7 +65,6 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Obsidian)
-            // Comme les autres écrans plein écran : le contenu passe sous la barre système
             // sans cette marge.
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())

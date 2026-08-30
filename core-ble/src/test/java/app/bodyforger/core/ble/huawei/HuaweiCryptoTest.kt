@@ -9,11 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Vecteurs calculés indépendamment depuis la spécification (`../BLE/TECH.md` §2), sur des
- * **adresses MAC fictives** : la dérivation étant déterministe, un MAC réel figerait le
- * secret d'une balance existante dans un dépôt public.
  *
- * Ces valeurs valident la transcription Kotlin contre l'implémentation Python de référence.
  */
 class HuaweiCryptoTest {
 
@@ -24,8 +20,6 @@ class HuaweiCryptoTest {
 
     private val scaleNonce = ByteArray(16) { it.toByte() }
     private val clientNonce = ByteArray(16) { (it + 16).toByte() }
-
-    // --- Dérivation de la clé racine ---
 
     @Test
     fun `la cle racine correspond a la reference`() {
@@ -57,7 +51,6 @@ class HuaweiCryptoTest {
 
     @Test
     fun `la meme balance donne toujours la meme cle`() {
-        // Rien n'est mémorisé entre deux connexions : la clé se recalcule.
         assertArrayEquals(
             HuaweiCrypto.deriveRootKey(keys, fictitiousMac),
             HuaweiCrypto.deriveRootKey(keys, fictitiousMac)
@@ -80,7 +73,6 @@ class HuaweiCryptoTest {
 
     @Test
     fun `le jeton de la balance differe de celui du client`() {
-        // Deux sels distincts : sans cela, rejouer le jeton reçu suffirait à s'authentifier.
         assertNotEquals(
             HuaweiCrypto.clientToken(keys, scaleNonce, clientNonce).toHex(),
             HuaweiCrypto.expectedScaleToken(keys, scaleNonce, clientNonce).toHex()
@@ -136,7 +128,6 @@ class HuaweiCryptoTest {
 
     @Test
     fun `deux IV differents produisent deux chiffres differents`() {
-        // En mode CTR, réutiliser un IV avec la même clé révèle le ou-exclusif des clairs.
         val key = ByteArray(16) { 9 }
         val clear = ByteArray(24) { 0x2A }
         val first = HuaweiCrypto.encrypt(key, ByteArray(16) { 1 }, clear)
@@ -179,8 +170,6 @@ class HuaweiCryptoTest {
 
     @Test
     fun `le materiel de cles appartient au modele, pas au moteur`() {
-        // Relevé sur la Pro, appliqué aux autres comme hypothèse testable : un possesseur
-        // d'une autre balance peut essayer avec du code complet, et un refus la réfute.
         for (model in HuaweiScaleModel.entries) {
             assertEquals(HuaweiKeyMaterial.SCALE_3_PRO, model.keyMaterial)
         }
@@ -188,8 +177,6 @@ class HuaweiCryptoTest {
 
     @Test
     fun `un materiel different produit une cle racine differente`() {
-        // Si un autre modèle a d'autres constantes, la clé change : emprunter celles de la
-        // Pro donnerait un handshake refusé sans message.
         val other = HuaweiKeyMaterial(
             authenticationSecret = ByteArray(16) { 1 },
             whiteboxFirst = ByteArray(16) { 2 },

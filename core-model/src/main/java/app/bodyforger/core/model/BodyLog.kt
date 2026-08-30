@@ -1,45 +1,40 @@
 package app.bodyforger.core.model
 
 /**
- * L'analyse de composition corporelle dérivée des [RawImpedances].
+ * Body composition derived from the raw impedances.
  *
- * N'existe que si des impédances ont été relevées. À ne pas confondre avec le taux de masse
- * grasse du [BodyLog], qui est toujours renseigné.
+ * Exists only where impedances were read. Not to be confused with the body fat percentage of
+ * a [BodyLog], which is always present. Model: `docs/BIA_ENGINE.md`.
  */
 data class BodyCompositionReport(
-    /** Masse maigre : tout ce qui n'est pas du gras — muscle, os, eau, organes. */
+    /** Fat-free mass: everything that is not fat — muscle, bone, water, organs. */
     val fatFreeMassKg: Double,
     val fatMassKg: Double,
     val bodyFatPercentage: Double,
 
-    /** Masse musculaire squelettique : la part que l'entraînement fait bouger. */
+    /** Skeletal muscle: the share training moves. */
     val skeletalMuscleMassKg: Double,
 
-    // --- Compartiments de la masse maigre (modèle Brozek 4C) ---
+    // Brozek 4C compartments — docs/BIA_ENGINE.md §4
     val totalBodyWaterKg: Double,
     val extracellularWaterKg: Double,
     val intracellularWaterKg: Double,
     val proteinMassKg: Double,
     val boneMineralMassKg: Double,
 
-    /** Rapport eau extracellulaire sur eau totale. Norme clinique ~0,38 – 0,40. */
+    /** Extracellular to total body water. Clinical norm ~0.38–0.40. */
     val ecwTbwRatio: Double,
 
-    /**
-     * Le muscle réparti sur les cinq segments, ou `null` si la pesée n'a pas mis les mains
-     * en jeu : sans les bras dans le circuit, aucun membre n'est isolable et aucun ne sera
-     * inventé.
-     */
+    /** Muscle over the five segments, or `null` when the reading did not involve the hands. */
     val segmentalMuscle: SegmentalMuscleMass?,
 
-    /** Les cinq segments isolés à chaque fréquence relevée. Dérivés, jamais persistés. */
+    /** The five segments isolated at each frequency read. Derived, never persisted. */
     val segmental: List<SegmentalImpedances> = emptyList()
 ) {
     /**
-     * Masse musculaire squelettique **totale** rapportée au carré de la taille, en kg/m².
+     * Total skeletal muscle over height squared.
      *
-     * ⚠️ Ce n'est pas le SMI de Baumgartner et la grille clinique ne s'y applique pas :
-     * celle-ci porte sur le muscle des seuls membres. Pour la lire, passer par
+     * Not the Baumgartner index: that grid applies to limb muscle only — see
      * [SegmentalMuscleMass.baumgartnerIndex].
      */
     fun totalMuscleIndex(heightCm: Double): Double =
@@ -47,20 +42,10 @@ data class BodyCompositionReport(
 }
 
 /**
- * Un relevé corporel **horodaté** rattaché à l'athlète.
+ * A timestamped body reading.
  *
- * Identifié par son instant et non par sa date : se peser plusieurs fois dans une journée est
- * légitime — au réveil, après l'effort — et n'écrase rien. Un relevé par jour est un
- * **objectif de suivi**, pas une contrainte du modèle : la tendance se lit sur une médiane
- * glissante, qui absorbe très bien plusieurs points par jour comme des jours sans mesure.
- *
- * Porte toujours une masse, une date et un taux de masse grasse — ce dernier provenant soit
- * de la balance, soit d'une saisie manuelle. C'est ce qui rend l'application utilisable sans
- * balance connectée.
- *
- * Les [rawImpedances] ne sont présentes que si le matériel les a relevées, et leur
- * [MeasuredFidelity] dit exactement ce que cette pesée a obtenu. Une grandeur non mesurée
- * est **absente**, jamais remplacée par un défaut.
+ * Identity is the instant, never the day: weighing in several times a day is legitimate and
+ * overwrites nothing. See *Body Log* in `CONTEXT.md`.
  */
 data class BodyLog(
     val id: String,
@@ -71,9 +56,9 @@ data class BodyLog(
     val rawImpedances: RawImpedances = RawImpedances.NONE,
     val restingHeartRateBpm: Int? = null
 ) {
-    /** Ce que cette pesée a réellement relevé. */
+    /** What this reading actually captured. */
     val fidelity: MeasuredFidelity get() = rawImpedances.fidelity
 
-    /** Vrai si une analyse de composition corporelle est calculable à partir de ce relevé. */
+    /** True when a body composition can be computed from this reading. */
     val supportsBodyComposition: Boolean get() = !rawImpedances.isEmpty
 }

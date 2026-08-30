@@ -94,7 +94,6 @@ fun RoutineEditorScreen(
                 .statusBarsPadding()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
-            // 1. Barre supérieure
             RoutineEditorTopBar(
                 isNewRoutine = initialRoutine == null,
                 routineName = routineName,

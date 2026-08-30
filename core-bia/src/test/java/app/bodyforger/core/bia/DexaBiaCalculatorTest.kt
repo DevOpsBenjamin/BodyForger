@@ -14,31 +14,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Les vecteurs sont **synthétiques**, et c'est délibéré : plutôt que de figer les mesures
- * de quelqu'un dans le dépôt, on part d'un corps théorique aux segments connus et on
  * **remonte** les six trajets par les lois de Kirchhoff.
  *
- * Le test est plus fort ainsi : la vérité attendue est posée d'avance, et le solveur doit
- * retrouver exactement les segments d'origine. Un vecteur capturé, lui, ne dit jamais quelle
- * était la bonne réponse.
  */
 class DexaBiaCalculatorTest {
 
     private val athlete = BiaProfile(BiologicalSex.MALE, ageYears = 30, heightCm = 180.0)
     private val massKg = 80.0
 
-    /**
-     * Un corps de référence à 50 kHz, en ohms. Membres longs et étroits, tronc de large
-     * section — d'où sa résistance sans commune mesure avec le reste.
-     */
-    private val body50 = Body(rightArm = 302.0, leftArm = 315.0, rightLeg = 204.0, leftLeg = 211.0, trunk = 26.0)
+        private val body50 = Body(rightArm = 302.0, leftArm = 315.0, rightLeg = 204.0, leftLeg = 211.0, trunk = 26.0)
 
     /** Le même corps à 250 kHz : le courant traverse les membranes, tout baisse. */
     private val body250 = Body(rightArm = 270.0, leftArm = 281.0, rightLeg = 182.0, leftLeg = 188.0, trunk = 22.0)
 
     private val dualFrequency = impedancesOf(body50, body250)
-
-    // --- Kirchhoff : l'étage physique, indépendant de toute régression ---
 
     @Test
     fun `le solveur retrouve exactement les segments dont on est parti`() {
@@ -53,7 +42,6 @@ class DexaBiaCalculatorTest {
     @Test
     fun `l'impedance globale ne depend que du pied-a-pied et du main-a-main`() {
         val solved = KirchhoffSolver.solve(dualFrequency, LOW_FREQUENCY_KHZ)!!
-        // Les quatre trajets croisés s'annulent dans la moyenne des membres.
         assertEquals((415.0 + 617.0) / 4.0, solved.bodyOhms, 1e-9)
         assertEquals(
             0.25 * (body50.rightArm + body50.leftArm + body50.rightLeg + body50.leftLeg),
@@ -72,7 +60,6 @@ class DexaBiaCalculatorTest {
 
     @Test
     fun `l'ecart entre deux membres homologues reste dans ce que les mesures autorisent`() {
-        // Test de recevabilité : au-delà de cette borne, une valeur segmentaire est fausse
         // par construction, quelle que soit la source qui l'annonce.
         val bound = KirchhoffSolver.maximumLimbSpread(dualFrequency, LOW_FREQUENCY_KHZ)!!
         val solved = KirchhoffSolver.solve(dualFrequency, LOW_FREQUENCY_KHZ)!!
@@ -93,7 +80,6 @@ class DexaBiaCalculatorTest {
     @Test
     fun `les compartiments Brozek referment la masse maigre a cent pour cent`() {
         val report = DexaBiaCalculator.calculate(massKg, athlete, dualFrequency)!!
-        // 0,732 eau + 0,211 protéines + 0,057 minéraux osseux = 1,000
         assertEquals(
             report.fatFreeMassKg,
             report.totalBodyWaterKg + report.proteinMassKg + report.boneMineralMassKg,
@@ -131,19 +117,13 @@ class DexaBiaCalculatorTest {
         assertTrue(forWoman.fatFreeMassKg < forMan.fatFreeMassKg)
     }
 
-    // --- Le refus de calculer sur du vide : la raison d'être de cette réécriture ---
-
     @Test
     fun `une pesee sans impedance ne produit aucune analyse`() {
         assertNull(DexaBiaCalculator.calculate(massKg, athlete, RawImpedances.NONE))
     }
 
-    // --- Les régimes dégradés : moins de grandeurs, jamais de grandeurs inventées ---
-
     @Test
     fun `en mono-frequence la regression se reduit exactement a sa forme a une seule impedance`() {
-        // Les coefficients des deux termes s'additionnent quand Z250 vaut Z50 : le modèle
-        // dégradé n'est pas une seconde table, c'est le même évalué autrement.
         val flat = DexaBiaCalculator.calculate(massKg, athlete, impedancesOf(body50, body50))!!
         val monoFrequency = DexaBiaCalculator.calculate(massKg, athlete, impedancesOf(body50, null))!!
         assertEquals(flat.fatFreeMassKg, monoFrequency.fatFreeMassKg, 1e-9)
@@ -154,7 +134,6 @@ class DexaBiaCalculatorTest {
         val report = DexaBiaCalculator.calculate(massKg, athlete, impedancesOf(body50, null))!!
         assertNotNull(report.segmentalMuscle)
         assertEquals(listOf(LOW_FREQUENCY_KHZ), report.segmental.map { it.frequencyKHz })
-        // Sans seconde fréquence, l'équilibre intra/extracellulaire ne se lit pas.
         assertEquals(0.380, report.ecwTbwRatio, 1e-9)
     }
 
@@ -173,8 +152,6 @@ class DexaBiaCalculatorTest {
             report.totalBodyWaterKg + report.proteinMassKg + report.boneMineralMassKg,
             1e-9
         )
-        // Le courant n'a pas traversé les bras : aucun membre n'est isolable, donc aucun
-        // n'est fabriqué pour remplir le tableau.
         assertNull(report.segmentalMuscle)
         assertTrue(report.segmental.isEmpty())
     }
@@ -194,20 +171,16 @@ class DexaBiaCalculatorTest {
 
     @Test
     fun `un trajet de bras manquant fait retomber sur les quatre electrodes, sans membre`() {
-        // L'ancienne version repliait l'impédance absente sur 500,0 Ω et rendait un rapport
-        // crédible mais faux — indiscernable d'une vraie mesure dans l'historique.
         val incomplete = RawImpedances.of(
             impedancesOf(body50, body250).ohmsByReading
                 .filterKeys { it.path != ImpedancePath.RIGHT_HAND_TO_RIGHT_FOOT }
         )
-        // L'ancienne version repliait sur 500,0 Ω et rendait quand même un segmentaire.
         val report = DexaBiaCalculator.calculate(massKg, athlete, incomplete)!!
         assertNull(report.segmentalMuscle)
     }
 
     @Test
     fun `un zero de la trame ne devient jamais une resistance`() {
-        // Une balance remplit de zéros ce qu'elle n'a pas mesuré : c'est une sentinelle
         // d'absence, jamais une valeur.
         val zeroed = RawImpedances.of(
             impedancesOf(body50, body250).ohmsByReading.mapValues { 0.0 }
@@ -216,12 +189,8 @@ class DexaBiaCalculatorTest {
         assertNull(DexaBiaCalculator.calculate(massKg, athlete, zeroed))
     }
 
-
-    // --- La répartition du muscle sur les cinq segments ---
-
     @Test
     fun `les jambes portent nettement plus de muscle que les bras`() {
-        // Le test qui a écarté deux tables externes : une cuisse pèse plusieurs fois un bras.
         val muscle = DexaBiaCalculator.calculate(massKg, athlete, dualFrequency)!!.segmentalMuscle!!
         assertTrue(muscle.rightLegKg > 2.0 * muscle.rightArmKg)
         assertTrue(muscle.leftLegKg > 2.0 * muscle.leftArmKg)
@@ -235,8 +204,6 @@ class DexaBiaCalculatorTest {
 
     @Test
     fun `le membre le moins resistant porte la plus grosse part de muscle`() {
-        // Le muscle conduit mieux que la graisse. Bras droit à 260 Ω contre 270 Ω à gauche :
-        // c'est donc le droit qui doit ressortir le plus musclé.
         val muscle = DexaBiaCalculator.calculate(massKg, athlete, dualFrequency)!!.segmentalMuscle!!
         assertTrue(body50.rightArm < body50.leftArm)
         assertTrue(muscle.rightArmKg > muscle.leftArmKg)
@@ -246,7 +213,6 @@ class DexaBiaCalculatorTest {
 
     @Test
     fun `ponderer par la resistance opposee revient a ponderer par la conductance`() {
-        // Z_LH / (Z_RH + Z_LH) et (1/Z_RH) / (1/Z_RH + 1/Z_LH) sont la même expression.
         val right = body50.rightArm
         val left = body50.leftArm
         assertEquals(
@@ -271,17 +237,13 @@ class DexaBiaCalculatorTest {
     fun `l'indice de Baumgartner situe l'athlete sur sa grille clinique`() {
         val muscle = DexaBiaCalculator.calculate(massKg, athlete, dualFrequency)!!.segmentalMuscle!!
         // Sujet de test : 80 kg pour 180 cm. La grille masculine place le seuil de
-        // sarcopénie à 7,0 kg/m² et la zone athlétique au-dessus de 8,5.
         assertTrue("ASMM ${muscle.appendicularKg} kg", muscle.appendicularKg in 20.0..30.0)
         val smi = muscle.baumgartnerIndex(180.0)
         assertTrue("SMI $smi kg/m² hors de la grille", smi in 7.0..10.0)
     }
 
-
     @Test
     fun `un cycle de travail sur les bras remonte leur part de muscle`() {
-        // Plus de muscle dans les bras : leur résistance baisse. Le rapport bras/jambes doit
-        // suivre l'entraînement, pas rester figé sur une constante de population.
         val trained = body50.copy(rightArm = 287.0, leftArm = 299.0)
         val before = DexaBiaCalculator.calculate(massKg, athlete, dualFrequency)!!.segmentalMuscle!!
         val after = DexaBiaCalculator.calculate(
@@ -308,7 +270,6 @@ class DexaBiaCalculatorTest {
 
     @Test
     fun `une morphologie de reference retrouve les fractions de population`() {
-        // Le facteur géométrique est calibré pour cela : ~17 % de bras et ~48 % de jambes.
         val report = DexaBiaCalculator.calculate(massKg, athlete, dualFrequency)!!
         val muscle = report.segmentalMuscle!!
         val armFraction = (muscle.rightArmKg + muscle.leftArmKg) / report.skeletalMuscleMassKg
@@ -317,13 +278,9 @@ class DexaBiaCalculatorTest {
         assertEquals(0.480, legFraction, 0.02)
     }
 
-
-    // --- Depuis la forme réelle de la trame : douze emplacements, zéro = non mesuré ---
-
     @Test
     fun `un bloc haute frequence entierement nul fait basculer en mono-frequence`() {
         // La trame porte toujours douze emplacements. Une balance qui ne monte pas en
-        // fréquence remplit le second bloc de zéros — ce n'est pas une résistance nulle,
         // c'est l'absence de mesure.
         val report = fromWireSlots(
             low = listOf(415.0, 617.0, 552.0, 545.0, 539.0, 532.0),
@@ -336,7 +293,6 @@ class DexaBiaCalculatorTest {
 
     @Test
     fun `un seul emplacement renseigne fait basculer en quatre electrodes`() {
-        // Balance de plateau : seul le pied à pied existe, les onze autres sont à zéro.
         val report = fromWireSlots(
             low = listOf(415.0, 0.0, 0.0, 0.0, 0.0, 0.0),
             high = listOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -348,7 +304,6 @@ class DexaBiaCalculatorTest {
 
     @Test
     fun `une trame entierement nulle ne produit aucune analyse`() {
-        // Capture réelle d'une Pro sans poignée : trente-huit octets nuls hormis le poids.
         assertNull(
             fromWireSlots(
                 low = listOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),

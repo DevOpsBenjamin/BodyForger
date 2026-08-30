@@ -59,7 +59,6 @@ fun LiveWorkoutSetRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Numéro de la série + badge spécial (Warmup, Dropset, ou Côté G/D)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.width(44.dp)
@@ -103,7 +102,6 @@ fun LiveWorkoutSetRow(
             modifier = Modifier.width(72.dp)
         )
 
-        // 3. Champ Saisie Répétitions
         CompactNumberInput(
             value = if (set.reps > 0) set.reps.toString() else "",
             onValueChange = { newVal ->

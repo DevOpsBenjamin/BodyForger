@@ -42,10 +42,6 @@ interface ExerciseDao {
     @Update
     suspend fun updateExercise(exercise: ExerciseEntity)
 
-    /**
-     * Règle de sécurité absolue : Seuls les exercices personnalisés (isCustom = 1)
-     * peuvent être supprimés de la base de données SQLite.
-     */
-    @Query("DELETE FROM exercises WHERE id = :id AND isCustom = 1")
+        @Query("DELETE FROM exercises WHERE id = :id AND isCustom = 1")
     suspend fun deleteCustomExercise(id: String): Int
 }
