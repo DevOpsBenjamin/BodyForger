@@ -48,8 +48,12 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
      * without the session they belong to.
      *
      * [freeSessionTitle] names a session started without a routine.
+     *
+     * A workout already in progress is kept: opening a second one would leave the first
+     * active in the database, to resurface later as a session to resume.
      */
     fun begin(routine: Routine?, freeSessionTitle: String) {
+        if (_active.value != null) return
         val session = WorkoutSession(
             routineId = routine?.id,
             title = routine?.name ?: freeSessionTitle,
