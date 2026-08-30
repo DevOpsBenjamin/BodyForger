@@ -22,6 +22,7 @@ import app.bodyforger.mobile.ui.components.ResumeWorkoutDialog
 import app.bodyforger.mobile.workout.LiveWorkoutViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import app.bodyforger.core.model.Exercise
 import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.WorkoutSession
@@ -65,15 +66,16 @@ fun BodyForgerApp() {
     var isCatalogForRoutineSelection by remember { mutableStateOf(false) }
     var catalogReplaceExerciseIndex by remember { mutableStateOf<Int?>(null) }
 
-    var isLiveWorkoutRunning by remember { mutableStateOf(false) }
     var showingLiveWorkoutScreen by remember { mutableStateOf(false) }
-    var activeWorkoutRoutine by remember { mutableStateOf<Routine?>(null) }
     var showingSettingsScreen by remember { mutableStateOf(false) }
 
     val library: LibraryViewModel = koinViewModel()
     val workoutViewModel: LiveWorkoutViewModel = koinViewModel()
     val routineDraft: RoutineDraftViewModel = koinViewModel()
     val interruptedSession by workoutViewModel.resumable.collectAsState()
+    // La séance en cours appartient au ViewModel: réduire l'écran ne doit rien lui coûter.
+    val liveWorkout by workoutViewModel.active.collectAsState()
+    val freeSessionTitle = stringResource(R.string.workout_live_free_session_title)
     val routines by library.routines.collectAsState()
     val customExercises by library.exercises.collectAsState()
     val completedSessions by library.completedSessions.collectAsState()
@@ -86,10 +88,8 @@ fun BodyForgerApp() {
         ResumeWorkoutDialog(
             session = session,
             onResume = {
-                activeWorkoutRoutine = routines.firstOrNull { it.id == session.routineId }
-                isLiveWorkoutRunning = true
+                workoutViewModel.resume(session)
                 showingLiveWorkoutScreen = true
-                workoutViewModel.clearResumable()
             },
             onDiscard = { workoutViewModel.discard(session) }
         )
@@ -119,18 +119,18 @@ fun BodyForgerApp() {
             },
             onOpenCreateExercise = { showingCreateExerciseScreen = true },
             onSelectExercise = { selectedExercise ->
-                if (isCatalogForRoutineSelection && showingRoutineEditor) {
-                    val currentDraft = routineDraft.draft.value ?: Routine(name = "")
-                    val newRoutineEx = selectedExercise.toRoutineExercise(currentDraft.id)
-                    val updatedExercises = currentDraft.exercises.toMutableList()
-
-                    if (catalogReplaceExerciseIndex != null && catalogReplaceExerciseIndex in updatedExercises.indices) {
-                        updatedExercises[catalogReplaceExerciseIndex!!] = newRoutineEx
+                if (isCatalogForRoutineSelection) {
+                    val replacedIndex = catalogReplaceExerciseIndex
+                    if (showingRoutineEditor) {
+                        val currentDraft = routineDraft.draft.value ?: Routine(name = "")
+                        val chosen = selectedExercise.toRoutineExercise(currentDraft.id)
+                        routineDraft.addExercise(chosen, replacing = replacedIndex)
                     } else {
-                        updatedExercises.add(newRoutineEx)
+                        // Ajout en pleine séance: l'exercice ne rejoint aucune routine.
+                        val chosen = selectedExercise.toRoutineExercise(routineId = "")
+                        if (replacedIndex != null) workoutViewModel.replaceExercise(replacedIndex, chosen)
+                        else workoutViewModel.addExercise(chosen)
                     }
-
-                    routineDraft.setExercises(updatedExercises)
                     showingCatalogScreen = false
                     isCatalogForRoutineSelection = false
                     catalogReplaceExerciseIndex = null
@@ -165,7 +165,6 @@ fun BodyForgerApp() {
         )
     } else if (showingLiveWorkoutScreen) {
         WorkoutScreen(
-            initialRoutine = activeWorkoutRoutine,
             workoutViewModel = workoutViewModel,
             onMinimize = { showingLiveWorkoutScreen = false },
             onOpenCatalogForAdd = {
@@ -179,9 +178,7 @@ fun BodyForgerApp() {
                 showingCatalogScreen = true
             },
             onFinishWorkout = {
-                isLiveWorkoutRunning = false
                 showingLiveWorkoutScreen = false
-                activeWorkoutRoutine = null
                 selectedTabIndex = 1 // Retour au planner
             }
         )
@@ -192,8 +189,8 @@ fun BodyForgerApp() {
             bottomBar = {
                 Column {
                     ActiveWorkoutMiniBar(
-                        isVisible = isLiveWorkoutRunning,
-                        workoutTitle = "${activeWorkoutRoutine?.name ?: "Séance Active"}",
+                        isVisible = liveWorkout != null,
+                        workoutTitle = liveWorkout?.session?.title.orEmpty(),
                         onClick = { showingLiveWorkoutScreen = true }
                     )
 
@@ -213,8 +210,7 @@ fun BodyForgerApp() {
                 when (selectedTabIndex) {
                     0 -> HomeScreen(
                         onNavigateToWorkout = {
-                            activeWorkoutRoutine = routines.firstOrNull()
-                            isLiveWorkoutRunning = true
+                            workoutViewModel.begin(routine = null, freeSessionTitle = freeSessionTitle)
                             showingLiveWorkoutScreen = true
                         },
                         onNavigateToBiometrics = { selectedTabIndex = 2 },
@@ -222,9 +218,11 @@ fun BodyForgerApp() {
                     )
                     1 -> PlannerScreen(
                         routines = routines,
-                        onStartWorkout = {
-                            activeWorkoutRoutine = routines.firstOrNull()
-                            isLiveWorkoutRunning = true
+                        onStartWorkout = { routineId ->
+                            workoutViewModel.begin(
+                                routine = routines.firstOrNull { it.id == routineId },
+                                freeSessionTitle = freeSessionTitle
+                            )
                             showingLiveWorkoutScreen = true
                         },
                         onCreateNewRoutine = {

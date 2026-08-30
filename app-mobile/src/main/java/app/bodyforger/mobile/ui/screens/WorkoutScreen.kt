@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,146 +63,47 @@ import java.util.UUID
 
 @Composable
 fun WorkoutScreen(
-    initialRoutine: Routine? = null,
     workoutViewModel: LiveWorkoutViewModel = koinViewModel(),
     onMinimize: () -> Unit = {},
     onOpenCatalogForAdd: () -> Unit = {},
     onOpenCatalogForReplace: (exerciseIndex: Int) -> Unit = {},
     onFinishWorkout: (WorkoutSession) -> Unit = {}
 ) {
-    val sessionStartedAtEpochMs = remember { System.currentTimeMillis() }
+    // The workout belongs to the ViewModel: minimising the session leaves this composition,
+    // and anything held here would go with it.
+    val workout = workoutViewModel.active.collectAsState().value ?: return
+
     var sessionSeconds by remember { mutableIntStateOf(0) }
     var currentHeartRate by remember { mutableIntStateOf(138) }
 
     // Chrono de repos
     var isResting by remember { mutableStateOf(false) }
-    var restSecondsRemaining by remember { mutableIntStateOf(60) }
-    var currentRestTotalSeconds by remember { mutableIntStateOf(60) }
+    var restSecondsRemaining by remember { mutableIntStateOf(0) }
+    var currentRestTotalSeconds by remember { mutableIntStateOf(1) }
 
     // Modales de configuration
     var activeRestPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var activeWeightUnitPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var showingSummaryDialog by remember { mutableStateOf(false) }
-    val sessionId = remember { UUID.randomUUID().toString() }
-    val sessionTitle = stringResource(R.string.workout_live_free_session_title)
 
-    val workoutExercises = remember {
-        mutableStateListOf<RoutineExercise>().apply {
-            addAll(initialRoutine?.exercises ?: emptyList())
-        }
-    }
-
-    val liveSets = remember {
-        mutableStateListOf<WorkoutSet>().apply {
-            initialRoutine?.exercises?.forEachIndexed { exIdx, ex ->
-                ex.sets.forEach { setItem ->
-                    if (ex.isUnilateral) {
-                        add(
-                            WorkoutSet(
-                                id = UUID.randomUUID().toString(),
-                                exerciseId = ex.exerciseId,
-                                exerciseName = ex.exerciseName,
-                                primaryMuscle = ex.primaryMuscle,
-                                equipment = ex.equipment,
-                                activityCategory = ex.activityCategory,
-                                orderIndex = exIdx,
-                                setIndex = setItem.setIndex,
-                                type = setItem.type,
-                                weightKg = setItem.targetWeightKg ?: 0.0,
-                                weightUnit = ex.weightUnit,
-                                reps = setItem.reps ?: setItem.minReps ?: 10,
-                                isCompleted = false,
-                                side = UnilateralSide.LEFT,
-                                restTimeSeconds = ex.restTimeSeconds
-                            )
-                        )
-                        add(
-                            WorkoutSet(
-                                id = UUID.randomUUID().toString(),
-                                exerciseId = ex.exerciseId,
-                                exerciseName = ex.exerciseName,
-                                primaryMuscle = ex.primaryMuscle,
-                                equipment = ex.equipment,
-                                activityCategory = ex.activityCategory,
-                                orderIndex = exIdx,
-                                setIndex = setItem.setIndex,
-                                type = setItem.type,
-                                weightKg = setItem.targetWeightKg ?: 0.0,
-                                weightUnit = ex.weightUnit,
-                                reps = setItem.reps ?: setItem.minReps ?: 10,
-                                isCompleted = false,
-                                side = UnilateralSide.RIGHT,
-                                restTimeSeconds = ex.restTimeSeconds
-                            )
-                        )
-                    } else {
-                        add(
-                            WorkoutSet(
-                                id = UUID.randomUUID().toString(),
-                                exerciseId = ex.exerciseId,
-                                exerciseName = ex.exerciseName,
-                                primaryMuscle = ex.primaryMuscle,
-                                equipment = ex.equipment,
-                                activityCategory = ex.activityCategory,
-                                orderIndex = exIdx,
-                                setIndex = setItem.setIndex,
-                                type = setItem.type,
-                                weightKg = setItem.targetWeightKg ?: 0.0,
-                                weightUnit = ex.weightUnit,
-                                reps = setItem.reps ?: setItem.minReps ?: 10,
-                                isCompleted = false,
-                                side = UnilateralSide.NONE,
-                                restTimeSeconds = ex.restTimeSeconds
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
+    // Compte depuis l'heure de depart plutot qu'en incrementant: reduire la seance
+    // detruit ce composable, et un compteur repartirait de zero au retour.
+    LaunchedEffect(workout.session.startedAtEpochMs) {
         while (true) {
-            delay(1000)
-            sessionSeconds++
+            sessionSeconds = ((System.currentTimeMillis() - workout.session.startedAtEpochMs) / MILLIS_PER_SECOND).toInt()
+            delay(TIMER_TICK_MS)
         }
     }
 
     // Ticker chrono de repos
     LaunchedEffect(isResting, restSecondsRemaining) {
         if (isResting && restSecondsRemaining > 0) {
-            delay(1000)
+            delay(TIMER_TICK_MS)
             restSecondsRemaining--
             if (restSecondsRemaining <= 0) {
                 isResting = false
             }
         }
-    }
-
-    LaunchedEffect(sessionId) {
-        workoutViewModel.start(
-            session = WorkoutSession(
-                id = sessionId,
-                routineId = initialRoutine?.id,
-                title = initialRoutine?.name ?: sessionTitle,
-                startedAtEpochMs = sessionStartedAtEpochMs
-            ),
-            plannedSets = liveSets.toList()
-        )
-    }
-
-    val liveSession = remember(workoutExercises.size, liveSets.toList(), sessionSeconds) {
-        WorkoutSession(
-            id = sessionId,
-            routineId = initialRoutine?.id,
-            title = initialRoutine?.name ?: sessionTitle,
-            startedAtEpochMs = sessionStartedAtEpochMs,
-            endedAtEpochMs = if (showingSummaryDialog) System.currentTimeMillis() else null,
-            status = if (showingSummaryDialog) WorkoutSessionStatus.COMPLETED else WorkoutSessionStatus.ACTIVE,
-            sets = liveSets.toList(),
-            averageHeartRateBpm = currentHeartRate,
-            isFinalized = showingSummaryDialog
-        )
     }
 
     Column(
@@ -226,8 +128,8 @@ fun WorkoutScreen(
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            itemsIndexed(workoutExercises, key = { _, ex -> ex.id }) { exIdx, exItem ->
-                val exSets = liveSets.filter { it.orderIndex == exIdx }
+            itemsIndexed(workout.exercises, key = { _, ex -> ex.id }) { exIdx, exItem ->
+                val exSets = workout.setsOf(exIdx)
 
                 LiveWorkoutExerciseCard(
                     exerciseName = exItem.exerciseName,
@@ -241,111 +143,24 @@ fun WorkoutScreen(
                     onOpenWeightUnitPicker = { activeWeightUnitPickerExerciseIndex = exIdx },
                     onOpenRestPicker = { activeRestPickerExerciseIndex = exIdx },
                     onReplaceExercise = { onOpenCatalogForReplace(exIdx) },
-                    onRemoveExercise = {
-                        workoutExercises.removeAt(exIdx)
-                        liveSets.removeAll { it.orderIndex == exIdx }
-                    },
+                    onRemoveExercise = { workoutViewModel.removeExercise(exIdx) },
                     onToggleSetCompleted = { targetSet ->
-                        val setIdxInList = liveSets.indexOfFirst { it.id == targetSet.id }
-                        if (setIdxInList != -1) {
-                            val newCompleted = !targetSet.isCompleted
-                            val recorded = targetSet.copy(
-                                isCompleted = newCompleted,
-                                completedAtEpochMs = if (newCompleted) System.currentTimeMillis() else null
-                            )
-                            liveSets[setIdxInList] = recorded
-                            workoutViewModel.recordSet(recorded)
+                        workoutViewModel.toggleSetCompleted(targetSet.id)
 
-                            if (newCompleted) {
-                                val shouldTriggerRest = if (targetSet.side == UnilateralSide.LEFT) {
-                                    val rightSide = liveSets.find { it.orderIndex == exIdx && it.setIndex == targetSet.setIndex && it.side == UnilateralSide.RIGHT }
-                                    rightSide?.isCompleted == true
-                                } else {
-                                    true
-                                }
-
-                                if (shouldTriggerRest) {
-                                    currentRestTotalSeconds = exItem.restTimeSeconds
-                                    restSecondsRemaining = exItem.restTimeSeconds
-                                    isResting = true
-                                }
-                            }
+                        if (!targetSet.isCompleted && shouldRestAfter(targetSet, exSets)) {
+                            currentRestTotalSeconds = exItem.restTimeSeconds
+                            restSecondsRemaining = exItem.restTimeSeconds
+                            isResting = true
                         }
                     },
                     onUpdateSetWeight = { targetSet, newWeight ->
-                        val setIdxInList = liveSets.indexOfFirst { it.id == targetSet.id }
-                        if (setIdxInList != -1) {
-                            val edited = targetSet.copy(weightKg = newWeight)
-                            liveSets[setIdxInList] = edited
-                            workoutViewModel.updateSet(edited, sessionId)
-                        }
+                        workoutViewModel.setWeight(targetSet.id, newWeight)
                     },
                     onUpdateSetReps = { targetSet, newReps ->
-                        val setIdxInList = liveSets.indexOfFirst { it.id == targetSet.id }
-                        if (setIdxInList != -1) {
-                            val edited = targetSet.copy(reps = newReps)
-                            liveSets[setIdxInList] = edited
-                            workoutViewModel.updateSet(edited, sessionId)
-                        }
+                        workoutViewModel.setReps(targetSet.id, newReps)
                     },
-                    onAddSet = {
-                        val lastSet = exSets.lastOrNull()
-                        val newSetIdx = (lastSet?.setIndex ?: 0) + 1
-                        if (exItem.isUnilateral) {
-                            liveSets.add(
-                                WorkoutSet(
-                                    exerciseId = exItem.exerciseId,
-                                    exerciseName = exItem.exerciseName,
-                                    primaryMuscle = exItem.primaryMuscle,
-                                    equipment = exItem.equipment,
-                                    activityCategory = exItem.activityCategory,
-                                    orderIndex = exIdx,
-                                    setIndex = newSetIdx,
-                                    weightKg = lastSet?.weightKg ?: 0.0,
-                                    weightUnit = exItem.weightUnit,
-                                    reps = lastSet?.reps ?: 10,
-                                    side = UnilateralSide.LEFT,
-                                    restTimeSeconds = exItem.restTimeSeconds
-                                )
-                            )
-                            liveSets.add(
-                                WorkoutSet(
-                                    exerciseId = exItem.exerciseId,
-                                    exerciseName = exItem.exerciseName,
-                                    primaryMuscle = exItem.primaryMuscle,
-                                    equipment = exItem.equipment,
-                                    activityCategory = exItem.activityCategory,
-                                    orderIndex = exIdx,
-                                    setIndex = newSetIdx,
-                                    weightKg = lastSet?.weightKg ?: 0.0,
-                                    weightUnit = exItem.weightUnit,
-                                    reps = lastSet?.reps ?: 10,
-                                    side = UnilateralSide.RIGHT,
-                                    restTimeSeconds = exItem.restTimeSeconds
-                                )
-                            )
-                        } else {
-                            liveSets.add(
-                                WorkoutSet(
-                                    exerciseId = exItem.exerciseId,
-                                    exerciseName = exItem.exerciseName,
-                                    primaryMuscle = exItem.primaryMuscle,
-                                    equipment = exItem.equipment,
-                                    activityCategory = exItem.activityCategory,
-                                    orderIndex = exIdx,
-                                    setIndex = newSetIdx,
-                                    weightKg = lastSet?.weightKg ?: 0.0,
-                                    weightUnit = exItem.weightUnit,
-                                    reps = lastSet?.reps ?: 10,
-                                    side = UnilateralSide.NONE,
-                                    restTimeSeconds = exItem.restTimeSeconds
-                                )
-                            )
-                        }
-                    },
-                    onDeleteSet = { targetSet ->
-                        liveSets.removeAll { it.id == targetSet.id }
-                    }
+                    onAddSet = { workoutViewModel.addSet(exIdx) },
+                    onDeleteSet = { targetSet -> workoutViewModel.removeSet(targetSet.id) }
                 )
             }
 
@@ -409,40 +224,50 @@ fun WorkoutScreen(
 
     if (showingSummaryDialog) {
         WorkoutSummaryDialog(
-            session = liveSession,
+            session = workout.toSession().copy(averageHeartRateBpm = currentHeartRate),
             onConfirmSave = {
                 showingSummaryDialog = false
-                workoutViewModel.finish(liveSession)
-                onFinishWorkout(liveSession)
+                workoutViewModel.finish()?.let(onFinishWorkout)
             }
         )
     }
 
     activeWeightUnitPickerExerciseIndex?.let { exIdx ->
-        val currentUnit = workoutExercises.getOrNull(exIdx)?.weightUnit ?: WeightUnit.KG
+        val currentUnit = workout.exercises.getOrNull(exIdx)?.weightUnit ?: WeightUnit.KG
         WeightUnitPickerDialog(
             currentUnit = currentUnit,
-            onUnitSelected = { newUnit ->
-                val currentEx = workoutExercises[exIdx]
-                workoutExercises[exIdx] = currentEx.copy(weightUnit = newUnit)
-                liveSets.replaceAll {
-                    if (it.orderIndex == exIdx) it.copy(weightUnit = newUnit) else it
-                }
-            },
+            onUnitSelected = { newUnit -> workoutViewModel.setWeightUnit(exIdx, newUnit) },
             onDismiss = { activeWeightUnitPickerExerciseIndex = null }
         )
     }
 
     // Modale Temps de Repos
     activeRestPickerExerciseIndex?.let { exIdx ->
-        val currentRest = workoutExercises.getOrNull(exIdx)?.restTimeSeconds ?: 90
+        val currentRest = workout.exercises.getOrNull(exIdx)?.restTimeSeconds ?: DEFAULT_REST_SECONDS
         RestTimePickerDialog(
             currentRestSeconds = currentRest,
-            onRestSelected = { newRest ->
-                val currentEx = workoutExercises[exIdx]
-                workoutExercises[exIdx] = currentEx.copy(restTimeSeconds = newRest)
-            },
+            onRestSelected = { newRest -> workoutViewModel.setRestTime(exIdx, newRest) },
             onDismiss = { activeRestPickerExerciseIndex = null }
         )
+    }
+}
+
+/** One tick of the session and rest clocks. */
+private const val TIMER_TICK_MS = 1_000L
+private const val MILLIS_PER_SECOND = 1_000L
+
+/** Shown by the rest picker when an exercise somehow carries no rest of its own. */
+private const val DEFAULT_REST_SECONDS = 90
+
+/**
+ * Whether validating this set ends the effort, and so opens the rest.
+ *
+ * A unilateral exercise is only done once both sides are: resting after the left side would
+ * cut the exercise in half.
+ */
+private fun shouldRestAfter(validated: WorkoutSet, exerciseSets: List<WorkoutSet>): Boolean {
+    if (validated.side != UnilateralSide.LEFT) return true
+    return exerciseSets.any {
+        it.setIndex == validated.setIndex && it.side == UnilateralSide.RIGHT && it.isCompleted
     }
 }

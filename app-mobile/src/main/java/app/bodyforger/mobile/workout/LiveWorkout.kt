@@ -121,6 +121,33 @@ data class LiveWorkout(
         )
 
         /**
+         * Rebuilds a workout from a session read back out of the database.
+         *
+         * Only the sets are stored — the exercise list is what they say about themselves,
+         * regrouped by position. So the board comes back as the athlete left it, including
+         * the exercises added mid-session, which belong to no routine.
+         */
+        fun resumed(session: WorkoutSession): LiveWorkout {
+            val byPosition = session.sets.groupBy { it.orderIndex }.toSortedMap()
+            val exercises = byPosition.map { (position, sets) ->
+                val reference = sets.first()
+                RoutineExercise(
+                    exerciseId = reference.exerciseId,
+                    exerciseName = reference.exerciseName,
+                    activityCategory = reference.activityCategory,
+                    primaryMuscle = reference.primaryMuscle,
+                    equipment = reference.equipment,
+                    isUnilateral = sets.any { it.side != UnilateralSide.NONE },
+                    weightUnit = reference.weightUnit,
+                    orderIndex = position,
+                    restTimeSeconds = reference.restTimeSeconds,
+                    sets = emptyList()
+                )
+            }
+            return LiveWorkout(session = session.copy(sets = emptyList()), exercises = exercises, sets = session.sets)
+        }
+
+        /**
          * Turns the sets a routine plans into the sets to be performed.
          *
          * A unilateral exercise yields two: one per side. They share a [WorkoutSet.setIndex],
