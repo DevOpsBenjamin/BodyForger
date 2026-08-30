@@ -67,4 +67,95 @@
     <string name="dialog_weight_unit_desc">"Saisissez la charge comme indiquée sur votre équipement (ex: plaques de machines graduées en lbs ou poids libres en kg) :"</string>
     <string name="dialog_weight_unit_kg_sub">Poids libres, barres et haltères standards</string>
     <string name="dialog_weight_unit_lbs_sub">Machines guidées et colonnes de charges</string>
+
+    <!-- Live Workout -->
+    <string name="workout_live_title">SÉANCE EN DIRECT</string>
+    <string name="workout_live_finish_btn">TERMINER LA SÉANCE</string>
+    <string name="workout_live_validate_set">VALIDER LA SÉRIE</string>
+    <string name="workout_live_rest_timer">CHRONOMÈTRE DE REPOS</string>
+    <string name="workout_live_skip_rest">PASSER</string>
+    <string name="workout_live_add_30s">+30s</string>
+    <string name="workout_live_minus_15s">-15s</string>
+    <string name="workout_live_col_set">SÉRIE</string>
+    <string name="workout_live_col_previous">PRÉC.</string>
+    <string name="workout_live_col_weight">KG</string>
+    <string name="workout_live_col_done">VAL.</string>
+    <string name="workout_live_col_reps">REPS</string>
+    <string name="workout_live_unilateral_warning">Enchaîner Côté Gauche puis Côté Droit avant le repos</string>
+
+    <!-- Workout Summary -->
+    <string name="workout_summary_title">🎉 SÉANCE VALIDÉE !</string>
+    <string name="workout_summary_subtitle">Superbe séance ! Voici le résumé de tes performances :</string>
+    <string name="workout_summary_duration">Durée</string>
+    <string name="workout_summary_volume">Tonnage Total</string>
+    <string name="workout_summary_sets_completed">Séries Validées</string>
+    <string name="workout_summary_muscle_volume">FATIGUE &amp; VOLUME PAR MUSCLE</string>
+    <string name="workout_summary_segments_title">SEGMENTS GOOGLE HEALTH CONNECT</string>
+    <string name="workout_summary_save_btn">ENREGISTRER ET QUITTER</string>
+    <string name="workout_live_free_session_title">Séance libre</string>
+
+    <!-- Domain vocabulary: the model carries identity, the labels live here -->
+    <!-- UnilateralSide -->
+    <string name="unilateral_side_none">Bilatéral</string>
+    <string name="unilateral_side_left">Côté gauche</string>
+    <string name="unilateral_side_right">Côté droit</string>
+    <string name="unilateral_side_badge_none"></string>
+    <string name="unilateral_side_badge_left">G</string>
+    <string name="unilateral_side_badge_right">D</string>
+    <!-- RoutineSetType -->
+    <string name="set_type_normal">Normale</string>
+    <string name="set_type_warmup">Échauffement</string>
+    <string name="set_type_dropset">Dégressive (drop set)</string>
+    <string name="set_type_failure">À l\'échec</string>
+    <string name="set_type_rest_pause">Rest-pause</string>
+    <string name="set_type_badge_normal">1</string>
+    <string name="set_type_badge_warmup">ÉCH</string>
+    <string name="set_type_badge_dropset">DROP</string>
+    <string name="set_type_badge_failure">ÉCHEC</string>
+    <string name="set_type_badge_rest_pause">RP</string>
+    <!-- WeightUnit -->
+    <string name="weight_unit_kg">Kilogrammes (kg)</string>
+    <string name="weight_unit_lbs">Livres (lbs)</string>
+    <!-- MuscleGroup -->
+    <string name="muscle_group_chest">Pectoraux</string>
+    <string name="muscle_group_back">Dos</string>
+    <string name="muscle_group_shoulders">Épaules</string>
+    <string name="muscle_group_biceps">Biceps</string>
+    <string name="muscle_group_triceps">Triceps</string>
+    <string name="muscle_group_quadriceps">Quadriceps</string>
+    <string name="muscle_group_hamstrings">Ischios</string>
+    <string name="muscle_group_glutes">Fessiers</string>
+    <string name="muscle_group_calves">Mollets</string>
+    <string name="muscle_group_abs">Abdos</string>
+    <string name="muscle_group_full_body">Corps complet</string>
+    <!-- EquipmentType -->
+    <string name="equipment_barbell">Barre</string>
+    <string name="equipment_dumbbell">Haltères</string>
+    <string name="equipment_cable">Poulie</string>
+    <string name="equipment_machine">Machine</string>
+    <string name="equipment_machine_convergent">Convergente</string>
+    <string name="equipment_bodyweight">Poids du corps</string>
+    <string name="equipment_kettlebell">Kettlebell</string>
+    <string name="equipment_other">Autre</string>
+    <!-- WorkoutActivityCategory -->
+    <string name="activity_category_strength_training">Musculation</string>
+    <string name="activity_category_elliptical">Vélo elliptique</string>
+    <string name="activity_category_stationary_biking">Vélo stationnaire</string>
+    <string name="activity_category_treadmill_running">Course sur tapis</string>
+    <string name="activity_category_treadmill_walking">Marche sur tapis</string>
+    <string name="activity_category_rowing_machine">Rameur</string>
+    <string name="activity_category_stretching">Étirements &amp; mobilité</string>
+    <string name="activity_category_hiit">HIIT &amp; circuit</string>
+    <string name="activity_category_calisthenics">Poids du corps</string>
+    <string name="activity_category_other">Autre</string>
+    <string name="workout_live_delete_btn">Supprimer la séance</string>
+    <string name="workout_live_delete_title">Supprimer cette séance ?</string>
+    <string name="workout_live_delete_body">Rien n\'est conservé : la séance et toutes les séries saisies disparaissent définitivement. Elle n\'apparaîtra dans aucun historique ni aucune statistique.</string>
+    <string name="workout_live_delete_confirm">SUPPRIMER</string>
+    <string name="resume_workout_title">Séance interrompue</string>
+    <string name="resume_workout_sets_done">%1$d série(s) déjà validée(s).</string>
+    <string name="resume_workout_no_sets">Aucune série n\'avait encore été validée.</string>
+    <string name="resume_workout_resume">REPRENDRE</string>
+    <string name="resume_workout_finish">TERMINER EN L\'ÉTAT</string>
+    <string name="resume_workout_delete">SUPPRIMER</string>
 </resources>

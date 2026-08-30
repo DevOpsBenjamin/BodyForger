@@ -2,16 +2,22 @@ package app.bodyforger.core.model
 
 import java.util.UUID
 
-enum class UnilateralSide(val displayName: String, val shortBadge: String) {
-    NONE("Bilatéral", ""),
-    LEFT("Côté Gauche", "G"),
-    RIGHT("Côté Droit", "D")
+/** Which side a set is performed on. How it reads on screen belongs to the UI. */
+enum class UnilateralSide {
+    NONE,
+    LEFT,
+    RIGHT
 }
 
+/**
+ * A session is either being trained or it is over.
+ *
+ * There is no discarded state: a session the athlete gives up on is deleted, because a status
+ * that appears in no history and no statistic would only hide a row in the database.
+ */
 enum class WorkoutSessionStatus {
     ACTIVE,
-    COMPLETED,
-    DISCARDED
+    COMPLETED
 }
 
 data class WorkoutSet(

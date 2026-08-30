@@ -67,4 +67,95 @@
     <string name="dialog_weight_unit_desc">Enter the weight as indicated on your equipment (e.g. machine weight stacks in lbs or free weights in kg):</string>
     <string name="dialog_weight_unit_kg_sub">Standard metric plates, barbells and dumbbells</string>
     <string name="dialog_weight_unit_lbs_sub">Pin-loaded weight stack machines</string>
+
+    <!-- Live Workout -->
+    <string name="workout_live_title">LIVE WORKOUT</string>
+    <string name="workout_live_finish_btn">FINISH WORKOUT</string>
+    <string name="workout_live_validate_set">VALIDATE SET</string>
+    <string name="workout_live_rest_timer">REST TIMER</string>
+    <string name="workout_live_skip_rest">SKIP</string>
+    <string name="workout_live_add_30s">+30s</string>
+    <string name="workout_live_minus_15s">-15s</string>
+    <string name="workout_live_col_set">SET</string>
+    <string name="workout_live_col_previous">PREV</string>
+    <string name="workout_live_col_weight">KG</string>
+    <string name="workout_live_col_done">DONE</string>
+    <string name="workout_live_col_reps">REPS</string>
+    <string name="workout_live_unilateral_warning">Complete Left side then Right side before rest</string>
+
+    <!-- Workout Summary -->
+    <string name="workout_summary_title">🎉 WORKOUT COMPLETED</string>
+    <string name="workout_summary_subtitle">Awesome job! Here is your performance summary:</string>
+    <string name="workout_summary_duration">Duration</string>
+    <string name="workout_summary_volume">Total Tonnage</string>
+    <string name="workout_summary_sets_completed">Completed Sets</string>
+    <string name="workout_summary_muscle_volume">MUSCLE FATIGUE &amp; VOLUME</string>
+    <string name="workout_summary_segments_title">HEALTH CONNECT SEGMENTS</string>
+    <string name="workout_summary_save_btn">DONE &amp; SAVE</string>
+    <string name="workout_live_free_session_title">Free session</string>
+
+    <!-- Domain vocabulary: the model carries identity, the labels live here -->
+    <!-- UnilateralSide -->
+    <string name="unilateral_side_none">Bilateral</string>
+    <string name="unilateral_side_left">Left side</string>
+    <string name="unilateral_side_right">Right side</string>
+    <string name="unilateral_side_badge_none"></string>
+    <string name="unilateral_side_badge_left">L</string>
+    <string name="unilateral_side_badge_right">R</string>
+    <!-- RoutineSetType -->
+    <string name="set_type_normal">Normal</string>
+    <string name="set_type_warmup">Warm-up</string>
+    <string name="set_type_dropset">Drop set</string>
+    <string name="set_type_failure">To failure</string>
+    <string name="set_type_rest_pause">Rest-pause</string>
+    <string name="set_type_badge_normal">1</string>
+    <string name="set_type_badge_warmup">WU</string>
+    <string name="set_type_badge_dropset">DROP</string>
+    <string name="set_type_badge_failure">FAIL</string>
+    <string name="set_type_badge_rest_pause">RP</string>
+    <!-- WeightUnit -->
+    <string name="weight_unit_kg">Kilograms (kg)</string>
+    <string name="weight_unit_lbs">Pounds (lbs)</string>
+    <!-- MuscleGroup -->
+    <string name="muscle_group_chest">Chest</string>
+    <string name="muscle_group_back">Back</string>
+    <string name="muscle_group_shoulders">Shoulders</string>
+    <string name="muscle_group_biceps">Biceps</string>
+    <string name="muscle_group_triceps">Triceps</string>
+    <string name="muscle_group_quadriceps">Quadriceps</string>
+    <string name="muscle_group_hamstrings">Hamstrings</string>
+    <string name="muscle_group_glutes">Glutes</string>
+    <string name="muscle_group_calves">Calves</string>
+    <string name="muscle_group_abs">Abs</string>
+    <string name="muscle_group_full_body">Full body</string>
+    <!-- EquipmentType -->
+    <string name="equipment_barbell">Barbell</string>
+    <string name="equipment_dumbbell">Dumbbell</string>
+    <string name="equipment_cable">Cable</string>
+    <string name="equipment_machine">Machine</string>
+    <string name="equipment_machine_convergent">Converging machine</string>
+    <string name="equipment_bodyweight">Bodyweight</string>
+    <string name="equipment_kettlebell">Kettlebell</string>
+    <string name="equipment_other">Other</string>
+    <!-- WorkoutActivityCategory -->
+    <string name="activity_category_strength_training">Strength training</string>
+    <string name="activity_category_elliptical">Elliptical</string>
+    <string name="activity_category_stationary_biking">Stationary bike</string>
+    <string name="activity_category_treadmill_running">Treadmill running</string>
+    <string name="activity_category_treadmill_walking">Treadmill walking</string>
+    <string name="activity_category_rowing_machine">Rowing machine</string>
+    <string name="activity_category_stretching">Stretching &amp; mobility</string>
+    <string name="activity_category_hiit">HIIT &amp; circuit</string>
+    <string name="activity_category_calisthenics">Calisthenics</string>
+    <string name="activity_category_other">Other</string>
+    <string name="workout_live_delete_btn">Delete workout</string>
+    <string name="workout_live_delete_title">Delete this workout?</string>
+    <string name="workout_live_delete_body">Nothing is kept: this workout and every set logged in it are removed for good. It appears in no history and no statistic.</string>
+    <string name="workout_live_delete_confirm">DELETE</string>
+    <string name="resume_workout_title">Interrupted workout</string>
+    <string name="resume_workout_sets_done">%1$d set(s) already logged.</string>
+    <string name="resume_workout_no_sets">No set had been logged yet.</string>
+    <string name="resume_workout_resume">RESUME</string>
+    <string name="resume_workout_finish">FINISH AS IS</string>
+    <string name="resume_workout_delete">DELETE</string>
 </resources>

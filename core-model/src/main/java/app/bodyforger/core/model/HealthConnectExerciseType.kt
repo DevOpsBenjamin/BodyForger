@@ -77,27 +77,27 @@ enum class HealthConnectExerciseType(
     OTHER_WORKOUT(999, "Custom / Other", "Personnalisé / Autre", MuscleGroup.FULL_BODY, EquipmentType.OTHER);
 }
 
-enum class MuscleGroup(val displayName: String) {
-    CHEST("Pectoraux"),
-    BACK("Dos"),
-    SHOULDERS("Épaules"),
-    BICEPS("Biceps"),
-    TRICEPS("Triceps"),
-    QUADRICEPS("Quadriceps"),
-    HAMSTRINGS("Ischios"),
-    GLUTES("Fessiers"),
-    CALVES("Mollets"),
-    ABS("Abdos"),
-    FULL_BODY("Corps Complet")
+enum class MuscleGroup {
+    CHEST,
+    BACK,
+    SHOULDERS,
+    BICEPS,
+    TRICEPS,
+    QUADRICEPS,
+    HAMSTRINGS,
+    GLUTES,
+    CALVES,
+    ABS,
+    FULL_BODY
 }
 
-enum class EquipmentType(val displayName: String) {
-    BARBELL("Barre"),
-    DUMBBELL("Haltères"),
-    CABLE("Poulie"),
-    MACHINE("Machine"),
-    MACHINE_CONVERGENT("Convergente"),
-    BODYWEIGHT("Poids du corps"),
-    KETTLEBELL("Kettlebell"),
-    OTHER("Autre")
+enum class EquipmentType {
+    BARBELL,
+    DUMBBELL,
+    CABLE,
+    MACHINE,
+    MACHINE_CONVERGENT,
+    BODYWEIGHT,
+    KETTLEBELL,
+    OTHER
 }

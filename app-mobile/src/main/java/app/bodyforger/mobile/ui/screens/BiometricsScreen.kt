@@ -17,10 +17,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -29,6 +29,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import org.koin.androidx.compose.koinViewModel
+import app.bodyforger.mobile.ui.components.BiometricsEmptyState
+import app.bodyforger.mobile.profile.BiometricsViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,10 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.bodyforger.core.bia.DexaBiaCalculator
-import app.bodyforger.mobile.data.DebugSampleBia
-import app.bodyforger.core.model.BiaProfile
-import app.bodyforger.core.model.BiologicalSex
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
@@ -56,26 +56,20 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
 @Composable
-fun BiometricsScreen() {
+fun BiometricsScreen(
+    onOpenScale: () -> Unit = {},
+    viewModel: BiometricsViewModel = koinViewModel()
+) {
     val scrollState = rememberScrollState()
+    val state by viewModel.state.collectAsState()
 
-    var userMassKg by remember { mutableStateOf(78.5) }
-    val profile = remember {
-        BiaProfile(
-            sex = BiologicalSex.MALE,
-            ageYears = 29,
-            heightCm = 182.0
-        )
+    val lastLog = state.lastLog
+    val report = state.report
+    if (lastLog == null || report == null) {
+        BiometricsEmptyState(isProfileComplete = state.profile.isComplete, onOpenScale = onOpenScale)
+        return
     }
-
-    val report = remember(userMassKg) {
-        DexaBiaCalculator.calculate(
-            massKg = userMassKg,
-            profile = profile,
-            impedances = DebugSampleBia.dualFrequencyReading
-        )
-        // `null` plutôt que d'inventer un chiffre.
-    } ?: return
+    val userMassKg = lastLog.massKg
 
     Column(
         modifier = Modifier
@@ -128,13 +122,13 @@ fun BiometricsScreen() {
                         Text(text = "TAUX DE GRAS (BF)", color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "${report.bodyFatPercentage}%",
+                                text = "${lastLog.bodyFatPercentage}%",
                                 color = NeonLime,
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Black
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Icon(imageVector = Icons.Default.TrendingDown, contentDescription = null, tint = NeonLime, modifier = Modifier.size(18.dp))
+                            Icon(imageVector = Icons.AutoMirrored.Filled.TrendingDown, contentDescription = null, tint = NeonLime, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -246,9 +240,7 @@ fun BiometricsScreen() {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = {
-                userMassKg = if (userMassKg == 78.5) 78.2 else 78.5
-            },
+            onClick = onOpenScale,
             colors = ButtonDefaults.buttonColors(
                 containerColor = ElectricCyan,
                 contentColor = Color.Black

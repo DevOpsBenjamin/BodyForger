@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Icon
@@ -22,9 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceElevated
@@ -36,6 +40,7 @@ fun LiveWorkoutTopBar(
     currentHeartRate: Int,
     sessionSeconds: Int,
     onMinimize: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -53,6 +58,23 @@ fun LiveWorkoutTopBar(
             contentAlignment = Alignment.Center
         ) {
             Text(text = "▼", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(SurfaceElevated)
+                .border(1.dp, SurfaceBorder, CircleShape)
+                .clickable { onDelete() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.DeleteOutline,
+                contentDescription = stringResource(R.string.workout_live_delete_btn),
+                tint = AmberGold,
+                modifier = Modifier.size(18.dp)
+            )
         }
         Row(
             modifier = Modifier

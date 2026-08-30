@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.Exercise
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
@@ -79,7 +80,7 @@ fun CatalogExerciseCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
-                        text = exercise.primaryMuscleGroup.displayName,
+                        text = exercise.primaryMuscleGroup.label(),
                         color = ElectricCyan,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold
@@ -88,7 +89,7 @@ fun CatalogExerciseCard(
                     Text(text = "•", color = TextMuted, fontSize = 11.sp)
 
                     Text(
-                        text = exercise.equipment.displayName,
+                        text = exercise.equipment.label(),
                         color = TextMuted,
                         fontSize = 11.sp
                     )
