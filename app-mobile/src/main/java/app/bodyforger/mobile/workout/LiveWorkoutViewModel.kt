@@ -69,6 +69,11 @@ class LiveWorkoutViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch { workoutDao.updateSet(set.toEntity(sessionId)) }
     }
 
+    /** Drops the resumption offer once the athlete has taken it. */
+    fun clearResumable() {
+        _resumable.value = null
+    }
+
     fun finish(session: WorkoutSession) = close(session, WorkoutSessionStatus.COMPLETED)
 
     /**

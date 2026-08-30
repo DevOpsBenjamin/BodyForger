@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.setValue
 import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.ui.components.ResumeWorkoutDialog
+import app.bodyforger.mobile.workout.LiveWorkoutViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Modifier
 import app.bodyforger.core.model.Exercise
@@ -68,11 +70,28 @@ fun BodyForgerApp() {
     var showingSettingsScreen by remember { mutableStateOf(false) }
 
     val library: LibraryViewModel = viewModel()
+    val workoutViewModel: LiveWorkoutViewModel = viewModel()
+    val interruptedSession by workoutViewModel.resumable.collectAsState()
     val routines by library.routines.collectAsState()
     val customExercises by library.exercises.collectAsState()
     val completedSessions by library.completedSessions.collectAsState()
 
     val navItems = listOf(NavItem.Home, NavItem.Planner, NavItem.Analytics, NavItem.Profile)
+
+    // A session left open by a previous run is offered before anything else: the athlete
+    // should not discover mid-workout that the previous one was never closed.
+    interruptedSession?.let { session ->
+        ResumeWorkoutDialog(
+            session = session,
+            onResume = {
+                activeWorkoutRoutine = routines.firstOrNull { it.id == session.routineId }
+                isLiveWorkoutRunning = true
+                showingLiveWorkoutScreen = true
+                workoutViewModel.clearResumable()
+            },
+            onDiscard = { workoutViewModel.discard(session) }
+        )
+    }
 
     if (showingCreateExerciseScreen) {
         CreateExerciseScreen(
@@ -142,6 +161,7 @@ fun BodyForgerApp() {
     } else if (showingLiveWorkoutScreen) {
         WorkoutScreen(
             initialRoutine = activeWorkoutRoutine,
+            workoutViewModel = workoutViewModel,
             onMinimize = { showingLiveWorkoutScreen = false },
             onOpenCatalogForAdd = {
                 isCatalogForRoutineSelection = true

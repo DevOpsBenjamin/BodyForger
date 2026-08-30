@@ -275,13 +275,17 @@ fun WorkoutScreen(
                     onUpdateSetWeight = { targetSet, newWeight ->
                         val setIdxInList = liveSets.indexOfFirst { it.id == targetSet.id }
                         if (setIdxInList != -1) {
-                            liveSets[setIdxInList] = targetSet.copy(weightKg = newWeight)
+                            val edited = targetSet.copy(weightKg = newWeight)
+                            liveSets[setIdxInList] = edited
+                            workoutViewModel.updateSet(edited, sessionId)
                         }
                     },
                     onUpdateSetReps = { targetSet, newReps ->
                         val setIdxInList = liveSets.indexOfFirst { it.id == targetSet.id }
                         if (setIdxInList != -1) {
-                            liveSets[setIdxInList] = targetSet.copy(reps = newReps)
+                            val edited = targetSet.copy(reps = newReps)
+                            liveSets[setIdxInList] = edited
+                            workoutViewModel.updateSet(edited, sessionId)
                         }
                     },
                     onAddSet = {
