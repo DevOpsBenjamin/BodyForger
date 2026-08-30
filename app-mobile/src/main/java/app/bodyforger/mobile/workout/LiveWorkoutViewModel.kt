@@ -33,6 +33,16 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
     /** The workout in progress, or null when the athlete is not training. */
     val active: StateFlow<LiveWorkout?> = _active.asStateFlow()
 
+    private val _lastPerformance = MutableStateFlow<Map<SetReference, WorkoutSet>>(emptyMap())
+
+    /**
+     * What the athlete lifted the last time they trained each set.
+     *
+     * Shown against every set so the reference is there before the effort, not looked up after
+     * it, and tapped to carry it over.
+     */
+    val lastPerformance: StateFlow<Map<SetReference, WorkoutSet>> = _lastPerformance.asStateFlow()
+
     private val _resumable = MutableStateFlow<WorkoutSession?>(null)
 
     /** A session left open by a previous run, offered for resumption. */
@@ -68,13 +78,16 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
             if (workout.sets.isNotEmpty()) {
                 workoutDao.insertSets(workout.sets.toSetEntities(session.id))
             }
+            loadLastPerformance(workout)
         }
     }
 
     /** Picks a session back up where it stopped, board and loads included. */
     fun resume(session: WorkoutSession) {
-        _active.value = LiveWorkout.resumed(session)
+        val workout = LiveWorkout.resumed(session)
+        _active.value = workout
         _resumable.value = null
+        viewModelScope.launch { loadLastPerformance(workout) }
     }
 
     /** Drops the resumption offer without touching the session it pointed at. */
@@ -83,12 +96,18 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
     }
 
     fun addExercise(exercise: RoutineExercise) = mutate { workout ->
-        workout.addExercise(exercise).also { insertSetsOf(it, exerciseIndex = it.exercises.lastIndex) }
+        workout.addExercise(exercise).also {
+            insertSetsOf(it, exerciseIndex = it.exercises.lastIndex)
+            viewModelScope.launch { loadLastPerformance(it) }
+        }
     }
 
     fun replaceExercise(index: Int, exercise: RoutineExercise) = mutate { workout ->
         workout.setsOf(index).forEach { dropped -> viewModelScope.launch { workoutDao.deleteSet(dropped.id) } }
-        workout.replaceExercise(index, exercise).also { insertSetsOf(it, exerciseIndex = index) }
+        workout.replaceExercise(index, exercise).also {
+            insertSetsOf(it, exerciseIndex = index)
+            viewModelScope.launch { loadLastPerformance(it) }
+        }
     }
 
     /**
@@ -157,6 +176,14 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
 
     fun setWeight(setId: String, weightKg: Double) = editSet(setId) { it.copy(weightKg = weightKg) }
 
+    /** Carries last session's load and repetitions into a set, in one gesture. */
+    fun repeatLastPerformance(setId: String) {
+        val workout = _active.value ?: return
+        val target = workout.sets.firstOrNull { it.id == setId } ?: return
+        val previous = _lastPerformance.value[SetReference.of(target)] ?: return
+        editSet(setId) { it.copy(weightKg = previous.weightKg, reps = previous.reps) }
+    }
+
     fun setReps(setId: String, reps: Int) = editSet(setId) { it.copy(reps = reps) }
 
     fun setRestTime(exerciseIndex: Int, seconds: Int) =
@@ -202,6 +229,21 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
             val edited = updated.sets.first { it.id == setId }
             viewModelScope.launch { workoutDao.updateSet(edited.toEntity(updated.session.id)) }
         }
+    }
+
+    /**
+     * Reads back the last session for each exercise on the board.
+     *
+     * One query per exercise rather than one per set: what is wanted is the previous session,
+     * and it holds every set of that exercise at once.
+     */
+    private suspend fun loadLastPerformance(workout: LiveWorkout) {
+        val found = workout.exercises
+            .map { it.exerciseId }
+            .distinct()
+            .flatMap { workoutDao.getLastPerformance(it, workout.session.id) }
+            .map { it.toDomain() }
+        _lastPerformance.value = found.associateBy { SetReference.of(it) }
     }
 
     private fun insertSetsOf(workout: LiveWorkout, exerciseIndex: Int) {

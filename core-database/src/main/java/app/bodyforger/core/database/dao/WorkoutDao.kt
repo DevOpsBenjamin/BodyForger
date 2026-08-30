@@ -62,6 +62,31 @@ interface WorkoutDao {
     suspend fun getSetsForSession(sessionId: String): List<WorkoutSetEntity>
 
     /**
+     * The sets performed the last time this exercise was trained, before the current session.
+     *
+     * The whole of that session's sets for the exercise, not the heaviest ever: the athlete
+     * wants to know what they lifted last time, in order, to decide what to lift now.
+     */
+    @Query(
+        """
+        SELECT * FROM workout_sets
+        WHERE exerciseId = :exerciseId
+          AND isCompleted = 1
+          AND sessionId = (
+            SELECT s.id FROM workout_sessions s
+            JOIN workout_sets w ON w.sessionId = s.id
+            WHERE w.exerciseId = :exerciseId
+              AND w.isCompleted = 1
+              AND s.status = 'COMPLETED'
+              AND s.id != :currentSessionId
+            ORDER BY s.startedAtEpochMs DESC
+            LIMIT 1
+          )
+        """
+    )
+    suspend fun getLastPerformance(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity>
+
+    /**
      * Records one validated set and the session tonnage that follows, in one transaction.
      *
      * Recomputing the tonnage here rather than storing it separately keeps the aggregate and

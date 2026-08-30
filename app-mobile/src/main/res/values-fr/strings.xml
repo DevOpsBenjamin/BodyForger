@@ -80,6 +80,7 @@
     <string name="workout_live_col_set">SÉRIE</string>
     <string name="workout_live_col_previous">PRÉC.</string>
     <string name="workout_live_col_weight">KG</string>
+    <string name="workout_live_col_done">VAL.</string>
     <string name="workout_live_col_reps">REPS</string>
     <string name="workout_live_unilateral_warning">Enchaîner Côté Gauche puis Côté Droit avant le repos</string>
 

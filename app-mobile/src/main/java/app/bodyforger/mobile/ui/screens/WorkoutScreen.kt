@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.bodyforger.mobile.workout.SetReference
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -74,6 +75,7 @@ fun WorkoutScreen(
     // The workout belongs to the ViewModel: minimising the session leaves this composition,
     // and anything held here would go with it.
     val workout = workoutViewModel.active.collectAsState().value ?: return
+    val lastPerformance by workoutViewModel.lastPerformance.collectAsState()
 
     var sessionSeconds by remember { mutableIntStateOf(0) }
     var currentHeartRate by remember { mutableIntStateOf(138) }
@@ -163,7 +165,11 @@ fun WorkoutScreen(
                         workoutViewModel.setReps(targetSet.id, newReps)
                     },
                     onAddSet = { workoutViewModel.addSet(exIdx) },
-                    onOpenSetOptions = { targetSet -> setOptionsTarget = exIdx to targetSet.setIndex }
+                    onOpenSetOptions = { targetSet -> setOptionsTarget = exIdx to targetSet.setIndex },
+                    lastPerformanceOf = { targetSet -> lastPerformance[SetReference.of(targetSet)] },
+                    onRepeatLastPerformance = { targetSet ->
+                        workoutViewModel.repeatLastPerformance(targetSet.id)
+                    }
                 )
             }
 

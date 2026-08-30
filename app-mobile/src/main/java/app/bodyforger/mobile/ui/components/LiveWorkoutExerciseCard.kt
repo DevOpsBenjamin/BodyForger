@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,6 +75,8 @@ fun LiveWorkoutExerciseCard(
     onUpdateSetReps: (WorkoutSet, Int) -> Unit,
     onAddSet: () -> Unit,
     onOpenSetOptions: (WorkoutSet) -> Unit,
+    lastPerformanceOf: (WorkoutSet) -> WorkoutSet?,
+    onRepeatLastPerformance: (WorkoutSet) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -198,7 +201,17 @@ fun LiveWorkoutExerciseCard(
                     color = TextMuted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.width(42.dp)
+                    modifier = Modifier.width(44.dp)
+                )
+
+                Text(
+                    text = stringResource(R.string.workout_live_col_previous),
+                    color = TextMuted,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    modifier = Modifier.width(60.dp)
                 )
 
                 Row(
@@ -228,15 +241,15 @@ fun LiveWorkoutExerciseCard(
                     color = TextMuted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.width(60.dp)
+                    modifier = Modifier.width(52.dp)
                 )
 
                 Text(
-                    text = "VAL.",
+                    text = stringResource(R.string.workout_live_col_done),
                     color = TextMuted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.width(36.dp)
+                    modifier = Modifier.width(34.dp)
                 )
             }
 
@@ -249,7 +262,9 @@ fun LiveWorkoutExerciseCard(
                     onToggleCompleted = { onToggleSetCompleted(setItem) },
                     onWeightChange = { newWeight -> onUpdateSetWeight(setItem, newWeight) },
                     onRepsChange = { newReps -> onUpdateSetReps(setItem, newReps) },
-                    onOpenOptions = { onOpenSetOptions(setItem) }
+                    onOpenOptions = { onOpenSetOptions(setItem) },
+                    lastPerformance = lastPerformanceOf(setItem),
+                    onRepeatLastPerformance = { onRepeatLastPerformance(setItem) }
                 )
                 Spacer(modifier = Modifier.height(6.dp))
             }

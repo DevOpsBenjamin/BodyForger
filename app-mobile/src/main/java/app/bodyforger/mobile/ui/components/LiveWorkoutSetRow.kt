@@ -31,6 +31,7 @@ import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.core.model.WorkoutSet
 import app.bodyforger.mobile.ui.text.badge
 import app.bodyforger.mobile.ui.theme.AmberGold
+import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceElevated
@@ -45,6 +46,8 @@ fun LiveWorkoutSetRow(
     onWeightChange: (Double) -> Unit,
     onRepsChange: (Int) -> Unit,
     onOpenOptions: () -> Unit,
+    lastPerformance: WorkoutSet?,
+    onRepeatLastPerformance: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isCompleted = set.isCompleted
@@ -89,7 +92,14 @@ fun LiveWorkoutSetRow(
             }
         }
 
-        // 2. Champ Saisie Charge (CompactNumberInput anti-troncature)
+        // 2. Ce qui a été soulevé la dernière fois, et qu'un appui recopie ici.
+        PreviousPerformance(
+            previous = lastPerformance,
+            weightUnit = weightUnit,
+            onRepeat = onRepeatLastPerformance
+        )
+
+        // 3. Champ Saisie Charge (CompactNumberInput anti-troncature)
         val weightText = if (set.weightKg % 1.0 == 0.0) {
             set.weightKg.toInt().toString()
         } else {
@@ -103,7 +113,7 @@ fun LiveWorkoutSetRow(
                 if (parsed != null) onWeightChange(parsed)
             },
             placeholder = "0",
-            modifier = Modifier.width(72.dp)
+            modifier = Modifier.width(64.dp)
         )
 
         CompactNumberInput(
@@ -113,7 +123,7 @@ fun LiveWorkoutSetRow(
                 if (parsed != null) onRepsChange(parsed)
             },
             placeholder = "0",
-            modifier = Modifier.width(60.dp)
+            modifier = Modifier.width(52.dp)
         )
 
         // 4. Bouton de Validation / Checkbox interactif
@@ -139,3 +149,41 @@ fun LiveWorkoutSetRow(
         }
     }
 }
+
+/**
+ * The reference from last time, always in view rather than looked up.
+ *
+ * A tap carries it into the fields, overwriting whatever they hold — the athlete asking for
+ * last session's numbers means they want them, not a merge with what is typed.
+ */
+@Composable
+private fun PreviousPerformance(
+    previous: WorkoutSet?,
+    weightUnit: WeightUnit,
+    onRepeat: () -> Unit
+) {
+    val label = previous?.let { "${formatLoad(it.weightKg)}${weightUnit.symbol} × ${it.reps}" }
+
+    Box(
+        modifier = Modifier
+            .width(PREVIOUS_COLUMN_WIDTH)
+            .then(if (previous != null) Modifier.clickable(onClick = onRepeat) else Modifier),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label ?: NO_PREVIOUS_PERFORMANCE,
+            color = if (previous != null) ElectricCyan else TextMuted,
+            fontSize = 11.sp,
+            fontWeight = if (previous != null) FontWeight.Bold else FontWeight.Normal,
+            maxLines = 1
+        )
+    }
+}
+
+private fun formatLoad(weightKg: Double): String =
+    if (weightKg % 1.0 == 0.0) weightKg.toInt().toString() else weightKg.toString()
+
+/** Shown when the exercise has never been completed before: there is nothing to repeat. */
+private const val NO_PREVIOUS_PERFORMANCE = "—"
+
+private val PREVIOUS_COLUMN_WIDTH = 60.dp

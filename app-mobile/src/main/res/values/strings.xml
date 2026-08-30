@@ -80,6 +80,7 @@
     <string name="workout_live_col_set">SET</string>
     <string name="workout_live_col_previous">PREV</string>
     <string name="workout_live_col_weight">KG</string>
+    <string name="workout_live_col_done">DONE</string>
     <string name="workout_live_col_reps">REPS</string>
     <string name="workout_live_unilateral_warning">Complete Left side then Right side before rest</string>
 
