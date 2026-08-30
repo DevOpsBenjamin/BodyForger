@@ -1,6 +1,7 @@
 package app.bodyforger.mobile.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -116,14 +117,24 @@ fun BodyForgerNavHost(
         }
 
         composable<Destination.LiveWorkout> {
-            WorkoutScreen(
-                workoutViewModel = workout,
-                onMinimize = navController::navigateUp,
-                onOpenCatalogForAdd = { navController.navigate(Destination.AddToWorkout) },
-                onOpenCatalogForReplace = { navController.navigate(Destination.ReplaceInWorkout(it)) },
-                onFinishWorkout = { navController.switchTab(Tab.PLANNER) },
-                onLeaveWorkout = { navController.switchTab(Tab.PLANNER) }
-            )
+            val active by workout.active.collectAsState()
+
+            // Une séance terminée ou supprimée ne laisse rien à afficher. Sans cette sortie,
+            // l'écran restait vide et l'athlète n'avait plus de chemin.
+            LaunchedEffect(active) {
+                if (active == null) navController.switchTab(Tab.HOME)
+            }
+
+            if (active != null) {
+                WorkoutScreen(
+                    workoutViewModel = workout,
+                    onMinimize = navController::navigateUp,
+                    onOpenCatalogForAdd = { navController.navigate(Destination.AddToWorkout) },
+                    onOpenCatalogForReplace = { navController.navigate(Destination.ReplaceInWorkout(it)) },
+                    onFinishWorkout = { navController.switchTab(Tab.HOME) },
+                    onLeaveWorkout = { navController.switchTab(Tab.HOME) }
+                )
+            }
         }
 
         composable<Destination.CreateExercise> {
