@@ -40,7 +40,9 @@ Ce document régit les règles de développement, les protocoles d'authentificat
 
 ## 🧼 4. Hygiène du Code
 
-1. **Langue** : le **code, les commentaires et la documentation sont en anglais**. Les messages de commit et les échanges de tickets restent en français. Les libellés d'interface suivent la règle i18n ci-dessus.
+1. **Langue : l'anglais partout, sans exception sur GitHub.** Le code, les commentaires, la documentation, **les messages de commit, les titres et corps de tickets, les descriptions de Pull Request et les commentaires de revue** s'écrivent en anglais. Le dépôt est public et sous licence MIT : une moitié française en fermerait la lecture à qui n'a pas les deux langues.
+   * Seule exception, et pour une autre raison : les **libellés d'interface** s'adressent à l'athlète et suivent la règle i18n de §3.3 — anglais par défaut dans `strings.xml`, français dans `values-fr`.
+   * L'historique n'est pas réécrit. Les commits et tickets français existants restent tels quels ; la règle vaut pour la suite.
 
 2. **Pas de commentaire explicatif dans le code.** Un nom bien choisi remplace une phrase. Ce qui demande un paragraphe demande en réalité un document : un fichier dans `docs/`, ou un ADR si c'est une décision. Le code peut y renvoyer d'une ligne, jamais le recopier.
    * Ce qui reste acceptable : une ligne signalant un piège non déductible du code — un contournement de plateforme, un ordre d'appel obligatoire, une valeur imposée par un protocole.
