@@ -22,6 +22,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.bodyforger.mobile.R
+import androidx.compose.ui.res.stringResource
+import app.bodyforger.core.model.BodyLog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +47,13 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
 @Composable
-fun HomeWeightGraphCard(modifier: Modifier = Modifier) {
+fun HomeWeightGraphCard(
+    weighIns: List<BodyLog>,
+    modifier: Modifier = Modifier
+) {
+    // Rien de tracé sans pesée : la courbe était sept coordonnées dans le canvas, immobiles
+    // quoi qu'on pèse.
+    val latest = weighIns.firstOrNull()
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -71,7 +80,7 @@ fun HomeWeightGraphCard(modifier: Modifier = Modifier) {
                         modifier = Modifier.padding(top = 2.dp)
                     ) {
                         Text(
-                            text = "78.5",
+                            text = latest?.let { "%.1f".format(it.massKg) } ?: NO_WEIGHT,
                             color = TextPrimary,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Black
@@ -120,6 +129,7 @@ fun HomeWeightGraphCard(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(14.dp))
 
             SimpleBodyGraphCanvas(
+                weighIns = weighIns,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(110.dp)
@@ -140,7 +150,11 @@ fun HomeWeightGraphCard(modifier: Modifier = Modifier) {
                             .background(ElectricCyan)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Pesées réelles", color = TextSecondary, fontSize = 11.sp)
+                    Text(
+                        text = stringResource(R.string.home_weight_measured, weighIns.size),
+                        color = TextSecondary,
+                        fontSize = 11.sp
+                    )
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -151,7 +165,6 @@ fun HomeWeightGraphCard(modifier: Modifier = Modifier) {
                             .background(AmberGold)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Objectif Palier 1 (75.0 kg)", color = AmberGold, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -159,7 +172,7 @@ fun HomeWeightGraphCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SimpleBodyGraphCanvas(modifier: Modifier = Modifier) {
+fun SimpleBodyGraphCanvas(weighIns: List<BodyLog>, modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
@@ -184,15 +197,19 @@ fun SimpleBodyGraphCanvas(modifier: Modifier = Modifier) {
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
         )
 
-        val points = listOf(
-            Offset(width * 0.05f, height * 0.25f),
-            Offset(width * 0.20f, height * 0.35f),
-            Offset(width * 0.35f, height * 0.30f),
-            Offset(width * 0.50f, height * 0.45f),
-            Offset(width * 0.65f, height * 0.40f),
-            Offset(width * 0.80f, height * 0.55f),
-            Offset(width * 0.95f, height * 0.50f)
-        )
+        // Les pesées arrivent de la plus récente à la plus ancienne ; la courbe se lit
+        // dans l'autre sens.
+        val masses = weighIns.map { it.massKg }.reversed()
+        if (masses.size < MINIMUM_POINTS_FOR_A_CURVE) return@Canvas
+
+        val heaviest = masses.max()
+        val lightest = masses.min()
+        val span = (heaviest - lightest).takeIf { it > 0.0 } ?: 1.0
+        val points = masses.mapIndexed { index, mass ->
+            val x = width * index / (masses.size - 1).toFloat()
+            val y = height * (1f - ((mass - lightest) / span).toFloat())
+            Offset(x, y)
+        }
 
         val fillPath = Path().apply {
             moveTo(points.first().x, height)
@@ -249,3 +266,9 @@ fun SimpleBodyGraphCanvas(modifier: Modifier = Modifier) {
         }
     }
 }
+
+/** Shown in place of a mass when nobody has stepped on a scale yet. */
+private const val NO_WEIGHT = "—"
+
+/** A single weigh-in draws no curve: two points are the least that makes a line. */
+private const val MINIMUM_POINTS_FOR_A_CURVE = 2

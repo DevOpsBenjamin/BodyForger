@@ -28,6 +28,11 @@ class BiometricsViewModel(
     identityDao: AthleteIdentityDao
 ) : ViewModel() {
 
+    /** Every weigh-in, most recent first — what the home curve is drawn from. */
+    val history: StateFlow<List<BodyLog>> = bodyLogDao.observeAll()
+        .map { rows -> rows.map { it.toDomain() } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), emptyList())
+
     val state: StateFlow<BiometricsState> = combine(
         identityDao.observe().map { it?.toProfile() ?: AthleteProfile() },
         bodyLogDao.observeMostRecent().map { it?.toDomain() }

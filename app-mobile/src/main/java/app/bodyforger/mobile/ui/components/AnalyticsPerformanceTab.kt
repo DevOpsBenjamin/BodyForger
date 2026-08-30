@@ -23,7 +23,16 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import org.koin.androidx.compose.koinViewModel
+import app.bodyforger.mobile.stats.TrainingStats
+import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +51,17 @@ import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
 @Composable
-fun AnalyticsPerformanceTab(modifier: Modifier = Modifier) {
+fun AnalyticsPerformanceTab(
+    modifier: Modifier = Modifier,
+    library: LibraryViewModel = koinViewModel()
+) {
+    val sessions by library.completedSessions.collectAsState()
+    val weeklyTonnage = remember(sessions) {
+        val now = System.currentTimeMillis()
+        TrainingStats.tonnageBetween(sessions, now - ONE_WEEK_MS, now) / KILOGRAMS_PER_TONNE
+    }
+    val records = remember(sessions) { TrainingStats.personalRecords(sessions).take(RECORDS_SHOWN) }
+
     val scrollState = rememberScrollState()
 
     Column(
@@ -65,25 +84,16 @@ fun AnalyticsPerformanceTab(modifier: Modifier = Modifier) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Icon(imageVector = Icons.Default.FitnessCenter, contentDescription = null, tint = NeonLime, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "Tonnage Hebdo", color = TextMuted, fontSize = 11.sp)
-                    Text(text = "24.8 T", color = TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                    Text(text = stringResource(R.string.stats_weekly_tonnage), color = TextMuted, fontSize = 11.sp)
+                    Text(
+                        text = stringResource(R.string.unit_tonnes, weeklyTonnage),
+                        color = TextPrimary,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Black
+                    )
                 }
             }
 
-            Card(
-                modifier = Modifier
-                    .weight(1f)
-                    .border(1.dp, AmberGold.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Icon(imageVector = Icons.Default.LocalFireDepartment, contentDescription = null, tint = AmberGold, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "Calories Actives", color = TextMuted, fontSize = 11.sp)
-                    Text(text = "2 450 kcal", color = TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Black)
-                }
-            }
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -134,9 +144,26 @@ fun AnalyticsPerformanceTab(modifier: Modifier = Modifier) {
             shape = RoundedCornerShape(18.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                PRRow(exercise = "Barbell Bench Press", oneRM = "110.0 kg", repRecord = "90 kg × 8 reps", diff = "+5 kg")
-                PRRow(exercise = "Barbell Deadlift", oneRM = "175.0 kg", repRecord = "150 kg × 5 reps", diff = "+7.5 kg")
-                PRRow(exercise = "Barbell Back Squat", oneRM = "140.0 kg", repRecord = "120 kg × 6 reps", diff = "+2.5 kg", isLast = true)
+                if (records.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.stats_records_empty),
+                        color = TextMuted,
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp
+                    )
+                }
+                records.forEachIndexed { index, record ->
+                    PRRow(
+                        exercise = record.exerciseName,
+                        oneRM = stringResource(R.string.unit_kilograms, record.estimatedOneRepMaxKg),
+                        repRecord = stringResource(
+                            R.string.stats_record_best_set,
+                            record.bestWeightKg,
+                            record.bestReps
+                        ),
+                        isLast = index == records.lastIndex
+                    )
+                }
             }
         }
 
@@ -172,7 +199,7 @@ private fun MuscleVolumeRow(muscle: String, completed: Int, target: Int, color: 
 }
 
 @Composable
-private fun PRRow(exercise: String, oneRM: String, repRecord: String, diff: String, isLast: Boolean = false) {
+private fun PRRow(exercise: String, oneRM: String, repRecord: String, isLast: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -182,19 +209,28 @@ private fun PRRow(exercise: String, oneRM: String, repRecord: String, diff: Stri
     ) {
         Column {
             Text(text = exercise, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Text(text = "Record : $repRecord", color = TextMuted, fontSize = 11.sp)
+            Text(
+                text = stringResource(R.string.stats_record_prefix, repRecord),
+                color = TextMuted,
+                fontSize = 11.sp
+            )
         }
         Column(horizontalAlignment = Alignment.End) {
-            Text(text = "1RM: $oneRM", color = NeonLime, fontSize = 14.sp, fontWeight = FontWeight.Black)
-            Text(text = diff, color = ElectricCyan, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = stringResource(R.string.stats_one_rep_max, oneRM),
+                color = NeonLime,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black
+            )
         }
     }
     if (!isLast) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(SurfaceElevated)
-        )
+        HorizontalDivider(color = SurfaceElevated)
     }
 }
+
+private const val ONE_WEEK_MS = 7L * 24 * 60 * 60 * 1000
+private const val KILOGRAMS_PER_TONNE = 1_000.0
+
+/** How many records the card shows before it stops being a summary. */
+private const val RECORDS_SHOWN = 3

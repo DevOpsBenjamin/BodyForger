@@ -197,4 +197,18 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="scale_tare">Tare de calibration : %1$.2f kg</string>
     <string name="scale_forget">Oublier cette balance</string>
     <string name="scale_picker_title">Quelle balance ?</string>
+    <string name="profile_stat_sessions">Séances</string>
+    <string name="profile_stat_tonnage">Tonnage total</string>
+    <string name="profile_stat_hours">Heures gym</string>
+    <string name="unit_tonnes">%1$.1f T</string>
+    <string name="unit_hours">%1$.0f h</string>
+    <string name="profile_history_empty">Aucune séance pour l\'instant. Vos séances terminées apparaîtront ici.</string>
+    <string name="stats_weekly_tonnage">Tonnage hebdo</string>
+    <string name="stats_records_empty">Aucun record pour l\'instant. Ils apparaîtront dès que vous aurez validé des séries chargées.</string>
+    <string name="stats_record_best_set">%1$.1f kg × %2$d reps</string>
+    <string name="unit_kilograms">%1$.1f kg</string>
+    <string name="stats_one_rep_max">1RM : %1$s</string>
+    <string name="stats_record_prefix">Record : %1$s</string>
+    <string name="home_weight_measured">%1$d pesée(s)</string>
+    <string name="profile_sessions_this_week">%1$d séance(s) cette semaine</string>
 </resources>

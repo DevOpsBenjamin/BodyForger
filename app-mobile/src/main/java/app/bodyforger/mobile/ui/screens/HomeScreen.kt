@@ -30,6 +30,7 @@ import org.koin.androidx.compose.koinViewModel
 import app.bodyforger.mobile.ui.components.WeighInFeedback
 import app.bodyforger.mobile.scale.ScaleViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
+import app.bodyforger.mobile.profile.BiometricsViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -55,9 +56,11 @@ fun HomeScreen(
     onConfigureScale: () -> Unit = {},
     scaleViewModel: ScaleViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
+    biometricsViewModel: BiometricsViewModel = koinViewModel(),
     onOpenSettings: () -> Unit = {}
 ) {
     val scaleState by scaleViewModel.state.collectAsState()
+    val weighIns by biometricsViewModel.history.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
     val measurementProfile = profile.biaProfileOn(LocalDate.now())
 
@@ -129,7 +132,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(18.dp))
 
         // --- 2. GRAPHIQUE ÉVOLUTION DU POIDS ---
-        HomeWeightGraphCard()
+        HomeWeightGraphCard(weighIns = weighIns)
 
         Spacer(modifier = Modifier.height(16.dp))
 

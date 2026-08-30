@@ -23,13 +23,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.WorkoutSession
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.stats.TrainingStats
 import app.bodyforger.mobile.ui.components.ActivityHeatmapCard
 import app.bodyforger.mobile.ui.components.HistoryWorkoutCard
 import app.bodyforger.mobile.ui.components.ProfileTotalStatCard
@@ -39,8 +46,13 @@ import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.Obsidian
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceElevated
+import app.bodyforger.mobile.ui.theme.TextMuted
 import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import org.koin.androidx.compose.koinViewModel
 
 data class HistoryWorkoutItem(
     val id: String,
@@ -55,54 +67,13 @@ data class HistoryWorkoutItem(
 
 @Composable
 fun ProfileScreen(
-    onOpenSettings: () -> Unit = {}
+    onOpenSettings: () -> Unit = {},
+    library: LibraryViewModel = koinViewModel()
 ) {
     val scrollState = rememberScrollState()
+    val sessions by library.completedSessions.collectAsState()
 
-    val workoutHistory = remember {
-        listOf(
-            HistoryWorkoutItem(
-                id = "h_001",
-                title = "Push Hypertrophie",
-                dateDisplay = "Hier • 17:45",
-                durationDisplay = "52 min",
-                avgBpm = 142,
-                totalTonnageKg = 6850.0,
-                exerciseSummary = "Bench Press, Incline DB, Dips, Lateral Raises, Triceps",
-                personalRecordHighlight = "Nouveau record : Bench 90.0 kg × 8 reps"
-            ),
-            HistoryWorkoutItem(
-                id = "h_002",
-                title = "Pull Dos & Biceps",
-                dateDisplay = "Mercredi 26 Août • 18:10",
-                durationDisplay = "58 min",
-                avgBpm = 138,
-                totalTonnageKg = 7420.0,
-                exerciseSummary = "Deadlift, Lat Pulldown, Cable Row, Face Pulls, Curls",
-                personalRecordHighlight = "Nouveau record : Deadlift 150.0 kg × 5 reps"
-            ),
-            HistoryWorkoutItem(
-                id = "h_003",
-                title = "Legs & Abdos Power",
-                dateDisplay = "Lundi 24 Août • 12:30",
-                durationDisplay = "48 min",
-                avgBpm = 149,
-                totalTonnageKg = 8100.0,
-                exerciseSummary = "Back Squat, Romanian Deadlift, Leg Extension, Calves",
-                personalRecordHighlight = null
-            ),
-            HistoryWorkoutItem(
-                id = "h_004",
-                title = "Upper Body Heavy",
-                dateDisplay = "Vendredi 21 Août • 17:30",
-                durationDisplay = "55 min",
-                avgBpm = 140,
-                totalTonnageKg = 7200.0,
-                exerciseSummary = "Incline Bench, Pull-ups, OHP, DB Flyes, Skull Crushers",
-                personalRecordHighlight = null
-            )
-        )
-    }
+    val workoutHistory = remember(sessions) { sessions.map { it.toHistoryItem() } }
 
     Column(
         modifier = Modifier
@@ -182,15 +153,30 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            ProfileTotalStatCard(modifier = Modifier.weight(1f), label = "Séances", value = "48", color = NeonLime)
-            ProfileTotalStatCard(modifier = Modifier.weight(1f), label = "Tonnage Total", value = "124 T", color = ElectricCyan)
-            ProfileTotalStatCard(modifier = Modifier.weight(1f), label = "Heures Gym", value = "44 h", color = AmberGold)
+            ProfileTotalStatCard(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.profile_stat_sessions),
+                value = sessions.size.toString(),
+                color = NeonLime
+            )
+            ProfileTotalStatCard(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.profile_stat_tonnage),
+                value = stringResource(R.string.unit_tonnes, TrainingStats.totalTonnes(sessions)),
+                color = ElectricCyan
+            )
+            ProfileTotalStatCard(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.profile_stat_hours),
+                value = stringResource(R.string.unit_hours, TrainingStats.totalHours(sessions)),
+                color = AmberGold
+            )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
         // --- 3. HEATMAP D'ACTIVITÉ ---
-        ActivityHeatmapCard()
+        ActivityHeatmapCard(sessions = sessions)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -204,8 +190,39 @@ fun ProfileScreen(
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        workoutHistory.forEach { item ->
-            HistoryWorkoutCard(item = item)
+        if (workoutHistory.isEmpty()) {
+            Text(
+                text = stringResource(R.string.profile_history_empty),
+                color = TextMuted,
+                fontSize = 13.sp,
+                lineHeight = 19.sp
+            )
+        } else {
+            workoutHistory.forEach { item -> HistoryWorkoutCard(item = item) }
         }
     }
 }
+
+/**
+ * A completed session as the history card shows it.
+ *
+ * Nothing is filled in that the session does not carry: a workout with no heart rate shows
+ * none, rather than a plausible number.
+ */
+private fun WorkoutSession.toHistoryItem(): HistoryWorkoutItem {
+    val minutes = TrainingStats.durationMinutes(this)
+    val startedAt = Instant.ofEpochMilli(startedAtEpochMs).atZone(ZoneId.systemDefault())
+    return HistoryWorkoutItem(
+        id = id,
+        title = title,
+        dateDisplay = startedAt.format(HISTORY_DATE_FORMAT),
+        durationDisplay = minutes?.let { "$it min" }.orEmpty(),
+        avgBpm = averageHeartRateBpm ?: 0,
+        totalTonnageKg = TrainingStats.totalTonnageKg(listOf(this)),
+        exerciseSummary = TrainingStats.exerciseNames(this).joinToString(", "),
+        personalRecordHighlight = null
+    )
+}
+
+private val HISTORY_DATE_FORMAT: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("EEEE d MMMM • HH:mm")
