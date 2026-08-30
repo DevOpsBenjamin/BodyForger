@@ -29,6 +29,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import app.bodyforger.mobile.library.RoutineDraft
+import app.bodyforger.mobile.library.RoutineDraft.isSaveable
+import app.bodyforger.mobile.library.RoutineDraft.readyToSave
 import app.bodyforger.mobile.library.RoutineDraftViewModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.ui.Alignment
@@ -59,7 +62,6 @@ import java.util.UUID
 
 @Composable
 fun RoutineEditorScreen(
-    initialRoutine: Routine? = null,
     draftViewModel: RoutineDraftViewModel = koinViewModel(),
     onBack: () -> Unit = {},
     onOpenCatalogForAdd: () -> Unit = {},
@@ -68,20 +70,9 @@ fun RoutineEditorScreen(
 ) {
     // The draft lives above this screen: adding an exercise leaves for the catalogue, and a
     // state held here would not survive the round trip.
-    val draft by draftViewModel.draft.collectAsState()
-    val routineName = draft?.name.orEmpty()
-    val routineNotes = draft?.notes.orEmpty()
-
-    val exercises = remember {
-        mutableStateListOf<RoutineExercise>().apply {
-            addAll(draft?.exercises ?: emptyList())
-        }
-    }
-
-    // Every local edit goes back to the draft, which alone survives leaving for the catalogue.
-    LaunchedEffect(exercises.toList()) {
-        draftViewModel.setExercises(exercises.toList())
-    }
+    val draft = draftViewModel.draft.collectAsState().value ?: return
+    val isNewRoutine by draftViewModel.isNew.collectAsState()
+    val exercises = draft.exercises
 
     var activeRestDialogExerciseIndex by remember { mutableStateOf<Int?>(null) }
     var activeSetTypeDialogIndex by remember { mutableStateOf<Pair<Int, Int>?>(null) }
@@ -90,10 +81,9 @@ fun RoutineEditorScreen(
 
     if (showingReorderScreen) {
         ReorderExercisesScreen(
-            initialExercises = exercises.toList(),
+            initialExercises = exercises,
             onConfirm = { reorderedList ->
-                exercises.clear()
-                exercises.addAll(reorderedList)
+                draftViewModel.reorderExercises(reorderedList)
                 showingReorderScreen = false
             },
             onCancel = {
@@ -109,24 +99,10 @@ fun RoutineEditorScreen(
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             RoutineEditorTopBar(
-                isNewRoutine = initialRoutine == null,
-                routineName = routineName,
+                isNewRoutine = isNewRoutine,
+                routineName = draft.name,
                 onBack = onBack,
-                onSave = {
-                    if (routineName.isNotBlank()) {
-                        val updatedRoutine = Routine(
-                            id = draft?.id ?: UUID.randomUUID().toString(),
-                            name = routineName.trim(),
-                            notes = routineNotes.trim(),
-                            assignedDays = draft?.assignedDays ?: emptySet(),
-                            exercises = exercises.mapIndexed { index, ex ->
-                                ex.copy(orderIndex = index)
-                            },
-                            createdAtEpochMs = initialRoutine?.createdAtEpochMs ?: System.currentTimeMillis()
-                        )
-                        onSaveRoutine(updatedRoutine)
-                    }
-                }
+                onSave = { if (draft.isSaveable()) onSaveRoutine(draft.readyToSave()) }
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -140,9 +116,9 @@ fun RoutineEditorScreen(
             ) {
                 item {
                     RoutineEditorInfoCard(
-                        routineName = routineName,
+                        routineName = draft.name,
                         onRoutineNameChange = { draftViewModel.rename(it) },
-                        routineNotes = routineNotes,
+                        routineNotes = draft.notes,
                         onRoutineNotesChange = { draftViewModel.setNotes(it) }
                     )
                 }
@@ -180,34 +156,14 @@ fun RoutineEditorScreen(
                             onOpenReorder = { showingReorderScreen = true },
                             onOpenWeightUnitPicker = { activeWeightUnitDialogExerciseIndex = exIndex },
                             onReplace = { onOpenCatalogForReplace(exIndex) },
-                            onRemove = { exercises.removeAt(exIndex) },
+                            onRemove = { draftViewModel.removeExercise(exIndex) },
                             onOpenRestPicker = { activeRestDialogExerciseIndex = exIndex },
                             onOpenSetTypeDialog = { setIdx -> activeSetTypeDialogIndex = exIndex to setIdx },
                             onUpdateSet = { setIdx, updatedSet ->
-                                val updatedSets = exItem.sets.toMutableList()
-                                updatedSets[setIdx] = updatedSet
-                                exercises[exIndex] = exItem.copy(sets = updatedSets)
+                                draftViewModel.updateSet(exIndex, setIdx, updatedSet)
                             },
-                            onAddSet = {
-                                val lastSet = exItem.sets.lastOrNull()
-                                val newSet = RoutineSet(
-                                    setIndex = exItem.sets.size + 1,
-                                    type = RoutineSetType.NORMAL,
-                                    targetWeightKg = lastSet?.targetWeightKg,
-                                    reps = lastSet?.reps ?: 10,
-                                    minReps = lastSet?.minReps ?: 8,
-                                    maxReps = lastSet?.maxReps ?: 12,
-                                    isRepsRange = lastSet?.isRepsRange ?: false
-                                )
-                                exercises[exIndex] = exItem.copy(sets = exItem.sets + newSet)
-                            },
-                            onDeleteSet = { setIdx ->
-                                if (exItem.sets.size > 1) {
-                                    val updatedSets = exItem.sets.toMutableList()
-                                    updatedSets.removeAt(setIdx)
-                                    exercises[exIndex] = exItem.copy(sets = updatedSets)
-                                }
-                            }
+                            onAddSet = { draftViewModel.addSet(exIndex) },
+                            onDeleteSet = { setIdx -> draftViewModel.removeSet(exIndex, setIdx) }
                         )
                     }
                 }
@@ -236,11 +192,11 @@ fun RoutineEditorScreen(
 
         // Modales
         activeRestDialogExerciseIndex?.let { exIdx ->
-            val currentRest = exercises.getOrNull(exIdx)?.restTimeSeconds ?: 90
+            val currentRest = exercises.getOrNull(exIdx)?.restTimeSeconds ?: RoutineDraft.DEFAULT_REST_SECONDS
             RestTimePickerDialog(
                 currentRestSeconds = currentRest,
                 onRestSelected = { newRest ->
-                    exercises[exIdx] = exercises[exIdx].copy(restTimeSeconds = newRest)
+                    draftViewModel.setRestTime(exIdx, newRest)
                 },
                 onDismiss = { activeRestDialogExerciseIndex = null }
             )
@@ -251,7 +207,7 @@ fun RoutineEditorScreen(
             WeightUnitPickerDialog(
                 currentUnit = currentUnit,
                 onUnitSelected = { newUnit ->
-                    exercises[exIdx] = exercises[exIdx].copy(weightUnit = newUnit)
+                    draftViewModel.setWeightUnit(exIdx, newUnit)
                 },
                 onDismiss = { activeWeightUnitDialogExerciseIndex = null }
             )
@@ -264,14 +220,10 @@ fun RoutineEditorScreen(
                     setIndexDisplay = setIdx + 1,
                     currentSet = currentSet,
                     onTypeSelected = { newType ->
-                        val updatedSets = exercises[exIdx].sets.toMutableList()
-                        updatedSets[setIdx] = currentSet.copy(type = newType)
-                        exercises[exIdx] = exercises[exIdx].copy(sets = updatedSets)
+                        draftViewModel.updateSet(exIdx, setIdx, currentSet.copy(type = newType))
                     },
                     onRepsFormatChanged = { isRange ->
-                        val updatedSets = exercises[exIdx].sets.toMutableList()
-                        updatedSets[setIdx] = currentSet.copy(isRepsRange = isRange)
-                        exercises[exIdx] = exercises[exIdx].copy(sets = updatedSets)
+                        draftViewModel.updateSet(exIdx, setIdx, currentSet.copy(isRepsRange = isRange))
                     },
                     onDismiss = { activeSetTypeDialogIndex = null }
                 )

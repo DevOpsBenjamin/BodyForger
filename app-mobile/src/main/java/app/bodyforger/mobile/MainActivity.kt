@@ -60,7 +60,6 @@ class MainActivity : ComponentActivity() {
 fun BodyForgerApp() {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showingRoutineEditor by remember { mutableStateOf(false) }
-    var editingRoutine by remember { mutableStateOf<Routine?>(null) }
     var showingCatalogScreen by remember { mutableStateOf(false) }
     var showingCreateExerciseScreen by remember { mutableStateOf(false) }
     var isCatalogForRoutineSelection by remember { mutableStateOf(false) }
@@ -139,11 +138,9 @@ fun BodyForgerApp() {
         )
     } else if (showingRoutineEditor) {
         RoutineEditorScreen(
-            initialRoutine = editingRoutine,
             draftViewModel = routineDraft,
             onBack = {
                 showingRoutineEditor = false
-                editingRoutine = null
                 routineDraft.close()
             },
             onOpenCatalogForAdd = {
@@ -159,7 +156,6 @@ fun BodyForgerApp() {
             onSaveRoutine = { savedRoutine ->
                 library.saveRoutine(savedRoutine)
                 showingRoutineEditor = false
-                editingRoutine = null
                 routineDraft.close()
             }
         )
@@ -226,12 +222,10 @@ fun BodyForgerApp() {
                             showingLiveWorkoutScreen = true
                         },
                         onCreateNewRoutine = {
-                            editingRoutine = null
-                            routineDraft.open(null)
+                                        routineDraft.open(null)
                             showingRoutineEditor = true
                         },
                         onEditRoutine = { routineToEdit ->
-                            editingRoutine = routineToEdit
                             routineDraft.open(routineToEdit)
                             showingRoutineEditor = true
                         },
