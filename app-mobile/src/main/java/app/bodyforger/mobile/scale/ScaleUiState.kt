@@ -16,7 +16,13 @@ import app.bodyforger.core.model.ScaleAssociation
 data class ScaleUiState(
     val isScanning: Boolean = false,
     val discovered: List<DiscoveredScale> = emptyList(),
-    val association: ScaleAssociation? = null,
+    /**
+     * Every scale this athlete has paired, most recently paired first.
+     *
+     * More than one is expected: a scale at home and one elsewhere. Pairing engraves the HUID
+     * on each, so they all report the same athlete.
+     */
+    val associations: List<ScaleAssociation> = emptyList(),
     val huid: String? = null,
     val progress: WeighInState.Progress? = null,
     val lastLog: BodyLog? = null,
@@ -35,5 +41,8 @@ data class ScaleUiState(
     val pairingStep: Pair<Int, Int>? = null,
     val pairingInstructions: List<AthleteInstruction> = emptyList()
 ) {
-    val isAssociated: Boolean get() = association != null
+    val isAssociated: Boolean get() = associations.isNotEmpty()
+
+    /** The one to weigh on when there is no choice to make. */
+    val onlyAssociation: ScaleAssociation? = associations.singleOrNull()
 }

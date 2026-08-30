@@ -25,9 +25,10 @@ class AthleteProfileViewModel(private val identityDao: AthleteIdentityDao) : Vie
         .map { it?.toProfile() ?: AthleteProfile() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), AthleteProfile())
 
-    fun save(sex: BiologicalSex?, birthDateIso: String?, heightCm: Double?) {
+    fun save(name: String?, sex: BiologicalSex?, birthDateIso: String?, heightCm: Double?) {
         viewModelScope.launch {
             identityDao.saveProfile(
+                name = name?.trim()?.takeIf { it.isNotEmpty() },
                 sex = sex?.name,
                 birthDateIso = birthDateIso,
                 heightCm = heightCm,

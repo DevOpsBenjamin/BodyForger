@@ -12,6 +12,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.bodyforger.mobile.R
+import androidx.compose.ui.res.stringResource
+import app.bodyforger.core.model.ScaleAssociation
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,12 +63,20 @@ internal fun Pairing(state: ScaleUiState) {
  */
 
 @Composable
-internal fun AssociatedScale(state: ScaleUiState, onForget: () -> Unit, onWeighIn: () -> Unit) {
+internal fun AssociatedScale(
+    association: ScaleAssociation,
+    state: ScaleUiState,
+    onForget: () -> Unit
+) {
     Card {
-        Text(state.association!!.advertisedName, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        Text("Associée · ${state.association.deviceAddress}", color = TextSecondary, fontSize = 11.sp)
+        Text(association.advertisedName, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         Text(
-            "Tare de calibration : %.2f kg".format(state.association.tareKg),
+            text = stringResource(R.string.scale_paired_with, association.deviceAddress),
+            color = TextSecondary,
+            fontSize = 11.sp
+        )
+        Text(
+            text = stringResource(R.string.scale_tare, association.tareKg),
             color = TextSecondary,
             fontSize = 11.sp
         )
@@ -82,15 +93,8 @@ internal fun AssociatedScale(state: ScaleUiState, onForget: () -> Unit, onWeighI
             }
         }
 
-        Button(
-            onClick = onWeighIn,
-            enabled = !state.isWeighing,
-            colors = ButtonDefaults.buttonColors(containerColor = ElectricCyan, contentColor = Color.Black),
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
-        ) { Text(if (state.isWeighing) "Pesée en cours…" else "Lancer une pesée", fontWeight = FontWeight.Bold) }
-
         OutlinedButton(onClick = onForget, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-            Text("Oublier cette balance", color = TextSecondary)
+            Text(stringResource(R.string.scale_forget), color = TextSecondary)
         }
     }
 }

@@ -1,5 +1,6 @@
 package app.bodyforger.mobile.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,9 +37,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.WorkoutActivityCategory
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
-import app.bodyforger.core.model.WorkoutActivityCategory
 import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
@@ -258,32 +260,43 @@ fun WorkoutSummaryDialog(
                 }
             }
         },
-        dismissButton = {
-            TextButton(onClick = onCancel) {
-                Text(
-                    text = stringResource(R.string.action_cancel),
-                    color = TextSecondary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
         confirmButton = {
-            Button(
-                onClick = onConfirmSave,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = NeonLime,
-                    contentColor = Color.Black
-                ),
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.workout_summary_save_btn),
-                    fontWeight = FontWeight.Black,
-                    fontSize = 13.sp
-                )
+                Button(
+                    onClick = onConfirmSave,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NeonLime,
+                        contentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth().height(SUMMARY_BUTTON_HEIGHT)
+                ) {
+                    Text(
+                        text = stringResource(R.string.workout_summary_save_btn),
+                        fontWeight = FontWeight.Black,
+                        fontSize = 14.sp
+                    )
+                }
+                OutlinedButton(
+                    onClick = onCancel,
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, SurfaceBorder),
+                    modifier = Modifier.fillMaxWidth().height(SUMMARY_BUTTON_HEIGHT)
+                ) {
+                    Text(
+                        text = stringResource(R.string.action_cancel),
+                        color = TextSecondary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     )
 }
+
+/** Both ways out of the summary are the same size: neither is a lesser choice. */
+private val SUMMARY_BUTTON_HEIGHT = 48.dp

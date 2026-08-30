@@ -64,13 +64,16 @@ class ScaleViewModel(
     init {
         viewModelScope.launch {
             val huid = athleteIdentityDao.huidOrCreate(System.currentTimeMillis())
-            val association = scaleAssociationDao.mostRecent()?.toDomain()
             val lastLog = bodyLogDao.mostRecent()?.toDomain()
-            _state.value = _state.value.copy(
-                huid = huid,
-                association = association?.copy(huid = huid),
-                lastLog = lastLog
-            )
+            _state.value = _state.value.copy(huid = huid, lastLog = lastLog)
+        }
+        viewModelScope.launch {
+            scaleAssociationDao.observeAll().collect { rows ->
+                val huid = _state.value.huid
+                _state.value = _state.value.copy(
+                    associations = rows.map { it.toDomain() }.map { if (huid != null) it.copy(huid = huid) else it }
+                )
+            }
         }
     }
 
@@ -154,12 +157,11 @@ class ScaleViewModel(
                             scaleAssociationDao
                                 .upsert(state.association.toEntity(System.currentTimeMillis()))
                             _state.value = _state.value.copy(
-                                association = state.association,
                                 discovered = emptyList(),
                                 pairingStep = null,
                                 pairingInstructions = emptyList()
                             )
-                            state.validation?.let { handle(WeighInState.Completed(it)) }
+                            state.validation?.let { handle(WeighInState.Completed(it), scale.deviceAddress) }
                         }
                     }
                 }
@@ -170,17 +172,22 @@ class ScaleViewModel(
         }
     }
 
-    fun forgetScale() {
-        val address = _state.value.association?.deviceAddress ?: return
+    /** Clears what the last weigh-in left on screen, once the athlete has read it. */
+    fun clearWeighInFeedback() {
+        _state.value = _state.value.copy(failure = null, weightAwaitingBodyFat = null, progress = null)
+    }
+
+    /** Forgets one scale by address, the others staying paired. */
+    fun forgetScale(deviceAddress: String) {
         viewModelScope.launch {
-            scaleAssociationDao.forget(address)
-            _state.value = _state.value.copy(association = null, lastLog = null, progress = null)
+            scaleAssociationDao.forget(deviceAddress)
+            _state.value = _state.value.copy(progress = null)
         }
     }
 
-    /** Runs a weigh-in and stores its reading. */
-    fun weighIn(profile: BiaProfile) {
-        val association = _state.value.association ?: return
+    /** Runs a weigh-in on one paired scale, and stores its reading. */
+    fun weighIn(deviceAddress: String, profile: BiaProfile) {
+        val association = _state.value.associations.firstOrNull { it.deviceAddress == deviceAddress } ?: return
         val huid = _state.value.huid ?: return
         if (_state.value.isWeighing) return
 
@@ -209,7 +216,7 @@ class ScaleViewModel(
                     association = association,
                     huid = huid,
                     profile = ScaleUserProfile(profile, lastWeightKg = lastKnownWeightKg())
-                ).collect { state -> handle(state) }
+                ).collect { state -> handle(state, association.deviceAddress) }
             } finally {
                 transport.close()
                 _state.value = _state.value.copy(isWeighing = false)
@@ -217,7 +224,7 @@ class ScaleViewModel(
         }
     }
 
-    private suspend fun handle(state: WeighInState) {
+    private suspend fun handle(state: WeighInState, deviceAddress: String) {
         when (state) {
             is WeighInState.Progress -> _state.value = _state.value.copy(progress = state)
             is WeighInState.LiveWeight -> Unit
@@ -248,8 +255,7 @@ class ScaleViewModel(
                     rawImpedances = telemetry.rawImpedances,
                     restingHeartRateBpm = telemetry.heartRateBpm
                 )
-                val address = _state.value.association?.deviceAddress
-                bodyLogDao.save(log.toEntity(address), log.impedanceRows())
+                bodyLogDao.save(log.toEntity(deviceAddress), log.impedanceRows())
                 _state.value = _state.value.copy(lastLog = log, progress = null)
             }
         }
@@ -262,7 +268,8 @@ class ScaleViewModel(
      * an invented figure.
      */
     private fun lastKnownWeightKg(): Double? =
-        _state.value.lastLog?.massKg ?: _state.value.association?.tareKg?.takeIf { it > 0.0 }
+        _state.value.lastLog?.massKg
+            ?: _state.value.associations.firstOrNull()?.tareKg?.takeIf { it > 0.0 }
 
     private fun bluetoothDevice(address: String) = runCatching {
         getApplication<Application>()

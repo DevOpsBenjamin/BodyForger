@@ -23,6 +23,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.bodyforger.mobile.ui.theme.TextMuted
+import app.bodyforger.mobile.ui.theme.SurfaceBorder
+import app.bodyforger.mobile.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -39,6 +43,9 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 fun HomeActionCards(
     onNavigateToWorkout: () -> Unit,
     onNavigateToBiometrics: () -> Unit,
+    isScaleReady: Boolean,
+    onWeighIn: () -> Unit,
+    onConfigureScale: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -155,11 +162,13 @@ fun HomeActionCards(
                     )
                 }
 
+                // Sans balance appairée ni profil, peser n'a aucun sens : le bouton mène
+                // là où cela se règle plutôt que d'échouer une fois pressé.
                 Button(
-                    onClick = onNavigateToBiometrics,
+                    onClick = if (isScaleReady) onWeighIn else onConfigureScale,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = ElectricCyan,
-                        contentColor = Color.Black
+                        containerColor = if (isScaleReady) ElectricCyan else SurfaceBorder,
+                        contentColor = if (isScaleReady) Color.Black else TextMuted
                     ),
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier
@@ -173,7 +182,10 @@ fun HomeActionCards(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "PESER",
+                        text = stringResource(
+                            if (isScaleReady) R.string.home_scale_measure
+                            else R.string.home_scale_not_configured
+                        ),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Black
                     )

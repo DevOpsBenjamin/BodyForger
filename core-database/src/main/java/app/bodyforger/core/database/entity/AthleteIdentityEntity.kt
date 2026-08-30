@@ -26,6 +26,7 @@ data class AthleteIdentityEntity(
      * description of them. Null until entered — see `AthleteProfile`, which forbids
      * inventing any of the three.
      */
+    val name: String? = null,
     val sex: String? = null,
     val birthDateIso: String? = null,
     val heightCm: Double? = null
@@ -45,6 +46,7 @@ data class AthleteIdentityEntity(
  * incomplete, which the app already knows how to handle.
  */
 fun AthleteIdentityEntity.toProfile(): AthleteProfile = AthleteProfile(
+    name = name,
     sex = sex?.let { stored -> BiologicalSex.entries.firstOrNull { it.name == stored } },
     birthDateIso = birthDateIso,
     heightCm = heightCm

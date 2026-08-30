@@ -158,4 +158,43 @@
     <string name="resume_workout_resume">RESUME</string>
     <string name="resume_workout_finish">FINISH AS IS</string>
     <string name="resume_workout_delete">DELETE</string>
+    <string name="profile_sex">Biological sex</string>
+    <string name="profile_sex_male">Male</string>
+    <string name="profile_sex_female">Female</string>
+    <string name="profile_birth_date">Date of birth</string>
+    <string name="profile_birth_date_with_age">Date of birth — %1$d years old</string>
+    <string name="profile_height">Height (cm)</string>
+    <string name="profile_day">DD</string>
+    <string name="profile_month">MM</string>
+    <string name="profile_year">YYYY</string>
+    <string name="profile_save">SAVE MY PROFILE</string>
+    <string name="profile_incomplete">FILL IN ALL THREE FIELDS</string>
+    <string name="settings_athlete">ATHLETE</string>
+    <string name="settings_athlete_name">Name</string>
+    <string name="settings_athlete_anonymous">Anonymous</string>
+    <string name="settings_athlete_hint">Only used to name your data. Nothing is sent anywhere.</string>
+    <string name="settings_bia_profile">BIA MEASUREMENT PROFILE</string>
+    <string name="settings_bia_configured">Configured</string>
+    <string name="settings_bia_missing">To be filled in before weighing</string>
+    <string name="settings_bia_info_title">Why does the scale need this?</string>
+    <string name="settings_bia_info_body">The scale computes body fat itself, and it needs your sex, your age and your height to do it. It is told these before every weigh-in.
+
+Without them there is no measurement at all: an invented figure would come back looking plausible, and would then be stored as if it were yours.
+
+The date of birth is stored rather than the age, so that it never silently goes out of date.</string>
+    <string name="settings_scale">CONNECTED SCALE</string>
+    <string name="settings_scale_none">No scale paired</string>
+    <string name="settings_scale_paired">Paired</string>
+    <string name="home_scale_not_configured">No scale configured</string>
+    <string name="home_scale_measure">Weigh in</string>
+    <string name="nav_settings">SETTINGS</string>
+    <string name="settings_measurement_id">Measurement ID: %1$s</string>
+    <string name="weigh_in_running">Weighing in…</string>
+    <string name="weigh_in_failed">Weigh-in interrupted</string>
+    <string name="weigh_in_weight_only">Weight only</string>
+    <string name="weigh_in_weight_only_body">%1$.2f kg measured, with no body composition: the scale read no impedance. The handle was not held.</string>
+    <string name="scale_paired_with">Paired · %1$s</string>
+    <string name="scale_tare">Calibration tare: %1$.2f kg</string>
+    <string name="scale_forget">Forget this scale</string>
+    <string name="scale_picker_title">Which scale?</string>
 </resources>

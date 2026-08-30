@@ -15,6 +15,8 @@ import java.time.format.DateTimeParseException
  * profile that silently rots would shift every later measurement without anyone noticing.
  */
 data class AthleteProfile(
+    /** What the athlete calls themselves. Null until chosen; the UI shows a default name. */
+    val name: String? = null,
     val sex: BiologicalSex? = null,
     val birthDateIso: String? = null,
     val heightCm: Double? = null

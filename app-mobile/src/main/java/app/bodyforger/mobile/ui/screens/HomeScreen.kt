@@ -21,6 +21,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import app.bodyforger.mobile.ui.components.ScalePickerDialog
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import java.time.LocalDate
+import org.koin.androidx.compose.koinViewModel
+import app.bodyforger.mobile.ui.components.WeighInFeedback
+import app.bodyforger.mobile.scale.ScaleViewModel
+import app.bodyforger.mobile.profile.AthleteProfileViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,8 +52,30 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 fun HomeScreen(
     onNavigateToWorkout: () -> Unit,
     onNavigateToBiometrics: () -> Unit,
+    onConfigureScale: () -> Unit = {},
+    scaleViewModel: ScaleViewModel = koinViewModel(),
+    profileViewModel: AthleteProfileViewModel = koinViewModel(),
     onOpenSettings: () -> Unit = {}
 ) {
+    val scaleState by scaleViewModel.state.collectAsState()
+    val profile by profileViewModel.profile.collectAsState()
+    val measurementProfile = profile.biaProfileOn(LocalDate.now())
+
+    // La pesée se pilote d'ici : c'est l'écran où l'athlète arrive avec sa balance sous les pieds.
+    WeighInFeedback(state = scaleState, onDismiss = scaleViewModel::clearWeighInFeedback)
+
+    var pickingScale by remember { mutableStateOf(false) }
+    if (pickingScale) {
+        ScalePickerDialog(
+            scales = scaleState.associations,
+            onPick = { chosen ->
+                pickingScale = false
+                measurementProfile?.let { scaleViewModel.weighIn(chosen.deviceAddress, it) }
+            },
+            onDismiss = { pickingScale = false }
+        )
+    }
+
     val scrollState = rememberScrollState()
 
     Column(
@@ -102,7 +135,15 @@ fun HomeScreen(
 
         HomeActionCards(
             onNavigateToWorkout = onNavigateToWorkout,
-            onNavigateToBiometrics = onNavigateToBiometrics
+            onNavigateToBiometrics = onNavigateToBiometrics,
+            isScaleReady = scaleState.isAssociated && measurementProfile != null,
+            onWeighIn = {
+                // Une seule balance ne se choisit pas : on monte dessus.
+                val only = scaleState.onlyAssociation
+                if (only != null) measurementProfile?.let { scaleViewModel.weighIn(only.deviceAddress, it) }
+                else pickingScale = true
+            },
+            onConfigureScale = onConfigureScale
         )
 
         Spacer(modifier = Modifier.height(16.dp))
