@@ -13,6 +13,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -91,42 +96,56 @@ private fun SexSelector(selected: BiologicalSex?, onSelected: (BiologicalSex) ->
     }
 }
 
+/**
+ * The three parts of a date of birth, typed one at a time.
+ *
+ * The parts are held here rather than derived from the profile: until all three are entered
+ * they form no date, so a field reading back from the profile would clear itself at every
+ * keystroke and never fill.
+ */
 @Composable
 private fun BirthDateField(profile: AthleteProfile, onChanged: (String?) -> Unit) {
-    val birthDate = profile.birthDate
-    val age = profile.ageYearsOn(LocalDate.now())
+    var day by remember { mutableStateOf("") }
+    var month by remember { mutableStateOf("") }
+    var year by remember { mutableStateOf("") }
 
+    // Ce que la base renvoie fait foi tant que l'athlète n'a rien tapé.
+    LaunchedEffect(profile.birthDateIso) {
+        profile.birthDate?.let {
+            day = it.dayOfMonth.toString()
+            month = it.monthValue.toString()
+            year = it.year.toString()
+        }
+    }
+
+    fun commit() = onChanged(dateFrom(day, month, year))
+
+    val age = profile.ageYearsOn(LocalDate.now())
     FieldLabel(if (age != null) "Date de naissance — $age ans" else "Date de naissance")
+
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        DatePart(
-            value = birthDate?.dayOfMonth,
+        CompactNumberInput(
+            value = day,
+            onValueChange = { day = it; commit() },
             placeholder = "JJ",
-            width = 52.dp,
-            onChange = { onChanged(recomposeDate(birthDate, day = it)) }
+            maxLength = DAY_DIGITS,
+            modifier = Modifier.width(52.dp)
         )
-        DatePart(
-            value = birthDate?.monthValue,
+        CompactNumberInput(
+            value = month,
+            onValueChange = { month = it; commit() },
             placeholder = "MM",
-            width = 52.dp,
-            onChange = { onChanged(recomposeDate(birthDate, month = it)) }
+            maxLength = MONTH_DIGITS,
+            modifier = Modifier.width(52.dp)
         )
-        DatePart(
-            value = birthDate?.year,
+        CompactNumberInput(
+            value = year,
+            onValueChange = { year = it; commit() },
             placeholder = "AAAA",
-            width = 72.dp,
-            onChange = { onChanged(recomposeDate(birthDate, year = it)) }
+            maxLength = YEAR_DIGITS,
+            modifier = Modifier.width(72.dp)
         )
     }
-}
-
-@Composable
-private fun DatePart(value: Int?, placeholder: String, width: androidx.compose.ui.unit.Dp, onChange: (Int?) -> Unit) {
-    CompactNumberInput(
-        value = value?.toString().orEmpty(),
-        onValueChange = { onChange(it.toIntOrNull()) },
-        placeholder = placeholder,
-        modifier = Modifier.width(width)
-    )
 }
 
 @Composable
@@ -152,21 +171,23 @@ private fun FieldLabel(text: String) {
     )
 }
 
+/** Digits each part accepts, so a slip of the thumb cannot make a five-digit year. */
+private const val DAY_DIGITS = 2
+private const val MONTH_DIGITS = 2
+private const val YEAR_DIGITS = 4
+
 /**
- * Rebuilds a birth date one field at a time, as the athlete types.
+ * The date the three fields spell out, or null while they spell nothing valid.
  *
- * A part still missing, or a date that does not exist — 31 February, a year not yet reached —
- * yields null, so the profile stays incomplete rather than accepting a date it will later
+ * A part still missing, a date that does not exist — 31 February — or one not yet reached
+ * yields null, so the profile stays incomplete rather than accepting something it would later
  * turn into a wrong age.
  */
-private fun recomposeDate(
-    current: LocalDate?,
-    day: Int? = current?.dayOfMonth,
-    month: Int? = current?.monthValue,
-    year: Int? = current?.year
-): String? {
-    if (day == null || month == null || year == null) return null
-    return runCatching { LocalDate.of(year, month, day) }
+private fun dateFrom(day: String, month: String, year: String): String? {
+    val d = day.toIntOrNull() ?: return null
+    val m = month.toIntOrNull() ?: return null
+    val y = year.toIntOrNull() ?: return null
+    return runCatching { LocalDate.of(y, m, d) }
         .getOrNull()
         ?.takeIf { it.isBefore(LocalDate.now()) }
         ?.toString()
