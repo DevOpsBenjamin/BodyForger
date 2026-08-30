@@ -44,28 +44,14 @@ fun ScaleSettingsSection(
     onStopScan: () -> Unit,
     onAssociate: (DiscoveredScale) -> Unit,
     onForget: () -> Unit,
-    onWeighIn: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        SectionTitle("BALANCE CONNECTÉE")
 
-        // La balance calcule elle-même la masse grasse à partir du profil : sans lui, une
-        // pesée rendrait un pourcentage faux qu'on stockerait pour de bon.
-        if (measurementProfile == null) {
-            Card {
-                Text(
-                    text = "Renseignez d'abord votre profil de mesure ci-dessus.",
-                    color = TextSecondary,
-                    fontSize = 12.sp
-                )
-            }
-            return@Column
-        }
 
         when {
             state.isPairing -> Pairing(state)
-            state.association != null -> AssociatedScale(state, onForget, onWeighIn)
+            state.association != null -> AssociatedScale(state, onForget)
             state.isScanning -> Scanning(state.discovered, onAssociate, onStopScan)
             else -> NotAssociated(onStartScan)
         }

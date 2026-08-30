@@ -38,8 +38,12 @@ sealed interface Destination {
     @Serializable
     data object Profile : Destination
 
+    /**
+     * Settings. [expandScale] opens the scale section on arrival, for a caller that needed a
+     * scale and did not find one configured.
+     */
     @Serializable
-    data object Settings : Destination
+    data class Settings(val expandScale: Boolean = false) : Destination
 
     @Serializable
     data object RoutineEditor : Destination

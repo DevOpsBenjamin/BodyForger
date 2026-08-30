@@ -24,11 +24,12 @@ interface AthleteIdentityDao {
     @Query(
         """
         UPDATE athlete_identity
-        SET sex = :sex, birthDateIso = :birthDateIso, heightCm = :heightCm
+        SET name = :name, sex = :sex, birthDateIso = :birthDateIso, heightCm = :heightCm
         WHERE id = :id
         """
     )
     suspend fun updateProfile(
+        name: String?,
         sex: String?,
         birthDateIso: String?,
         heightCm: Double?,
@@ -41,9 +42,15 @@ interface AthleteIdentityDao {
      * The profile can be filled in before any pairing, so it cannot wait for the HUID.
      */
     @Transaction
-    suspend fun saveProfile(sex: String?, birthDateIso: String?, heightCm: Double?, nowEpochMs: Long) {
+    suspend fun saveProfile(
+        name: String?,
+        sex: String?,
+        birthDateIso: String?,
+        heightCm: Double?,
+        nowEpochMs: Long
+    ) {
         huidOrCreate(nowEpochMs)
-        updateProfile(sex, birthDateIso, heightCm)
+        updateProfile(name, sex, birthDateIso, heightCm)
     }
 
     /**
@@ -74,6 +81,7 @@ interface AthleteIdentityDao {
                 huid = huid,
                 createdAtEpochMs = nowEpochMs,
                 syncState = "SYNCED_PEER",
+                name = existing?.name,
                 sex = existing?.sex,
                 birthDateIso = existing?.birthDateIso,
                 heightCm = existing?.heightCm

@@ -60,7 +60,7 @@ internal fun Pairing(state: ScaleUiState) {
  */
 
 @Composable
-internal fun AssociatedScale(state: ScaleUiState, onForget: () -> Unit, onWeighIn: () -> Unit) {
+internal fun AssociatedScale(state: ScaleUiState, onForget: () -> Unit) {
     Card {
         Text(state.association!!.advertisedName, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         Text("Associée · ${state.association.deviceAddress}", color = TextSecondary, fontSize = 11.sp)
@@ -81,13 +81,6 @@ internal fun AssociatedScale(state: ScaleUiState, onForget: () -> Unit, onWeighI
                 Text(instructionLabel(instruction), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
         }
-
-        Button(
-            onClick = onWeighIn,
-            enabled = !state.isWeighing,
-            colors = ButtonDefaults.buttonColors(containerColor = ElectricCyan, contentColor = Color.Black),
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
-        ) { Text(if (state.isWeighing) "Pesée en cours…" else "Lancer une pesée", fontWeight = FontWeight.Bold) }
 
         OutlinedButton(onClick = onForget, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
             Text("Oublier cette balance", color = TextSecondary)

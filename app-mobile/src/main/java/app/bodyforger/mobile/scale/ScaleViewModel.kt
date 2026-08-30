@@ -170,6 +170,11 @@ class ScaleViewModel(
         }
     }
 
+    /** Clears what the last weigh-in left on screen, once the athlete has read it. */
+    fun clearWeighInFeedback() {
+        _state.value = _state.value.copy(failure = null, weightAwaitingBodyFat = null, progress = null)
+    }
+
     fun forgetScale() {
         val address = _state.value.association?.deviceAddress ?: return
         viewModelScope.launch {

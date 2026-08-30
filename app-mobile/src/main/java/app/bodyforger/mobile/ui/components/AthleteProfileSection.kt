@@ -21,12 +21,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.AthleteProfile
 import app.bodyforger.core.model.BiologicalSex
+import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.theme.ElectricCyan
+import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.TextMuted
 import app.bodyforger.mobile.ui.theme.TextPrimary
@@ -39,41 +42,61 @@ import java.time.LocalDate
  * Nothing here has a default: an unset field stays visibly empty rather than showing a
  * plausible number the athlete would never think to correct.
  */
+/**
+ * The athlete's own measurements, which the scale needs before it can weigh anyone.
+ *
+ * The form is held here and written on [onSave] rather than at every keystroke: a half-typed
+ * height is not a height, and the athlete gets a moment where the app says it took the answer.
+ */
 @Composable
-fun AthleteProfileSection(
+fun AthleteProfileForm(
     profile: AthleteProfile,
-    onSexSelected: (BiologicalSex) -> Unit,
-    onBirthDateChanged: (String?) -> Unit,
-    onHeightChanged: (Double?) -> Unit,
+    onSave: (sex: BiologicalSex?, birthDateIso: String?, heightCm: Double?) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var sex by remember(profile.sex) { mutableStateOf(profile.sex) }
+    var birthDateIso by remember(profile.birthDateIso) { mutableStateOf(profile.birthDateIso) }
+    var heightText by remember(profile.heightCm) {
+        mutableStateOf(profile.heightCm?.let { formatHeight(it) }.orEmpty())
+    }
+
+    val height = heightText.toDoubleOrNull()
+    val typed = profile.copy(sex = sex, birthDateIso = birthDateIso, heightCm = height)
+
     Column(modifier = modifier.fillMaxWidth()) {
-        SectionTitle("PROFIL DE MESURE")
+        SexSelector(sex) { sex = it }
+        Spacer(Modifier.height(14.dp))
+        BirthDateField(typed) { birthDateIso = it }
+        Spacer(Modifier.height(14.dp))
+        HeightField(heightText) { heightText = it }
 
-        Card {
-            SexSelector(profile.sex, onSexSelected)
-            Spacer(Modifier.height(14.dp))
-            BirthDateField(profile, onBirthDateChanged)
-            Spacer(Modifier.height(14.dp))
-            HeightField(profile.heightCm, onHeightChanged)
-
-            if (!profile.isComplete) {
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = "Complétez ces trois champs : la balance en a besoin pour calculer " +
-                        "la masse grasse. Sans eux, aucune pesée n'est lancée.",
-                    color = TextMuted,
-                    fontSize = 11.sp,
-                    lineHeight = 15.sp
-                )
-            }
+        Spacer(Modifier.height(18.dp))
+        Button(
+            onClick = { onSave(sex, birthDateIso, height) },
+            enabled = typed.isComplete,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = NeonLime,
+                contentColor = Color.Black,
+                disabledContainerColor = SurfaceBorder,
+                disabledContentColor = TextMuted
+            ),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.fillMaxWidth().height(46.dp)
+        ) {
+            Text(
+                text = stringResource(
+                    if (typed.isComplete) R.string.profile_save else R.string.profile_incomplete
+                ),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Black
+            )
         }
     }
 }
 
 @Composable
 private fun SexSelector(selected: BiologicalSex?, onSelected: (BiologicalSex) -> Unit) {
-    FieldLabel("Sexe biologique")
+    FieldLabel(stringResource(R.string.profile_sex))
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         BiologicalSex.entries.forEach { sex ->
             val isSelected = sex == selected
@@ -87,7 +110,9 @@ private fun SexSelector(selected: BiologicalSex?, onSelected: (BiologicalSex) ->
                 modifier = Modifier.weight(1f).height(40.dp)
             ) {
                 Text(
-                    text = if (sex == BiologicalSex.MALE) "Homme" else "Femme",
+                    text = stringResource(
+                        if (sex == BiologicalSex.MALE) R.string.profile_sex_male else R.string.profile_sex_female
+                    ),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -121,27 +146,30 @@ private fun BirthDateField(profile: AthleteProfile, onChanged: (String?) -> Unit
     fun commit() = onChanged(dateFrom(day, month, year))
 
     val age = profile.ageYearsOn(LocalDate.now())
-    FieldLabel(if (age != null) "Date de naissance — $age ans" else "Date de naissance")
+    FieldLabel(
+        if (age != null) stringResource(R.string.profile_birth_date_with_age, age)
+        else stringResource(R.string.profile_birth_date)
+    )
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         CompactNumberInput(
             value = day,
             onValueChange = { day = it; commit() },
-            placeholder = "JJ",
+            placeholder = stringResource(R.string.profile_day),
             maxLength = DAY_DIGITS,
             modifier = Modifier.width(52.dp)
         )
         CompactNumberInput(
             value = month,
             onValueChange = { month = it; commit() },
-            placeholder = "MM",
+            placeholder = stringResource(R.string.profile_month),
             maxLength = MONTH_DIGITS,
             modifier = Modifier.width(52.dp)
         )
         CompactNumberInput(
             value = year,
             onValueChange = { year = it; commit() },
-            placeholder = "AAAA",
+            placeholder = stringResource(R.string.profile_year),
             maxLength = YEAR_DIGITS,
             modifier = Modifier.width(72.dp)
         )
@@ -149,16 +177,19 @@ private fun BirthDateField(profile: AthleteProfile, onChanged: (String?) -> Unit
 }
 
 @Composable
-private fun HeightField(heightCm: Double?, onChanged: (Double?) -> Unit) {
-    FieldLabel("Taille (cm)")
+private fun HeightField(value: String, onChanged: (String) -> Unit) {
+    FieldLabel(stringResource(R.string.profile_height))
     CompactNumberInput(
-        value = heightCm?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() }.orEmpty(),
-        onValueChange = { onChanged(it.toDoubleOrNull()) },
+        value = value,
+        onValueChange = onChanged,
         placeholder = "cm",
         isDecimal = true,
         modifier = Modifier.width(88.dp)
     )
 }
+
+private fun formatHeight(heightCm: Double): String =
+    if (heightCm % 1.0 == 0.0) heightCm.toInt().toString() else heightCm.toString()
 
 @Composable
 private fun FieldLabel(text: String) {

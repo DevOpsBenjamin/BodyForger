@@ -158,4 +158,39 @@
     <string name="resume_workout_resume">REPRENDRE</string>
     <string name="resume_workout_finish">TERMINER EN L\'ÉTAT</string>
     <string name="resume_workout_delete">SUPPRIMER</string>
+    <string name="profile_sex">Sexe biologique</string>
+    <string name="profile_sex_male">Homme</string>
+    <string name="profile_sex_female">Femme</string>
+    <string name="profile_birth_date">Date de naissance</string>
+    <string name="profile_birth_date_with_age">Date de naissance — %1$d ans</string>
+    <string name="profile_height">Taille (cm)</string>
+    <string name="profile_day">JJ</string>
+    <string name="profile_month">MM</string>
+    <string name="profile_year">AAAA</string>
+    <string name="profile_save">ENREGISTRER MON PROFIL</string>
+    <string name="profile_incomplete">REMPLISSEZ LES TROIS CHAMPS</string>
+    <string name="settings_athlete">ATHLÈTE</string>
+    <string name="settings_athlete_name">Nom</string>
+    <string name="settings_athlete_anonymous">Anonyme</string>
+    <string name="settings_athlete_hint">Sert seulement à nommer vos données. Rien n\'est envoyé nulle part.</string>
+    <string name="settings_bia_profile">PROFIL DE MESURE BIA</string>
+    <string name="settings_bia_configured">Configuré</string>
+    <string name="settings_bia_missing">À remplir avant toute pesée</string>
+    <string name="settings_bia_info_title">Pourquoi la balance en a-t-elle besoin ?</string>
+    <string name="settings_bia_info_body">La balance calcule elle-même la masse grasse, et il lui faut votre sexe, votre âge et votre taille pour cela. On les lui annonce avant chaque pesée.
+
+Sans eux, aucune mesure n\'est lancée : un chiffre inventé reviendrait plausible, et serait ensuite stocké comme s\'il était le vôtre.
+
+C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne se périme jamais en silence.</string>
+    <string name="settings_scale">BALANCE CONNECTÉE</string>
+    <string name="settings_scale_none">Aucune balance appairée</string>
+    <string name="settings_scale_paired">Appairée</string>
+    <string name="home_scale_not_configured">Aucune balance configurée</string>
+    <string name="home_scale_measure">Se peser</string>
+    <string name="nav_settings">PARAMÈTRES</string>
+    <string name="settings_measurement_id">Identifiant de mesure : %1$s</string>
+    <string name="weigh_in_running">Pesée en cours…</string>
+    <string name="weigh_in_failed">Pesée interrompue</string>
+    <string name="weigh_in_weight_only">Poids seul</string>
+    <string name="weigh_in_weight_only_body">%1$.2f kg relevés, sans composition corporelle : la balance n\'a relevé aucune impédance. La poignée n\'a pas été saisie.</string>
 </resources>
