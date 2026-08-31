@@ -70,6 +70,8 @@
 
     <!-- Live Workout -->
     <string name="workout_live_title">LIVE WORKOUT</string>
+    <string name="workout_live_active_mini_title">ACTIVE WORKOUT</string>
+    <string name="workout_live_active_mini_rest">REST %1$s</string>
     <string name="workout_live_finish_btn">FINISH WORKOUT</string>
     <string name="workout_live_validate_set">VALIDATE SET</string>
     <string name="workout_live_rest_timer">REST TIMER</string>

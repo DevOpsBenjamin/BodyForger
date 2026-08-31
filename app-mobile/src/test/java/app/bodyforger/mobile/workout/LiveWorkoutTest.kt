@@ -173,4 +173,30 @@ class LiveWorkoutTest {
         assertEquals(workout, workout.addSet(7))
         assertEquals(workout, workout.setRestTime(7, 120))
     }
+
+    @Test
+    fun `a bilateral set always opens rest on completion`() {
+        val workout = workoutOf(exercise("Squat"))
+        val firstSet = workout.sets.first()
+        assertTrue(workout.shouldRestAfter(firstSet))
+    }
+
+    @Test
+    fun `a unilateral left set waits for the right side before resting`() {
+        val workout = workoutOf(exercise("Fentes", unilateral = true))
+        val leftSet = workout.sets.first { it.side == UnilateralSide.LEFT && it.setIndex == 1 }
+        val rightSet = workout.sets.first { it.side == UnilateralSide.RIGHT && it.setIndex == 1 }
+
+        assertFalse(workout.shouldRestAfter(leftSet))
+
+        val rightDone = workout.updateSet(rightSet.id) { it.copy(isCompleted = true) }
+        assertTrue(rightDone.shouldRestAfter(leftSet))
+    }
+
+    @Test
+    fun `a unilateral right set opens rest directly`() {
+        val workout = workoutOf(exercise("Fentes", unilateral = true))
+        val rightSet = workout.sets.first { it.side == UnilateralSide.RIGHT && it.setIndex == 1 }
+        assertTrue(workout.shouldRestAfter(rightSet))
+    }
 }
