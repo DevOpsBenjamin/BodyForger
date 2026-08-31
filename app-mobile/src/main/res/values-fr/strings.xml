@@ -70,6 +70,8 @@
 
     <!-- Live Workout -->
     <string name="workout_live_title">SÉANCE EN DIRECT</string>
+    <string name="workout_live_active_mini_title">SÉANCE EN COURS</string>
+    <string name="workout_live_active_mini_rest">REPOS %1$s</string>
     <string name="workout_live_finish_btn">TERMINER LA SÉANCE</string>
     <string name="workout_live_validate_set">VALIDER LA SÉRIE</string>
     <string name="workout_live_rest_timer">CHRONOMÈTRE DE REPOS</string>

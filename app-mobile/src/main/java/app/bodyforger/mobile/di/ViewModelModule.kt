@@ -19,7 +19,7 @@ import org.koin.dsl.module
  */
 val viewModelModule = module {
     viewModel { LibraryViewModel(routineDao = get(), exerciseDao = get(), workoutDao = get()) }
-    viewModel { LiveWorkoutViewModel(workoutDao = get()) }
+    viewModel { LiveWorkoutViewModel(workoutDao = get(), workoutHaptics = get()) }
     viewModel { RoutineDraftViewModel() }
     viewModel { AthleteProfileViewModel(identityDao = get()) }
     viewModel { BiometricsViewModel(bodyLogDao = get(), identityDao = get()) }
