@@ -1,10 +1,36 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
   Zap, Watch, Scale, Dumbbell, Activity, CheckCircle2, Github,
   ArrowRight, Cpu, HeartPulse, Bluetooth, FileText, Smartphone, Languages
 } from 'lucide-vue-next'
 import { t, locale, setLocale, AVAILABLE } from './i18n.js'
+import PrivacyPolicy from './PrivacyPolicy.vue'
+
+const currentPath = ref(window.location.pathname)
+const currentHash = ref(window.location.hash)
+
+const isPrivacy = computed(() => {
+  return currentPath.value === '/privacy' || currentHash.value === '#privacy'
+})
+
+function navigate(to) {
+  if (to === '/privacy' || to === '#privacy') {
+    window.history.pushState({}, '', '/privacy')
+    currentPath.value = '/privacy'
+    currentHash.value = ''
+  } else {
+    window.history.pushState({}, '', '/')
+    currentPath.value = '/'
+    currentHash.value = ''
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function onPopState() {
+  currentPath.value = window.location.pathname
+  currentHash.value = window.location.hash
+}
 
 const REPO = 'https://github.com/DevOpsBenjamin/BodyForger'
 
@@ -60,6 +86,11 @@ const roadmap = computed(() =>
 
 onMounted(() => {
   document.documentElement.lang = locale.value
+  window.addEventListener('popstate', onPopState)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('popstate', onPopState)
 })
 </script>
 
@@ -74,8 +105,12 @@ onMounted(() => {
     <!-- Header: z-50 so page content scrolls underneath instead of over it -->
     <header class="sticky top-0 z-50 border-b border-line bg-obsidian/90 backdrop-blur-md">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-neon flex items-center justify-center shadow-lg shadow-neon/20">
+        <a
+          href="/"
+          @click.prevent="navigate('/')"
+          class="flex items-center gap-3 group cursor-pointer"
+        >
+          <div class="w-9 h-9 rounded-xl bg-neon flex items-center justify-center shadow-lg shadow-neon/20 group-hover:scale-105 transition-transform">
             <Zap class="w-5 h-5 text-obsidian stroke-[2.5]" />
           </div>
           <div class="flex items-center">
@@ -84,7 +119,7 @@ onMounted(() => {
               {{ t.nav.wip }}
             </span>
           </div>
-        </div>
+        </a>
 
         <div class="flex items-center gap-2 sm:gap-3">
           <!-- Language switch -->
@@ -126,12 +161,15 @@ onMounted(() => {
 
     <!-- pb-24 clears the fixed footer -->
     <main class="relative z-10 flex-1 pb-24">
-      <!-- Hero -->
-      <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-20 text-center">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-line text-xs font-medium text-txt-2 mb-8">
-          <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span>
-          {{ t.hero.status }}
-        </div>
+      <PrivacyPolicy v-if="isPrivacy" @navigate="navigate" />
+
+      <template v-else>
+        <!-- Hero -->
+        <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-20 text-center">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface border border-line text-xs font-medium text-txt-2 mb-8">
+            <span class="w-2 h-2 rounded-full bg-neon animate-pulse"></span>
+            {{ t.hero.status }}
+          </div>
 
         <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-txt mb-6 leading-tight">
           {{ t.hero.titleTop }} <br />
@@ -333,6 +371,7 @@ onMounted(() => {
           </div>
         </div>
       </section>
+      </template>
     </main>
 
     <!-- Fixed footer -->
@@ -344,6 +383,12 @@ onMounted(() => {
           <span class="hidden sm:inline">— {{ t.footer.tagline }}</span>
         </div>
         <div class="flex items-center gap-3">
+          <a
+            href="/privacy"
+            @click.prevent="navigate('/privacy')"
+            class="hover:text-neon transition-colors font-medium"
+          >{{ t.footer.privacy }}</a>
+          <span aria-hidden="true">•</span>
           <a
             href="https://github.com/DevOpsBenjamin/SimpleBodyGraph"
             target="_blank"
