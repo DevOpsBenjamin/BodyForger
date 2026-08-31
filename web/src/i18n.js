@@ -101,7 +101,48 @@ export const messages = {
         'MCP server for AI routine generation'
       ]
     },
-    footer: { tagline: 'Open source, offline-first & wrist-first', repo: 'GitHub repo' }
+    footer: {
+      tagline: 'Open source, offline-first & wrist-first',
+      repo: 'GitHub repo',
+      privacy: 'Privacy Policy'
+    },
+    privacy: {
+      badge: 'Privacy & Data Protection',
+      title: 'Privacy Policy',
+      backHome: 'Back to overview',
+      lastUpdated: 'Last updated: August 2026',
+      intro: 'BodyForger is built on a simple principle: your health and fitness data belongs strictly to you. As an open-source, local-first application, BodyForger does not sell, broker, or monetize your personal data.',
+      sections: {
+        localFirst: {
+          title: '1. Local-First Architecture',
+          content: 'All your workout logs, sets, reps, weights, body measurements, and bio-impedance telemetry are stored locally on your device in an on-device database (Room / SQLite). You maintain full custody and ownership of your data at all times.'
+        },
+        healthData: {
+          title: '2. Health & Fitness Data',
+          content: 'BodyForger processes workout sessions, body composition metrics, and heart rate readings. When enabled, the application integrates with Google Health Connect to read or export your workouts and biometric metrics. Health Connect data is accessed strictly under your explicit consent and is never shared with third-party advertising services.'
+        },
+        bleSensors: {
+          title: '3. Bluetooth & On-Device Sensors',
+          content: 'BodyForger uses Bluetooth Low Energy (BLE) strictly to communicate directly with supported smart scales (such as Huawei Scale 3). On Wear OS, body sensor permissions are used in real-time during active workout sessions to monitor heart rate. Sensor telemetry is processed on-device and never transmitted to external third parties.'
+        },
+        cloudSync: {
+          title: '4. Optional Cloud Sync & Diagnostics',
+          content: 'If you choose to sign in, your routines and history may be synchronized securely via Firebase Firestore for multi-device backup. Anonymized crash diagnostics (via Firebase Crashlytics) may be collected solely to detect regressions and fix bugs.'
+        },
+        permissions: {
+          title: '5. Android Device Permissions',
+          content: 'The application may request:\n• Nearby devices / Bluetooth: to connect to smart scales.\n• Body sensors: to record heart rate during workouts on Wear OS.\n• Health Connect: to sync sessions with your health dashboard.\n• Notifications: for rest timer alerts and workout tracking.'
+        },
+        rights: {
+          title: '6. Your Rights & Data Deletion',
+          content: 'You can delete all your data at any time directly by clearing the application storage, uninstalling the app, or deleting your cloud account in settings. No data is retained on our servers after deletion.'
+        },
+        contact: {
+          title: '7. Open Source & Contact',
+          content: 'BodyForger is open-source under the MIT license. You can inspect the complete source code on GitHub. For any questions regarding privacy or data handling, reach out at:\n• GitHub: https://github.com/DevOpsBenjamin/BodyForger\n• Email: contact@bodyforger.app'
+        }
+      }
+    }
   },
 
   fr: {
@@ -202,7 +243,48 @@ export const messages = {
         'Serveur MCP pour génération IA de routines'
       ]
     },
-    footer: { tagline: 'Open source, offline-first & wrist-first', repo: 'Dépôt GitHub' }
+    footer: {
+      tagline: 'Open source, offline-first & wrist-first',
+      repo: 'Dépôt GitHub',
+      privacy: 'Confidentialité'
+    },
+    privacy: {
+      badge: 'Confidentialité & Protection des données',
+      title: 'Politique de Confidentialité',
+      backHome: 'Retour à l’accueil',
+      lastUpdated: 'Dernière mise à jour : Août 2026',
+      intro: 'BodyForger repose sur un principe fondamental : vos données de santé et de musculation vous appartiennent exclusivement. En tant qu’application open-source local-first, BodyForger ne vend, ne loue et ne commercialise aucune donnée personnelle.',
+      sections: {
+        localFirst: {
+          title: '1. Architecture Local-First',
+          content: 'L’ensemble de votre historique d’entraînement, vos séries, répétitions, mesures de poids et impédances corporelles sont stockés localement sur votre appareil dans une base de données embarquée (Room / SQLite). Vous conservez le contrôle total de vos données.'
+        },
+        healthData: {
+          title: '2. Données de Santé & Musculation',
+          content: 'BodyForger traite vos séances de musculation, votre composition corporelle et vos fréquences cardiaques. Avec votre accord explicite, l’application s’intègre à Google Health Connect pour synchroniser vos entraînements. Les données Health Connect ne sont jamais transmises à des tiers publicitaires.'
+        },
+        bleSensors: {
+          title: '3. Bluetooth & Capteurs Embarqués',
+          content: 'Le Bluetooth Low Energy (BLE) est utilisé exclusivement pour communiquer en direct avec vos balances connectées (ex. Huawei Scale 3). Sur Wear OS, l’accès aux capteurs corporels sert uniquement à mesurer votre rythme cardiaque pendant vos séances. Aucun traitement n’est délégué à des tiers non autorisés.'
+        },
+        cloudSync: {
+          title: '4. Synchronisation Cloud & Diagnostics',
+          content: 'Si vous activez un compte, vos routines peuvent être sauvegardées de manière sécurisée sur Firebase Firestore. Des rapports de crashs anonymisés (via Firebase Crashlytics) peuvent être collectés dans le seul but de corriger les erreurs et stabiliser l’application.'
+        },
+        permissions: {
+          title: '5. Autorisations Android',
+          content: 'L’application peut solliciter :\n• Appareils à proximité / Bluetooth : pour la balance connectée.\n• Capteurs corporels : pour le suivi du rythme cardiaque sur la montre.\n• Health Connect : pour la synchronisation des séances.\n• Notifications : pour le chronomètre de repos.'
+        },
+        rights: {
+          title: '6. Suppression des Données & Vos Droits',
+          content: 'Vous pouvez supprimer l’intégralité de vos données à tout moment en vidant le stockage de l’application, en la désinstallant, ou via l’option de suppression de compte dans les paramètres de l’application. Aucune donnée résiduelle n’est conservée sur nos serveurs.'
+        },
+        contact: {
+          title: '7. Open Source & Contact',
+          content: 'BodyForger est open source sous licence MIT. Le code source complet est consultable publiquement sur GitHub. Pour toute question relative à la confidentialité :\n• GitHub : https://github.com/DevOpsBenjamin/BodyForger\n• Email : contact@bodyforger.app'
+        }
+      }
+    }
   }
 }
 

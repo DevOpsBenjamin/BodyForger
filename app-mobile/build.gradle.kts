@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,13 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
+}
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -16,18 +25,51 @@ android {
         minSdk = 28
         targetSdk = 35
         versionCode = 1
-        versionName = "0.1.0-alpha"
+        versionName = "0.0.1-beta"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreFile = rootProject.file(
+                localProperties.getProperty("KEYSTORE_FILE")
+                    ?: (project.findProperty("storeFile") as? String)
+                    ?: "bodyforger-upload-key.jks"
+            )
+            val storePass = localProperties.getProperty("KEYSTORE_PASSWORD")
+                ?: (project.findProperty("storePassword") as? String)
+                ?: System.getenv("BODYFORGER_STORE_PASSWORD")
+            val kAlias = localProperties.getProperty("KEY_ALIAS")
+                ?: (project.findProperty("keyAlias") as? String)
+                ?: "bodyforger-upload"
+            val kPass = localProperties.getProperty("KEY_PASSWORD")
+                ?: (project.findProperty("keyPassword") as? String)
+                ?: System.getenv("BODYFORGER_KEY_PASSWORD")
+
+            if (keystoreFile.exists() && storePass != null && kPass != null) {
+                storeFile = keystoreFile
+                storePassword = storePass
+                keyAlias = kAlias
+                keyPassword = kPass
+            }
+        }
+    }
+
     buildTypes {
         release {
+            val releaseSigning = signingConfigs.getByName("release")
+            if (releaseSigning.storeFile != null) {
+                signingConfig = releaseSigning
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
