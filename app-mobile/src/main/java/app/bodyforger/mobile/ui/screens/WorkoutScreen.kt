@@ -78,14 +78,10 @@ fun WorkoutScreen(
     // and anything held here would go with it.
     val workout = workoutViewModel.active.collectAsState().value ?: return
     val lastPerformance by workoutViewModel.lastPerformance.collectAsState()
+    val restTimer by workoutViewModel.restTimer.collectAsState()
 
     var sessionSeconds by remember { mutableIntStateOf(0) }
     var currentHeartRate by remember { mutableIntStateOf(138) }
-
-    // Chrono de repos
-    var isResting by remember { mutableStateOf(false) }
-    var restSecondsRemaining by remember { mutableIntStateOf(0) }
-    var currentRestTotalSeconds by remember { mutableIntStateOf(1) }
 
     // Modales de configuration
     var activeRestPickerExerciseIndex by remember { mutableStateOf<Int?>(null) }
@@ -100,17 +96,6 @@ fun WorkoutScreen(
         while (true) {
             sessionSeconds = ((System.currentTimeMillis() - workout.session.startedAtEpochMs) / MILLIS_PER_SECOND).toInt()
             delay(TIMER_TICK_MS)
-        }
-    }
-
-    // Ticker chrono de repos
-    LaunchedEffect(isResting, restSecondsRemaining) {
-        if (isResting && restSecondsRemaining > 0) {
-            delay(TIMER_TICK_MS)
-            restSecondsRemaining--
-            if (restSecondsRemaining <= 0) {
-                isResting = false
-            }
         }
     }
 
@@ -155,12 +140,6 @@ fun WorkoutScreen(
                     onRemoveExercise = { workoutViewModel.removeExercise(exIdx) },
                     onToggleSetCompleted = { targetSet ->
                         workoutViewModel.toggleSetCompleted(targetSet.id)
-
-                        if (!targetSet.isCompleted && shouldRestAfter(targetSet, exSets)) {
-                            currentRestTotalSeconds = exItem.restTimeSeconds
-                            restSecondsRemaining = exItem.restTimeSeconds
-                            isResting = true
-                        }
                     },
                     onUpdateSetWeight = { targetSet, newWeight ->
                         workoutViewModel.setWeight(targetSet.id, newWeight)
@@ -202,14 +181,11 @@ fun WorkoutScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         LiveWorkoutRestTimerOverlay(
-            isVisible = isResting,
-            secondsRemaining = restSecondsRemaining,
-            totalSeconds = currentRestTotalSeconds,
-            onAddSeconds = { added ->
-                restSecondsRemaining = (restSecondsRemaining + added).coerceAtLeast(0)
-                currentRestTotalSeconds = (currentRestTotalSeconds + added).coerceAtLeast(1)
-            },
-            onSkipRest = { isResting = false }
+            isVisible = restTimer != null,
+            secondsRemaining = restTimer?.secondsRemaining ?: 0,
+            totalSeconds = restTimer?.totalSeconds ?: 1,
+            onAddSeconds = { added -> workoutViewModel.addRestSeconds(added) },
+            onSkipRest = { workoutViewModel.skipRest() }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -298,15 +274,3 @@ private const val MILLIS_PER_SECOND = 1_000L
 /** Shown by the rest picker when an exercise somehow carries no rest of its own. */
 private const val DEFAULT_REST_SECONDS = 90
 
-/**
- * Whether validating this set ends the effort, and so opens the rest.
- *
- * A unilateral exercise is only done once both sides are: resting after the left side would
- * cut the exercise in half.
- */
-private fun shouldRestAfter(validated: WorkoutSet, exerciseSets: List<WorkoutSet>): Boolean {
-    if (validated.side != UnilateralSide.LEFT) return true
-    return exerciseSets.any {
-        it.setIndex == validated.setIndex && it.side == UnilateralSide.RIGHT && it.isCompleted
-    }
-}

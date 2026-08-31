@@ -2,6 +2,8 @@ package app.bodyforger.mobile.di
 
 import app.bodyforger.core.database.BodyForgerDatabase
 import app.bodyforger.core.database.BodyForgerDatabases
+import app.bodyforger.mobile.workout.AndroidWorkoutHaptics
+import app.bodyforger.mobile.workout.WorkoutHaptics
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -19,4 +21,5 @@ val dataModule = module {
     single { get<BodyForgerDatabase>().bodyLogDao() }
     single { get<BodyForgerDatabase>().athleteIdentityDao() }
     single { get<BodyForgerDatabase>().scaleAssociationDao() }
+    single<WorkoutHaptics> { AndroidWorkoutHaptics(androidContext()) }
 }

@@ -50,6 +50,7 @@ fun BodyForgerApp(workout: LiveWorkoutViewModel = koinViewModel()) {
 
     val interruptedSession by workout.resumable.collectAsState()
     val liveWorkout by workout.active.collectAsState()
+    val restTimer by workout.restTimer.collectAsState()
 
     // Une séance laissée ouverte se traite avant tout le reste : l'athlète ne doit pas la
     // découvrir au milieu de la suivante.
@@ -75,6 +76,7 @@ fun BodyForgerApp(workout: LiveWorkoutViewModel = koinViewModel()) {
                     ActiveWorkoutMiniBar(
                         isVisible = liveWorkout != null,
                         workoutTitle = liveWorkout?.session?.title.orEmpty(),
+                        restSecondsRemaining = restTimer?.secondsRemaining,
                         onClick = { navController.navigate(Destination.LiveWorkout) }
                     )
                     BodyForgerBottomNav(

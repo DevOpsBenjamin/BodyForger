@@ -25,9 +25,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceElevated
 import app.bodyforger.mobile.ui.theme.TextPrimary
@@ -37,7 +40,8 @@ fun ActiveWorkoutMiniBar(
     isVisible: Boolean,
     workoutTitle: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    restSecondsRemaining: Int? = null
 ) {
     AnimatedVisibility(
         visible = isVisible,
@@ -45,13 +49,17 @@ fun ActiveWorkoutMiniBar(
         exit = slideOutVertically(targetOffsetY = { it }),
         modifier = modifier
     ) {
+        val isResting = restSecondsRemaining != null && restSecondsRemaining > 0
+        val accentColor = if (isResting) ElectricCyan else NeonLime
+        val borderColor = if (isResting) ElectricCyan.copy(alpha = 0.6f) else NeonLime.copy(alpha = 0.5f)
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(SurfaceElevated)
-                .border(1.dp, NeonLime.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+                .border(1.dp, borderColor, RoundedCornerShape(14.dp))
                 .clickable { onClick() }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -62,13 +70,21 @@ fun ActiveWorkoutMiniBar(
                     modifier = Modifier
                         .size(10.dp)
                         .clip(CircleShape)
-                        .background(NeonLime)
+                        .background(accentColor)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
+                    val statusText = if (isResting) {
+                        val mins = restSecondsRemaining / 60
+                        val secs = restSecondsRemaining % 60
+                        stringResource(R.string.workout_live_active_mini_rest, String.format("%02d:%02d", mins, secs))
+                    } else {
+                        stringResource(R.string.workout_live_active_mini_title)
+                    }
+
                     Text(
-                        text = "SÉANCE EN COURS",
-                        color = NeonLime,
+                        text = statusText,
+                        color = accentColor,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Black,
                         letterSpacing = 1.sp
@@ -84,15 +100,15 @@ fun ActiveWorkoutMiniBar(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "REPRENDRE",
-                    color = NeonLime,
+                    text = stringResource(R.string.action_resume),
+                    color = accentColor,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Black
                 )
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = null,
-                    tint = NeonLime,
+                    tint = accentColor,
                     modifier = Modifier.size(16.dp)
                 )
             }

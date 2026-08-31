@@ -26,12 +26,18 @@ import kotlinx.coroutines.launch
  * it. Each change is also persisted on its own, so an interrupted session — a crash, a flat
  * battery — keeps everything already done.
  */
-class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
+class LiveWorkoutViewModel(
+    private val workoutDao: WorkoutDao,
+    private val workoutHaptics: WorkoutHaptics = NoOpWorkoutHaptics
+) : ViewModel() {
 
+    private val restTimerController = RestTimerController(workoutHaptics)
     private val _active = MutableStateFlow<LiveWorkout?>(null)
 
     /** The workout in progress, or null when the athlete is not training. */
     val active: StateFlow<LiveWorkout?> = _active.asStateFlow()
+
+    val restTimer: StateFlow<RestCountdown?> = restTimerController.countdown
 
     private val _lastPerformance = MutableStateFlow<Map<SetReference, WorkoutSet>>(emptyMap())
 
@@ -65,6 +71,7 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
      */
     fun begin(routine: Routine?, freeSessionTitle: String) {
         if (_active.value != null) return
+        restTimerController.stop()
         val session = WorkoutSession(
             routineId = routine?.id,
             title = routine?.name ?: freeSessionTitle,
@@ -84,6 +91,7 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
 
     /** Picks a session back up where it stopped, board and loads included. */
     fun resume(session: WorkoutSession) {
+        restTimerController.stop()
         val workout = LiveWorkout.resumed(session)
         _active.value = workout
         _resumable.value = null
@@ -171,7 +179,28 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
                     rpe = recorded.rpe
                 )
             }
+            if (recorded.isCompleted) {
+                workoutHaptics.setCompleted()
+                if (updated.shouldRestAfter(recorded)) {
+                    val exercise = updated.exerciseOf(recorded)
+                    val restTime = exercise?.restTimeSeconds ?: DEFAULT_REST_SECONDS
+                    restTimerController.start(viewModelScope, recorded.orderIndex, recorded.setIndex, restTime)
+                }
+            } else {
+                val current = restTimerController.countdown.value
+                if (current != null && current.exerciseIndex == recorded.orderIndex && current.setIndex == recorded.setIndex) {
+                    restTimerController.stop()
+                }
+            }
         }
+    }
+
+    fun addRestSeconds(seconds: Int) {
+        restTimerController.addSeconds(seconds)
+    }
+
+    fun skipRest() {
+        restTimerController.stop()
     }
 
     fun setWeight(setId: String, weightKg: Double) = editSet(setId) { it.copy(weightKg = weightKg) }
@@ -206,6 +235,7 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
      */
     fun deleteCurrent() {
         val workout = _active.value ?: return
+        restTimerController.stop()
         _active.value = null
         _resumable.value = null
         viewModelScope.launch { workoutDao.deleteSession(workout.session.id) }
@@ -218,6 +248,7 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
      * though the athlete does not want to carry on.
      */
     fun finishInterrupted(session: WorkoutSession) {
+        restTimerController.stop()
         _resumable.value = null
         val volume = LiveWorkout.resumed(session).completedVolumeKg()
         viewModelScope.launch {
@@ -229,12 +260,14 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
 
     /** Throws away an interrupted session, sets included — they cascade on the session. */
     fun deleteInterrupted(session: WorkoutSession) {
+        restTimerController.stop()
         _resumable.value = null
         viewModelScope.launch { workoutDao.deleteSession(session.id) }
     }
 
     private fun close(status: WorkoutSessionStatus): WorkoutSession? {
         val workout = _active.value ?: return null
+        restTimerController.stop()
         val session = closed(workout.toSession(), status)
         _active.value = null
         _resumable.value = null
@@ -287,3 +320,6 @@ class LiveWorkoutViewModel(private val workoutDao: WorkoutDao) : ViewModel() {
         _active.value = _active.value?.let(change)
     }
 }
+
+private const val DEFAULT_REST_SECONDS = 90
+

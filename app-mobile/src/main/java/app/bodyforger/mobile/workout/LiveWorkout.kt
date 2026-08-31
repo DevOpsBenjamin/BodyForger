@@ -132,6 +132,13 @@ data class LiveWorkout(
     fun completedVolumeKg(): Double =
         sets.filter { it.isCompleted }.sumOf { it.weightKg * it.reps }
 
+    fun shouldRestAfter(set: WorkoutSet): Boolean {
+        if (set.side != UnilateralSide.LEFT) return true
+        return setsOf(set.orderIndex).any {
+            it.setIndex == set.setIndex && it.side == UnilateralSide.RIGHT && it.isCompleted
+        }
+    }
+
     private fun mutateExercise(index: Int, change: (RoutineExercise) -> RoutineExercise): LiveWorkout {
         if (index !in exercises.indices) return this
         return copy(exercises = exercises.toMutableList().apply { this[index] = change(this[index]) })
