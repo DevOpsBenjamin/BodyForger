@@ -570,6 +570,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="setup_skip_step">Passer cette étape</string>
     <string name="setup_skip_all">Passer toute la mise en route</string>
     <string name="settings_onboarding_replay_setup">Refaire la mise en route</string>
-    <string name="setup_previous">Étape précédente</string>
+    <string name="setup_previous">Précédent</string>
     <string name="tour_previous">Précédent</string>
 </resources>

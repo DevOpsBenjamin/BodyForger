@@ -67,8 +67,8 @@ fun BodyForgerNavHost(
                     navController.navigate(Destination.LiveWorkout)
                 },
                 onNavigateToBiometrics = { navController.switchTab(Tab.ANALYTICS) },
-                onConfigureScale = { navController.navigate(Destination.Settings(expandScale = true)) },
-                onOpenSettings = { navController.navigate(Destination.Settings()) }
+                onConfigureScale = { navController.navigate(Destination.Settings(expandScale = true)) { launchSingleTop = true } },
+                onOpenSettings = { navController.navigate(Destination.Settings()) { launchSingleTop = true } }
             )
         }
 
@@ -98,11 +98,11 @@ fun BodyForgerNavHost(
         }
 
         composable<Destination.Analytics> {
-            AnalyticsScreen(onOpenScale = { navController.navigate(Destination.Settings(expandScale = true)) })
+            AnalyticsScreen(onOpenScale = { navController.navigate(Destination.Settings(expandScale = true)) { launchSingleTop = true } })
         }
 
         composable<Destination.Profile> {
-            ProfileScreen(onOpenSettings = { navController.navigate(Destination.Settings()) })
+            ProfileScreen(onOpenSettings = { navController.navigate(Destination.Settings()) { launchSingleTop = true } })
         }
 
         composable<Destination.Settings> { entry ->

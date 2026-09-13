@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +20,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -74,7 +74,7 @@ fun ScreenTourOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.45f)),
+                .background(Color.Black.copy(alpha = 0.28f)),
             contentAlignment = Alignment.Center
         ) {
             Card(
@@ -106,11 +106,23 @@ fun ScreenTourOverlay(
                     ) {
                         // A stop read too fast is worth going back to; nothing here is
                         // written down, so stepping back costs nothing.
-                        IconButton(onClick = onPrevious, enabled = !stop.isFirst) {
+                        TextButton(
+                            onClick = onPrevious,
+                            enabled = !stop.isFirst,
+                            contentPadding = PaddingValues(horizontal = 8.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.tour_previous),
-                                tint = if (stop.isFirst) SurfaceBorder else TextMuted
+                                contentDescription = null,
+                                tint = if (stop.isFirst) SurfaceBorder else TextMuted,
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .padding(end = 2.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.tour_previous),
+                                color = if (stop.isFirst) SurfaceBorder else TextMuted,
+                                fontSize = 13.sp
                             )
                         }
                         StopIndicator(stop)

@@ -570,6 +570,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="setup_skip_step">Skip this step</string>
     <string name="setup_skip_all">Skip the whole setup</string>
     <string name="settings_onboarding_replay_setup">Go through the setup again</string>
-    <string name="setup_previous">Previous step</string>
-    <string name="tour_previous">Previous</string>
+    <string name="setup_previous">Back</string>
+    <string name="tour_previous">Back</string>
 </resources>
