@@ -496,4 +496,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="home_month_delta_placeholder">-0.4 kg ce mois</string>
     <string name="scale_mass_only_line">%1$.2f kg · masse grasse non mesurée</string>
     <string name="bio_body_fat_absent">—</string>
+    <string name="settings_default_unit">UNITÉ DE POIDS PAR DÉFAUT</string>
+    <string name="settings_default_unit_hint">S\'applique aux exercices ajoutés à partir de maintenant. Un exercice garde sa propre unité : une machine graduée en livres peut rester en livres. Rien de déjà enregistré n\'est réécrit.</string>
 </resources>

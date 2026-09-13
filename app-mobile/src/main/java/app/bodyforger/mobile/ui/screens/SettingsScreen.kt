@@ -30,23 +30,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.bodyforger.mobile.R
 import app.bodyforger.core.bia.ModelSelector
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
-import app.bodyforger.mobile.profile.BiaEngineViewModel
 import app.bodyforger.mobile.scale.ScaleViewModel
 import app.bodyforger.mobile.ui.components.AthleteIdentityForm
 import app.bodyforger.mobile.ui.components.AthleteProfileForm
 import app.bodyforger.mobile.ui.components.BiaEngineSection
 import app.bodyforger.mobile.ui.components.BiaProfileInfoDialog
+import app.bodyforger.mobile.ui.components.DefaultWeightUnitSection
 import app.bodyforger.mobile.ui.components.ScaleSettingsSection
 import app.bodyforger.mobile.ui.components.SectionStatus
 import app.bodyforger.mobile.ui.components.SettingsSection
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.Obsidian
 import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
-import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * Settings, as a list of sections that fold away once dealt with.
@@ -61,13 +63,14 @@ fun SettingsScreen(
     expandScale: Boolean = false,
     scaleViewModel: ScaleViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
-    biaEngineViewModel: BiaEngineViewModel = koinViewModel()
+    appSettingsViewModel: AppSettingsViewModel = koinViewModel()
 ) {
     val state by scaleViewModel.state.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
     val measurementProfile = profile.biaProfileOn(LocalDate.now())
-    val engineIds = biaEngineViewModel.engineIds
-    val selectedEngine by biaEngineViewModel.selectedId.collectAsState()
+    val engineIds = appSettingsViewModel.engineIds
+    val selectedEngine by appSettingsViewModel.selectedEngineId.collectAsState()
+    val defaultUnit by appSettingsViewModel.defaultWeightUnit.collectAsState()
 
     var openSection by remember {
         mutableStateOf(if (expandScale) Section.SCALE else Section.entries.first { it == Section.ATHLETE })
@@ -156,6 +159,19 @@ fun SettingsScreen(
             )
         }
 
+        SettingsSection(
+            title = stringResource(R.string.settings_default_unit),
+            status = SectionStatus.NEUTRAL,
+            summary = defaultUnit.label(),
+            isExpanded = openSection == Section.UNIT,
+            onToggle = { openSection = openSection.toggled(Section.UNIT) }
+        ) {
+            DefaultWeightUnitSection(
+                selected = defaultUnit,
+                onSelect = appSettingsViewModel::selectDefaultWeightUnit
+            )
+        }
+
         // Only worth a choice when more than one engine is compiled into the build.
         if (engineIds.size > 1) {
             SettingsSection(
@@ -168,7 +184,7 @@ fun SettingsScreen(
                 BiaEngineSection(
                     engineIds = engineIds,
                     selectedId = selectedEngine,
-                    onSelect = biaEngineViewModel::select
+                    onSelect = appSettingsViewModel::selectEngine
                 )
             }
         }
@@ -209,6 +225,7 @@ private enum class Section {
     ATHLETE,
     BIA,
     SCALE,
+    UNIT,
     ENGINE;
 
     fun toggled(tapped: Section): Section = if (this == tapped) NONE else tapped
