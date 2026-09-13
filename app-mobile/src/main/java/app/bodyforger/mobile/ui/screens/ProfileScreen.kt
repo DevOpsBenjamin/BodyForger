@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
 import app.bodyforger.mobile.stats.TrainingStats
 import app.bodyforger.mobile.ui.components.ActivityHeatmapCard
@@ -71,11 +72,13 @@ data class HistoryWorkoutItem(
 fun ProfileScreen(
     onOpenSettings: () -> Unit = {},
     library: LibraryViewModel = koinViewModel(),
-    profileViewModel: AthleteProfileViewModel = koinViewModel()
+    profileViewModel: AthleteProfileViewModel = koinViewModel(),
+    settings: AppSettingsViewModel = koinViewModel()
 ) {
     val scrollState = rememberScrollState()
     val sessions by library.completedSessions.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
+    val unit by settings.defaultWeightUnit.collectAsState()
     val streakWeeks = remember(sessions) {
         TrainingStats.consecutiveTrainingWeeks(sessions, System.currentTimeMillis())
     }
@@ -181,7 +184,7 @@ fun ProfileScreen(
             ProfileTotalStatCard(
                 modifier = Modifier.weight(1f),
                 label = stringResource(R.string.profile_stat_tonnage),
-                value = stringResource(R.string.unit_tonnes, TrainingStats.totalTonnes(sessions)),
+                value = unit.formatWithSymbol(TrainingStats.totalTonnageKg(sessions)),
                 color = ElectricCyan
             )
             ProfileTotalStatCard(
@@ -217,7 +220,7 @@ fun ProfileScreen(
                 lineHeight = 19.sp
             )
         } else {
-            workoutHistory.forEach { item -> HistoryWorkoutCard(item = item) }
+            workoutHistory.forEach { item -> HistoryWorkoutCard(item = item, unit = unit) }
         }
     }
 }

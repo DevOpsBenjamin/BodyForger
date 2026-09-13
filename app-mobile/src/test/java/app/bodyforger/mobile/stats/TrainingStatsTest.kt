@@ -45,7 +45,7 @@ class TrainingStatsTest {
     @Test
     fun `tonnage is reported in tonnes as well`() {
         val sessions = listOf(session(sets = listOf(set("Squat", 100.0, 50))))
-        assertEquals(5.0, TrainingStats.totalTonnes(sessions), 0.0)
+        assertEquals(5_000.0, TrainingStats.totalTonnageKg(sessions), 0.0)
     }
 
     @Test

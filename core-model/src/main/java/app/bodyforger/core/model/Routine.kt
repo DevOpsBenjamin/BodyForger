@@ -1,5 +1,7 @@
 package app.bodyforger.core.model
 
+import java.text.NumberFormat
+import java.util.Locale
 import java.util.UUID
 
 enum class RoutineSetType {
@@ -39,14 +41,25 @@ enum class WeightUnit(val symbol: String) {
         LBS -> value * KILOGRAMS_PER_POUND
     }
 
-    /** Trailing zeroes dropped: a bar loaded to 100 reads as 100, not 100.0. */
-    fun format(kilograms: Double): String {
+    /**
+     * Trailing zeroes dropped, thousands grouped: a bar reads 100, a season's tonnage 7,894.
+     *
+     * Grouped because a total is where the digits pile up — 7894 is a figure to decipher,
+     * 7,894 is one to read. The locale decides which separator, as it does the decimal one.
+     */
+    fun format(kilograms: Double, locale: Locale = Locale.getDefault()): String {
         val shown = fromKilograms(kilograms)
-        return if (shown % 1.0 == 0.0) shown.toInt().toString() else String.format("%.1f", shown)
+        val format = NumberFormat.getNumberInstance(locale).apply {
+            maximumFractionDigits = 1
+            minimumFractionDigits = 0
+            isGroupingUsed = true
+        }
+        return format.format(shown)
     }
 
-    /** The value with its symbol, as a load or a body mass is labelled on screen. */
-    fun formatWithSymbol(kilograms: Double): String = "${format(kilograms)} $symbol"
+    /** The value with its symbol, as a load, a body mass or a tonnage is labelled on screen. */
+    fun formatWithSymbol(kilograms: Double, locale: Locale = Locale.getDefault()): String =
+        "${format(kilograms, locale)} $symbol"
 
     private companion object {
         const val KILOGRAMS_PER_POUND = 0.45359237

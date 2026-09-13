@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.stats.TrainingStats
 import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.AmberGold
@@ -54,13 +55,15 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AnalyticsPerformanceTab(
     modifier: Modifier = Modifier,
-    library: LibraryViewModel = koinViewModel()
+    library: LibraryViewModel = koinViewModel(),
+    settings: AppSettingsViewModel = koinViewModel()
 ) {
     val sessions by library.completedSessions.collectAsState()
     val weeklyTonnage = remember(sessions) {
         val now = System.currentTimeMillis()
-        TrainingStats.tonnageBetween(sessions, now - ONE_WEEK_MS, now) / KILOGRAMS_PER_TONNE
+        TrainingStats.tonnageBetween(sessions, now - ONE_WEEK_MS, now)
     }
+    val unit by settings.defaultWeightUnit.collectAsState()
     val records = remember(sessions) { TrainingStats.personalRecords(sessions).take(RECORDS_SHOWN) }
     val routines by library.routines.collectAsState()
     val planned = remember(routines) { TrainingStats.plannedThisWeek(routines) }
@@ -92,7 +95,7 @@ fun AnalyticsPerformanceTab(
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(text = stringResource(R.string.stats_weekly_tonnage), color = TextMuted, fontSize = 11.sp)
                     Text(
-                        text = stringResource(R.string.unit_tonnes, weeklyTonnage),
+                        text = unit.formatWithSymbol(weeklyTonnage),
                         color = TextPrimary,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Black
@@ -253,7 +256,6 @@ private fun PRRow(exercise: String, oneRM: String, repRecord: String, isLast: Bo
 }
 
 private const val ONE_WEEK_MS = 7L * 24 * 60 * 60 * 1000
-private const val KILOGRAMS_PER_TONNE = 1_000.0
 
 /** How many records the card shows before it stops being a summary. */
 private const val RECORDS_SHOWN = 3

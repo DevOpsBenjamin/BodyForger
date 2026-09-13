@@ -23,7 +23,6 @@ object TrainingStats {
     /** Epley: a set of `reps` at `weight` is worth `weight × (1 + reps / 30)` for one rep. */
     private const val EPLEY_DIVISOR = 30.0
 
-    private const val KILOGRAMS_PER_TONNE = 1_000.0
     private const val MILLIS_PER_HOUR = 3_600_000.0
 
     fun completedSets(sessions: List<WorkoutSession>): List<WorkoutSet> =
@@ -33,8 +32,6 @@ object TrainingStats {
     fun totalTonnageKg(sessions: List<WorkoutSession>): Double =
         completedSets(sessions).sumOf { it.weightKg * it.reps }
 
-    fun totalTonnes(sessions: List<WorkoutSession>): Double =
-        totalTonnageKg(sessions) / KILOGRAMS_PER_TONNE
 
     /** Hours spent training, counting only sessions that were actually closed. */
     fun totalHours(sessions: List<WorkoutSession>): Double = sessions

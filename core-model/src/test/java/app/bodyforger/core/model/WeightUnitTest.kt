@@ -1,5 +1,6 @@
 package app.bodyforger.core.model
 
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -32,14 +33,27 @@ class WeightUnitTest {
 
     @Test
     fun `a whole number keeps no trailing zero`() {
-        assertEquals("100", WeightUnit.KG.format(100.0))
-        assertEquals("82.4", WeightUnit.KG.format(82.4))
+        assertEquals("100", WeightUnit.KG.format(100.0, Locale.UK))
+        assertEquals("82.4", WeightUnit.KG.format(82.4, Locale.UK))
+    }
+
+    @Test
+    fun `a tonnage has its thousands grouped`() {
+        // 7894 is a figure to decipher; 7,894 is one to read.
+        assertEquals("7,894", WeightUnit.KG.format(7_894.0, Locale.UK))
+        assertEquals("7 894", WeightUnit.KG.format(7_894.0, Locale.FRANCE).replace('\u202f', ' ').replace('\u00a0', ' '))
+    }
+
+    @Test
+    fun `the locale decides the decimal separator too`() {
+        assertEquals("82.4", WeightUnit.KG.format(82.4, Locale.UK))
+        assertEquals("82,4", WeightUnit.KG.format(82.4, Locale.FRANCE))
     }
 
     @Test
     fun `the symbol follows the value`() {
-        assertEquals("100 kg", WeightUnit.KG.formatWithSymbol(100.0))
-        assertEquals("220.5 lbs", WeightUnit.LBS.formatWithSymbol(100.0))
+        assertEquals("100 kg", WeightUnit.KG.formatWithSymbol(100.0, Locale.UK))
+        assertEquals("220.5 lbs", WeightUnit.LBS.formatWithSymbol(100.0, Locale.UK))
     }
 
     @Test

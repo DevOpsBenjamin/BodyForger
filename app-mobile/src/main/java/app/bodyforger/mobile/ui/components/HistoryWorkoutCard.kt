@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.screens.HistoryWorkoutItem
 import app.bodyforger.mobile.ui.theme.AmberGold
@@ -43,6 +44,8 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 
 @Composable
 fun HistoryWorkoutCard(
+    /** A session's total follows the preference: the sets in it may each use another. */
+    unit: WeightUnit = WeightUnit.KG,
     item: HistoryWorkoutItem,
     modifier: Modifier = Modifier
 ) {
@@ -135,7 +138,7 @@ fun HistoryWorkoutCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(imageVector = Icons.Default.FitnessCenter, contentDescription = null, tint = TextMuted, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "${(item.totalTonnageKg / 1000.0 * 10).toInt() / 10.0} T", color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text(text = unit.formatWithSymbol(item.totalTonnageKg), color = TextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
 
