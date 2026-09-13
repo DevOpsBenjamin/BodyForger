@@ -15,8 +15,8 @@ import org.junit.Test
 import java.security.SecureRandom
 
 /**
- * un contrat et non une classe Android.
- *
+ * The handshake against a scale that is only a contract, never an Android class: the
+ * negotiation is pure logic, so it is testable off-device.
  */
 class HuaweiHandshakeTest {
 
@@ -44,7 +44,8 @@ class HuaweiHandshakeTest {
 
     @Test
     fun `subscription precedes every write`() = runTest {
-        // parler dans le vide.
+        // Subscribing after the first write means the answer is already gone: the driver
+        // would be talking into the void.
         val transport = FakeScale()
         HuaweiHandshake(transport, model, predictable).negotiate(mac)
 

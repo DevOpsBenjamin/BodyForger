@@ -107,7 +107,7 @@ fun RoutineEditorScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 2. Contenu scrollable
+            // 2. Scrollable content
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
                 modifier = Modifier

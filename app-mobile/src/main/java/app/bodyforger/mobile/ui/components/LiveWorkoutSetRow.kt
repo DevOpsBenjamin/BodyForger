@@ -101,7 +101,7 @@ fun LiveWorkoutSetRow(
             onRepeat = onRepeatLastPerformance
         )
 
-        // 3. Champ Saisie Charge (CompactNumberInput anti-troncature)
+        // 3. Load entry field (CompactNumberInput, which does not clip)
         val weightText = if (set.weightKg % 1.0 == 0.0) {
             set.weightKg.toInt().toString()
         } else {
@@ -128,7 +128,7 @@ fun LiveWorkoutSetRow(
             modifier = Modifier.width(52.dp)
         )
 
-        // 4. Bouton de Validation / Checkbox interactif
+        // 4. Validation button / interactive checkbox
         Box(
             modifier = Modifier
                 .size(34.dp)

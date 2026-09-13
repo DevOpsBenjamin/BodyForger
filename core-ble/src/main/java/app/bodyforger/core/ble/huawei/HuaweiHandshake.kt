@@ -33,7 +33,7 @@ class HuaweiHandshake(
         }
         for (characteristic in REQUIRED_CHANNELS) {
             if (!transport.subscribe(characteristic)) {
-                Log.w(TAG, "abonnement impossible : $characteristic")
+                Log.w(TAG, "cannot subscribe: $characteristic")
                 return null
             }
         }
@@ -60,7 +60,7 @@ class HuaweiHandshake(
         }
         val expected = HuaweiCrypto.expectedScaleToken(keys, scaleNonce, clientNonce)
         if (!scaleToken.startsWithBytes(expected)) {
-            Log.w(TAG, "jeton de la balance invalide (${scaleToken.size} o)")
+            Log.w(TAG, "invalid scale token (${scaleToken.size} B)")
             return null
         }
 

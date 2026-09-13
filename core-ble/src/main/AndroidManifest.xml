@@ -23,6 +23,12 @@
         android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
         android:maxSdkVersion="30" />
+    <!--
+        Declared alongside the fine one because the platform refuses to treat fine location as
+        granted without it; asking for fine alone is silently denied on Android 12 and above.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="30" />
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 </manifest>

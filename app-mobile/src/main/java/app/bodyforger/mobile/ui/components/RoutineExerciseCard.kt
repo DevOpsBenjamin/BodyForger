@@ -274,7 +274,7 @@ fun RoutineExerciseCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 5. Bouton + AJOUTER UNE SÉRIE
+            // 5. + ADD A SET button
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

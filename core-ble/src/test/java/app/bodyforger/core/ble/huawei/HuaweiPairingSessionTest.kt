@@ -44,14 +44,15 @@ class HuaweiPairingSessionTest {
         assertEquals(address, association.deviceAddress)
         assertEquals(huid, association.huid)
         assertEquals(81.25, association.tareKg, 1e-9)
-        // L'athlete etant deja monte, la pesee de validation est conservee plutot que perdue.
+        // The athlete is already standing on it, so the confirmation reading is kept rather
+        // than thrown away.
         assertEquals(80.00, completed.validation!!.massKg, 1e-9)
     }
 
     @Test
     fun `the tare is a mass-only weigh-in`() = runTest {
-        // Ni poignee ni pieds nus : sans mesure d'impedance, le contact de la peau avec les
-        // electrodes n'importe pas, et l'exiger serait une contrainte gratuite.
+        // Neither the handle nor bare feet: with no impedance to read, skin contact with the
+        // electrodes does not matter, and demanding it would be a gratuitous constraint.
         val states = session(FakeScale()).run(address, "Pro", huid, profile).toList()
         val stepOn = states.filterIsInstance<PairingState.Progress>()
             .first { it.instructions.contains(AthleteInstruction.STEP_ON) }
@@ -60,8 +61,8 @@ class HuaweiPairingSessionTest {
 
     @Test
     fun `the athlete is invited to step on exactly once`() = runTest {
-        // La tare puis la trame BIA arrivent pendant la meme montee : deux invitations le
-        // feraient descendre entre les deux et perdraient la mesure.
+        // The tare and then the BIA frame arrive during the same step-on: two invitations
+        // would make the athlete step off in between, losing the measurement.
         val states = session(FakeScale()).run(address, "Pro", huid, profile).toList()
         val invitations = states.filterIsInstance<PairingState.Progress>()
             .count { it.instructions.contains(AthleteInstruction.STEP_ON) }
@@ -70,8 +71,8 @@ class HuaweiPairingSessionTest {
 
     @Test
     fun `engraving precedes the invitation to step on`() = runTest {
-        // Quand l'athlete monte, l'emplacement memoire est deja consomme. C'est ce qui rend
-        // un abandon benin, et ce que l'ordre doit refleter.
+        // By the time the athlete steps on, the memory slot is already consumed. That is what
+        // makes abandoning the pairing harmless, and what the ordering has to reflect.
         val transport = FakeScale()
         val states = session(transport).run(address, "Pro", huid, profile).toList()
 
@@ -87,8 +88,8 @@ class HuaweiPairingSessionTest {
 
     @Test
     fun `a scale that delivers no confirmation frame pairs anyway`() = runTest {
-        // Rien n'etablit que tout materiel en produise une pendant l'appairage : la tare
-        // suffit a fonder l'Association.
+        // Nothing establishes that every piece of hardware emits one during pairing: the tare
+        // alone is enough to found the Association.
         val states = session(FakeScale(sendsValidation = false)).run(address, "Pro", huid, profile).toList()
         val completed = states.last() as PairingState.Completed
         assertEquals(81.25, completed.association.tareKg, 1e-9)
@@ -106,8 +107,8 @@ class HuaweiPairingSessionTest {
 
     @Test
     fun `a refusal status is never read as a tare`() = runTest {
-        // Sans cette verification, l'octet de statut se melait a la moitie basse du poids et
-        // produisait une tare absurde que rien ne signalait.
+        // Without this check, the status byte blended into the low half of the weight and
+        // produced an absurd tare that nothing flagged.
         val states = session(FakeScale(statusByte = 1), tareTimeoutMs = 50)
             .run(address, "Pro", huid, profile).toList()
         assertEquals(SessionFailure.TIMED_OUT, (states.last() as PairingState.Failed).reason)

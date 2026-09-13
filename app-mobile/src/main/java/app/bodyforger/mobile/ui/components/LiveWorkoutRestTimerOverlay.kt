@@ -117,7 +117,7 @@ fun LiveWorkoutRestTimerOverlay(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Bouton -15s
+                        // -15s button
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
@@ -129,7 +129,7 @@ fun LiveWorkoutRestTimerOverlay(
                             Text(text = stringResource(R.string.workout_live_minus_15s), color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
 
-                        // Bouton +30s
+                        // +30s button
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
@@ -142,7 +142,7 @@ fun LiveWorkoutRestTimerOverlay(
                         }
                     }
 
-                    // Bouton PASSER
+                    // SKIP button
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))

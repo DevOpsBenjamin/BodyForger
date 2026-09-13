@@ -59,8 +59,9 @@ class HuaweiWeighInSessionTest {
 
     @Test
     fun `the invitation to step on stays up for the whole wait`() = runTest {
-        // Enchainer sur l'etape de mesure effacerait la consigne en quelques microsecondes,
-        // et l'athlete attendrait devant un ecran qui ne lui demande plus rien.
+        // Moving straight on to the measuring step would wipe the instruction within
+        // microseconds, and the athlete would be left waiting in front of a screen that no
+        // longer asks them for anything.
         val transport = FakeScale(sendsTelemetry = false)
         val states = session(transport, athleteTimeoutMs = 50)
             .run(association, association.huid, profile).toList()

@@ -11,7 +11,8 @@ class HuaweiFramingTest {
 
     @Test
     fun `the frozen table is exactly the one the polynomial generates`() {
-        // celle que porte openScale — ne pourrait pas y survivre.
+        // The frozen table is regenerated here from the polynomial alone: a transcription
+        // error — the kind openScale's own copy carries — could not survive this.
         val regenerated = IntArray(256) { index ->
             var value = index shl 8
             repeat(8) {
@@ -44,8 +45,9 @@ class HuaweiFramingTest {
 
     @Test
     fun `frames received from the scale follow a different CRC than the ones we send`() {
-        // balance signe en MODBUS, quand nous signons en CCITT. `TECH.md` ne documente que
-        // aucune occasion de s'en apercevoir.
+        // The scale signs with a MODBUS CRC where we sign with CCITT. A locally built frame
+        // round-trips through our own CRC, so nothing here would ever reveal the difference —
+        // it only shows against a captured frame, which is what this one is.
         val first = bytes("bd1210a9ccb66a6d7386d9d992f0bd9cacb4")
         assertEquals(0x9ed3, HuaweiFraming.receivedCrc16(first))
         assertTrue(HuaweiFraming.crc16(first) != 0x9ed3)

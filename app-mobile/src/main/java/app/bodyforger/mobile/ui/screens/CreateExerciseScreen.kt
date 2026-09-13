@@ -119,7 +119,7 @@ fun CreateExerciseScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        // 2. Contenu du formulaire
+        // 2. Form content
         Column(
             modifier = Modifier
                 .fillMaxSize()

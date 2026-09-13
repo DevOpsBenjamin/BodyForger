@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.os.Build
 import android.util.Log
@@ -14,13 +15,13 @@ import app.bodyforger.core.ble.huawei.HuaweiCharacteristic
 import app.bodyforger.core.ble.huawei.HuaweiFrameMagic
 import app.bodyforger.core.ble.huawei.HuaweiFraming
 import app.bodyforger.core.ble.huawei.HuaweiGattProfile
+import java.util.UUID
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.UUID
 
 /**
  * The real Bluetooth transport, above Android's GATT stack.
@@ -120,11 +121,11 @@ class AndroidGattTransport(
             notifies -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             else -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
         }
-        Log.d(TAG, "abonnement $characteristic en ${if (notifies) "notification" else "indication"}")
+        Log.d(TAG, "subscribing $characteristic as ${if (notifies) "notification" else "indication"}")
 
         val acknowledged = CompletableDeferred<Boolean>().also { pendingDescriptor = it }
         val started = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            connected.writeDescriptor(descriptor, value) == BluetoothGatt.GATT_SUCCESS
+            connected.writeDescriptor(descriptor, value) == BluetoothStatusCodes.SUCCESS
         } else {
             @Suppress("DEPRECATION")
             descriptor.value = value
@@ -184,7 +185,7 @@ class AndroidGattTransport(
 
         val acknowledged = CompletableDeferred<Boolean>().also { pendingWrite = it }
         val started = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            connected.writeCharacteristic(target, frame, writeType) == BluetoothGatt.GATT_SUCCESS
+            connected.writeCharacteristic(target, frame, writeType) == BluetoothStatusCodes.SUCCESS
         } else {
             @Suppress("DEPRECATION")
             target.value = frame

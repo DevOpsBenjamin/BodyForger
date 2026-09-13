@@ -21,8 +21,8 @@ class HuaweiPairingSequenceTest {
 
     @Test
     fun `no model demands the handle in order to pair`() {
-        // L'appairage ne cherche qu'une tare : une masse de calibration, pas une mesure
-        // d'impedance. La poignee n'y sert a rien, meme sur un materiel qui en a une.
+        // Pairing only wants a tare: a calibration mass, not an impedance reading. The
+        // handle is of no use to it, even on hardware that has one.
         for (model in HuaweiScaleModel.entries) {
             val steps = HuaweiPairingSequence.stepsFor(model)
             assertFalse("$model", steps.any { AthleteInstruction.GRIP_HANDLE in it.instructions })
@@ -33,7 +33,8 @@ class HuaweiPairingSequenceTest {
 
     @Test
     fun `a model with no known ceiling pairs like the others`() {
-        // sait rendre une masse.
+        // An unknown model is assumed to do no more than return a mass: the handle is never
+        // demanded of hardware whose capability is not established.
         val family = HuaweiPairingSequence.stepsFor(HuaweiScaleModel.HAIGE_FAMILY)
 
         assertFalse(family.any { AthleteInstruction.GRIP_HANDLE in it.instructions })

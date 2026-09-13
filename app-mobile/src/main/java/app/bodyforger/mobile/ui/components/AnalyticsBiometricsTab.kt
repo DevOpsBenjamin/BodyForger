@@ -79,7 +79,7 @@ fun AnalyticsBiometricsTab(
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 6.dp)
     ) {
-        // Carte Principale : Poids & Masse Grasse
+        // Main card: mass & body fat
         Card(
             modifier = Modifier
                 .fillMaxWidth()
