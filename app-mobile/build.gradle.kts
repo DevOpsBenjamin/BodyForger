@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,13 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
-}
-
-val localProperties = Properties().apply {
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.inputStream().use { load(it) }
-    }
 }
 
 android {
@@ -32,25 +23,14 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystoreFile = rootProject.file(
-                localProperties.getProperty("KEYSTORE_FILE")
-                    ?: (project.findProperty("storeFile") as? String)
-                    ?: "bodyforger-upload-key.jks"
-            )
-            val storePass = localProperties.getProperty("KEYSTORE_PASSWORD")
-                ?: (project.findProperty("storePassword") as? String)
-                ?: System.getenv("BODYFORGER_STORE_PASSWORD")
-            val kAlias = localProperties.getProperty("KEY_ALIAS")
-                ?: (project.findProperty("keyAlias") as? String)
-                ?: "bodyforger-upload"
-            val kPass = localProperties.getProperty("KEY_PASSWORD")
-                ?: (project.findProperty("keyPassword") as? String)
-                ?: System.getenv("BODYFORGER_KEY_PASSWORD")
+            val keystore = rootProject.extra["uploadKeystoreFile"] as java.io.File
+            val storePass = rootProject.extra["uploadKeystorePassword"] as String?
+            val kPass = rootProject.extra["uploadKeyPassword"] as String?
 
-            if (keystoreFile.exists() && storePass != null && kPass != null) {
-                storeFile = keystoreFile
+            if (keystore.exists() && storePass != null && kPass != null) {
+                storeFile = keystore
                 storePassword = storePass
-                keyAlias = kAlias
+                keyAlias = rootProject.extra["uploadKeyAlias"] as String
                 keyPassword = kPass
             }
         }

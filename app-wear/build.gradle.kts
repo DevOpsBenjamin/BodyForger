@@ -18,8 +18,27 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystore = rootProject.extra["uploadKeystoreFile"] as java.io.File
+            val storePass = rootProject.extra["uploadKeystorePassword"] as String?
+            val kPass = rootProject.extra["uploadKeyPassword"] as String?
+
+            if (keystore.exists() && storePass != null && kPass != null) {
+                storeFile = keystore
+                storePassword = storePass
+                keyAlias = rootProject.extra["uploadKeyAlias"] as String
+                keyPassword = kPass
+            }
+        }
+    }
+
     buildTypes {
         release {
+            val releaseSigning = signingConfigs.getByName("release")
+            if (releaseSigning.storeFile != null) {
+                signingConfig = releaseSigning
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -47,6 +66,7 @@ dependencies {
     implementation(project(":core-ble"))
     implementation(project(":core-database"))
     implementation(project(":core-sync"))
+    implementation(project(":core-healthconnect"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
