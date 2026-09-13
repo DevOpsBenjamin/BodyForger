@@ -557,14 +557,14 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <!-- Setup flow -->
     <string name="setup_units_title">Units</string>
     <string name="setup_units_why">Choose what you read and write in. Kilograms and centimetres unless you say otherwise.</string>
-    <string name="setup_name_title">How should the app call you?</string>
-    <string name="setup_name_why">A first name is enough, and nothing is checked against it. It stays on this phone.</string>
-    <string name="setup_profile_title">Your measurement profile</string>
-    <string name="setup_profile_why">Sex, birth date and height. A scale does not measure a body fat percentage — it computes one from these, so nothing can be weighed until they are filled.</string>
-    <string name="setup_scale_title">Do you have a Bluetooth scale?</string>
-    <string name="setup_scale_why">Only for someone who owns one. Pairing engraves your profile into the scale and reads its tare, and it takes a calibration weigh-in — so if the scale is in another room, skip this and come back to it from Settings.</string>
-    <string name="setup_goals_title">Where are you heading?</string>
-    <string name="setup_goals_why">Worth doing: a goal gives the first weeks a direction, and holds the chart while the history is too short for a trend. Several milestones read better than one far-off number — the next kilogram tells you more about this month than the last one does.</string>
+    <string name="setup_name_title">Your name</string>
+    <string name="setup_name_why">A first name is enough. It stays on this phone.</string>
+    <string name="setup_profile_title">Measurement profile</string>
+    <string name="setup_profile_why">Sex, birth date, height. The body composition maths is computed from them — nothing can be weighed without.</string>
+    <string name="setup_scale_title">Bluetooth scale</string>
+    <string name="setup_scale_why">Only if you own one. Pairing takes a calibration weigh-in, and can wait — Settings has it too.</string>
+    <string name="setup_goals_title">Goals</string>
+    <string name="setup_goals_why">Optional, but it gives the first weeks a direction. Several milestones read better than one far-off number.</string>
     <string name="setup_continue">Continue</string>
     <string name="setup_finish">Done</string>
     <string name="setup_skip_step">Skip this step</string>

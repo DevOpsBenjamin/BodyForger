@@ -557,14 +557,14 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <!-- Parcours de mise en route -->
     <string name="setup_units_title">Unités</string>
     <string name="setup_units_why">Choisissez ce dans quoi vous lisez et écrivez. Kilogrammes et centimètres sauf indication contraire.</string>
-    <string name="setup_name_title">Comment l\'application doit-elle vous appeler ?</string>
-    <string name="setup_name_why">Un prénom suffit, et rien n\'est vérifié. Ça reste sur ce téléphone.</string>
-    <string name="setup_profile_title">Votre profil de mesure</string>
-    <string name="setup_profile_why">Sexe, date de naissance et taille. Une balance ne mesure pas un taux de masse grasse — elle le calcule à partir de ça, donc rien ne peut être pesé tant que ce n\'est pas rempli.</string>
-    <string name="setup_scale_title">Avez-vous une balance Bluetooth ?</string>
-    <string name="setup_scale_why">Uniquement pour qui en possède une. L\'appairage grave votre profil dans la balance et relève sa tare, et demande une pesée de calibration — si la balance est dans une autre pièce, passez et revenez-y depuis les Réglages.</string>
-    <string name="setup_goals_title">Vous allez où ?</string>
-    <string name="setup_goals_why">Ça vaut le coup : un objectif donne une direction aux premières semaines, et tient le graphe tant que l\'historique est trop court pour une tendance. Plusieurs paliers se lisent mieux qu\'un seul chiffre lointain — le kilo suivant en dit plus sur ce mois-ci que le dernier.</string>
+    <string name="setup_name_title">Votre nom</string>
+    <string name="setup_name_why">Un prénom suffit. Ça reste sur ce téléphone.</string>
+    <string name="setup_profile_title">Profil de mesure</string>
+    <string name="setup_profile_why">Sexe, date de naissance, taille. Les calculs de composition corporelle en sortent — sans eux, rien ne peut être pesé.</string>
+    <string name="setup_scale_title">Balance Bluetooth</string>
+    <string name="setup_scale_why">Seulement si vous en avez une. L\'appairage demande une pesée de calibration, et peut attendre — c\'est aussi dans les Réglages.</string>
+    <string name="setup_goals_title">Objectifs</string>
+    <string name="setup_goals_why">Facultatif, mais ça donne une direction aux premières semaines. Plusieurs paliers se lisent mieux qu\'un seul chiffre lointain.</string>
     <string name="setup_continue">Continuer</string>
     <string name="setup_finish">Terminé</string>
     <string name="setup_skip_step">Passer cette étape</string>
