@@ -536,4 +536,13 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="goals_dialog_horizon_must_be_future">Un horizon est devant — choisissez une date à venir</string>
     <string name="analytics_volume_no_plan">Aucune routine assignée cette semaine — c\'est le planning qui donne la référence.</string>
     <string name="bio_segmental_unavailable">Ce relevé n\'a pas mesuré les membres — il faut huit électrodes, donc saisir la poignée.</string>
+    <!-- Setup guide -->
+    <string name="setup_guide_title">MISE EN ROUTE</string>
+    <string name="setup_guide_progress">%1$d sur %2$d</string>
+    <string name="setup_step_profile">Profil de mesure</string>
+    <string name="setup_step_profile_why">Sexe, date de naissance et taille. La balance calcule ses propres chiffres avec, donc rien ne peut être pesé sans eux.</string>
+    <string name="setup_step_scale">Appairer votre balance</string>
+    <string name="setup_step_scale_why">Grave votre profil dans la balance et relève la tare. Demande une pesée de calibration.</string>
+    <string name="setup_step_goal">Poser un premier objectif</string>
+    <string name="setup_step_goal_why">Facultatif. Il donne une direction aux premières semaines, et tient le graphe tant que l\'historique est trop court pour une tendance.</string>
 </resources>

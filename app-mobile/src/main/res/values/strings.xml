@@ -536,4 +536,13 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="goals_dialog_horizon_must_be_future">A horizon lies ahead — pick a date still to come</string>
     <string name="analytics_volume_no_plan">No routine assigned this week — the planner decides what this measures against.</string>
     <string name="bio_segmental_unavailable">This reading did not measure the limbs — eight electrodes are needed, which means gripping the handle.</string>
+    <!-- Setup guide -->
+    <string name="setup_guide_title">GETTING STARTED</string>
+    <string name="setup_guide_progress">%1$d of %2$d done</string>
+    <string name="setup_step_profile">Measurement profile</string>
+    <string name="setup_step_profile_why">Sex, birth date and height. The scale computes its own figures from these, so nothing can be weighed without them.</string>
+    <string name="setup_step_scale">Pair your scale</string>
+    <string name="setup_step_scale_why">Engraves your profile into the scale and reads the tare. It takes a calibration weigh-in.</string>
+    <string name="setup_step_goal">Set a first goal</string>
+    <string name="setup_step_goal_why">Optional. It gives the first weeks a direction, and fills the chart while the history is too short for a trend.</string>
 </resources>
