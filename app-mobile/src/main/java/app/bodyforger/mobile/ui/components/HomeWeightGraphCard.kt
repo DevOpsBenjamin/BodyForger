@@ -22,9 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import app.bodyforger.mobile.R
-import androidx.compose.ui.res.stringResource
-import app.bodyforger.core.model.BodyLog
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,9 +33,14 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.BodyLog
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.stats.BodyMetrics
+import app.bodyforger.mobile.stats.GoalStanding
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
@@ -49,8 +52,13 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 @Composable
 fun HomeWeightGraphCard(
     weighIns: List<BodyLog>,
+    /** The milestone being worked towards, drawn as a line and named below the curve. */
+    goal: GoalStanding? = null,
     modifier: Modifier = Modifier
 ) {
+    val now = System.currentTimeMillis()
+    val median = remember(weighIns) { BodyMetrics.medianMassKg(weighIns, now) }
+    val monthDelta = remember(weighIns) { BodyMetrics.massDeltaKg(weighIns, now) }
     // Nothing is drawn without a weigh-in: the curve used to be seven coordinates in the
     // canvas, unmoved by whatever was weighed.
     val latest = weighIns.firstOrNull()
@@ -111,14 +119,20 @@ fun HomeWeightGraphCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = stringResource(R.string.home_month_delta_placeholder),
+                            text = monthDelta?.let {
+                                stringResource(R.string.home_month_delta, it)
+                            } ?: stringResource(R.string.home_month_delta_unavailable),
                             color = ElectricCyan,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
-                        text = stringResource(R.string.home_median_placeholder),
+                        text = median?.let { stringResource(R.string.home_median, it) }
+                            ?: goal?.let { standing ->
+                                stringResource(R.string.home_goal_line, standing.goal.targetMassKg)
+                            }
+                            ?: stringResource(R.string.home_median_unavailable),
                         color = TextMuted,
                         fontSize = 11.sp,
                         modifier = Modifier.padding(top = 4.dp)

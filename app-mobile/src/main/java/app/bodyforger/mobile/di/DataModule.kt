@@ -22,5 +22,6 @@ val dataModule = module {
     single { get<BodyForgerDatabase>().athleteIdentityDao() }
     single { get<BodyForgerDatabase>().scaleAssociationDao() }
     single { get<BodyForgerDatabase>().appSettingsDao() }
+    single { get<BodyForgerDatabase>().bodyGoalDao() }
     single<WorkoutHaptics> { AndroidWorkoutHaptics(androidContext()) }
 }

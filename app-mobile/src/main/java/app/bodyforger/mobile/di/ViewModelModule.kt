@@ -5,6 +5,7 @@ import app.bodyforger.mobile.library.RoutineDraftViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
 import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.profile.BiometricsViewModel
+import app.bodyforger.mobile.profile.GoalsViewModel
 import app.bodyforger.mobile.scale.ScaleViewModel
 import app.bodyforger.mobile.workout.LiveWorkoutViewModel
 import org.koin.android.ext.koin.androidApplication
@@ -25,6 +26,7 @@ val viewModelModule = module {
     viewModel { AthleteProfileViewModel(identityDao = get()) }
     viewModel { BiometricsViewModel(bodyLogDao = get(), identityDao = get(), appSettingsDao = get()) }
     viewModel { AppSettingsViewModel(appSettingsDao = get()) }
+    viewModel { GoalsViewModel(bodyGoalDao = get(), bodyLogDao = get()) }
     viewModel {
         ScaleViewModel(
             application = androidApplication(),

@@ -37,6 +37,7 @@ import app.bodyforger.mobile.R
 import app.bodyforger.mobile.library.LibraryViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
 import app.bodyforger.mobile.profile.BiometricsViewModel
+import app.bodyforger.mobile.profile.GoalsViewModel
 import app.bodyforger.mobile.scale.ScaleViewModel
 import app.bodyforger.mobile.ui.components.HomeActionCards
 import app.bodyforger.mobile.ui.components.HomeVolumeProgressCard
@@ -62,6 +63,7 @@ fun HomeScreen(
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     biometricsViewModel: BiometricsViewModel = koinViewModel(),
     library: LibraryViewModel = koinViewModel(),
+    goalsViewModel: GoalsViewModel = koinViewModel(),
     onOpenSettings: () -> Unit = {}
 ) {
     val scaleState by scaleViewModel.state.collectAsState()
@@ -71,6 +73,7 @@ fun HomeScreen(
 
     val today = LocalDate.now()
     val routines by library.routines.collectAsState()
+    val activeGoal by goalsViewModel.active.collectAsState()
     // The planner assigns routines to weekdays; today's is whichever claims this one.
     val todaysRoutine = remember(routines, today) {
         routines.firstOrNull { today.dayOfWeek.value in it.assignedDays }
@@ -144,7 +147,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(18.dp))
 
         // --- 2. WEIGHT TREND GRAPH ---
-        HomeWeightGraphCard(weighIns = weighIns)
+        HomeWeightGraphCard(weighIns = weighIns, goal = activeGoal)
 
         Spacer(modifier = Modifier.height(16.dp))
 

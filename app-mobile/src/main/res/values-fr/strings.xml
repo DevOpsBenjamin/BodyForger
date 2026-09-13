@@ -352,7 +352,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="bio_empty_no_profile">Renseignez d\'abord votre profil de mesure, puis pesez-vous.</string>
 
     <!-- Placeholder copy: still hardcoded demo data, not yet wired to real values -->
-    <string name="home_median_placeholder">Médiane 7j : 78.6 kg</string>
 
     <!-- Built-in exercise catalogue: one key per seeded exercise -->
     <string name="ex_hanging_leg_raise">Relevés de Jambes Suspendu</string>
@@ -487,7 +486,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="routine_summary">%1$d exercices • ~%2$d min</string>
     <string name="scale_mass_and_fat">%1$.2f kg · %2$.1f %% de masse grasse</string>
     <string name="scale_step_of">Étape %1$d sur %2$d</string>
-    <string name="home_month_delta_placeholder">-0.4 kg ce mois</string>
     <string name="scale_mass_only_line">%1$.2f kg · masse grasse non mesurée</string>
     <string name="bio_body_fat_absent">—</string>
     <string name="settings_default_unit">UNITÉ DE POIDS PAR DÉFAUT</string>
@@ -502,4 +500,31 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
         <item quantity="other">🔥 %1$d semaines consécutives</item>
     </plurals>
     <string name="profile_streak_none">Aucune série en cours — entraînez-vous cette semaine</string>
+    <!-- Goals -->
+    <string name="settings_goals">OBJECTIFS</string>
+    <string name="settings_goals_none">Aucun objectif</string>
+    <string name="goals_empty">Aucun palier. Un objectif est une direction, pas une échéance — rien n\'échoue quand son horizon passe.</string>
+    <string name="goals_add">+ Ajouter un palier</string>
+    <string name="goals_remove">Supprimer ce palier</string>
+    <string name="goals_target_mass">%1$.1f kg</string>
+    <string name="goals_target_mass_and_fat">%1$.1f kg · %2$.1f %%</string>
+    <string name="goals_validated_on">Franchi le %1$s</string>
+    <string name="goals_validated_but_drifted">Franchi le %1$s — médiane repassée au-dessus depuis</string>
+    <string name="goals_awaiting_first_weigh_in">Pesez-vous une fois pour donner une direction à cet objectif</string>
+    <string name="goals_week_incomplete">%1$d pesée(s) sur %2$d cette semaine</string>
+    <string name="goals_projection">À ce rythme : %1$s</string>
+    <string name="goals_projection_against_horizon">À ce rythme : %1$s — horizon %2$s</string>
+    <string name="goals_no_trend_yet">Pas encore assez de semaines pour lire une tendance</string>
+    <string name="goals_dialog_title">Nouveau palier</string>
+    <string name="goals_dialog_mass">Masse visée (kg)</string>
+    <string name="goals_dialog_fat">Masse grasse visée (%%, facultatif)</string>
+    <string name="goals_dialog_horizon">Horizon (facultatif)</string>
+    <string name="goals_dialog_horizon_none">Sans horizon</string>
+    <string name="goals_dialog_horizon_months">Dans %1$d mois</string>
+    <string name="goals_dialog_hint">Un palier est franchi quand la médiane hebdomadaire le dépasse deux semaines de suite. Une semaine compte à partir de %1$d pesées ; %2$d la lisent bien mieux.</string>
+    <string name="home_month_delta">%1$+.1f kg ce mois</string>
+    <string name="home_month_delta_unavailable">Pas encore de tendance mensuelle</string>
+    <string name="home_median">Médiane 7j : %1$.1f kg</string>
+    <string name="home_median_unavailable">Pesez-vous pour amorcer une tendance</string>
+    <string name="home_goal_line">Objectif : %1$.1f kg</string>
 </resources>
