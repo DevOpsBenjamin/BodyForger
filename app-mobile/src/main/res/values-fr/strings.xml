@@ -555,8 +555,8 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="settings_onboarding_tour_why">Le tour et les questions de mise en route sont proposés une fois, sur une installation neuve, et n\'insistent plus jamais — que vous les ayez suivis ou passés.</string>
     <string name="settings_onboarding_replay_tour">Revoir le tour des écrans</string>
     <!-- Parcours de mise en route -->
-    <string name="setup_units_title">Kilogrammes, ou livres ?</string>
-    <string name="setup_units_why">Ça vient en premier parce que tout ce qui est demandé ensuite s\'écrit dedans — une taille saisie avant que vous ayez dit pouces est une taille dans la mauvaise unité. Kilogrammes et centimètres sauf indication contraire.</string>
+    <string name="setup_units_title">Unités</string>
+    <string name="setup_units_why">Choisissez ce dans quoi vous lisez et écrivez. Kilogrammes et centimètres sauf indication contraire.</string>
     <string name="setup_name_title">Comment l\'application doit-elle vous appeler ?</string>
     <string name="setup_name_why">Un prénom suffit, et rien n\'est vérifié. Ça reste sur ce téléphone.</string>
     <string name="setup_profile_title">Votre profil de mesure</string>

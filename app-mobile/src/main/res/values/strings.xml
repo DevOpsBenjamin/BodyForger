@@ -555,8 +555,8 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="settings_onboarding_tour_why">The tour and the setup questions are offered once, on a fresh install, and never insist again — whether you went through them or skipped them.</string>
     <string name="settings_onboarding_replay_tour">Replay the screen tour</string>
     <!-- Setup flow -->
-    <string name="setup_units_title">Kilograms, or pounds?</string>
-    <string name="setup_units_why">This comes first because everything asked for below is written in it — a height typed before you said inches is a height in the wrong unit. Kilograms and centimetres unless you say otherwise.</string>
+    <string name="setup_units_title">Units</string>
+    <string name="setup_units_why">Choose what you read and write in. Kilograms and centimetres unless you say otherwise.</string>
     <string name="setup_name_title">How should the app call you?</string>
     <string name="setup_name_why">A first name is enough, and nothing is checked against it. It stays on this phone.</string>
     <string name="setup_profile_title">Your measurement profile</string>
