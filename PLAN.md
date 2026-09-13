@@ -21,7 +21,7 @@ The motivation stems from daily frustrations with commercial solutions like **He
 |                                      BodyForger                                       |
 +-----------------------+-------------------------------+-------------------------------+
 |  1. WRIST-FIRST WEAR  |  2. CLINICAL BIA & SCALES     |  3. ADVANCED WORKOUT CORE     |
-|  - Health Services    |  - HUAWEI Scale 3 + Standard  |  - 1,300+ Exercises (openGym) |
+|  - Health Services    |  - BLE Scales + Standard      |  - Exercise Catalogue (openGym)|
 |  - Continuous HR      |  - DEXA BIA 8-Electrode Model |  - Drop-Sets & Rest-Pause     |
 |  - Ambient / Screen-Off| - Tape Measurements          |  - Heatmap, Volume & 1RM      |
 |  - Rest Haptics       |  - Milestone Paliers          |  - Routine & Split Builder    |
@@ -101,7 +101,7 @@ data class WorkoutSet(
 #### 4.2. Model Context Protocol (MCP) Server
 * **Endpoints**:
   * `get_body_metrics()`: Return current BIA status (weight, body fat %, muscle mass, trend).
-  * `search_exercises(query, muscle_group, equipment)`: Query 1,300+ catalogue exercises.
+  * `search_exercises(query, muscle_group, equipment)`: Query the exercise catalogue.
   * `push_workout_routine(plan_json)`: Inject AI-generated routines into BodyForger's Room/Cloud DB.
 
 ---
@@ -131,7 +131,7 @@ BodyForger/
 
 - [x] **Phase 0**: Architecture & repository initialization as **BodyForger**.
 - [ ] **Phase 1**: Port BIA Engine & Scale 3 BLE Driver to Kotlin Android/Wear module.
-- [ ] **Phase 2**: Import openGym exercise database (1,300+ exercises) & workout models into `core-model`.
+- [ ] **Phase 2**: Import the openGym exercise database (1,300+ exercises) & workout models into `core-model`. *Partial: the domain models are in place and 124 exercises are seeded; the openGym import itself has not been done.*
 - [ ] **Phase 3**: Build standalone Wear OS workout runner (Health Services HR + Ambient AOD + Haptics).
 - [ ] **Phase 4**: Wearable Data Layer bidirectional synchronization (Watch ↔ Phone).
 - [ ] **Phase 5**: Google Health Connect exporter (Completed Sessions, HR series, Planned Exercises).

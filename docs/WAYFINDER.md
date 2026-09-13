@@ -9,7 +9,7 @@ This document maps every data flow, state machine and interaction between the co
 ```mermaid
 flowchart TB
     subgraph Context_Gym [1. Training context / openGym]
-        ExDB[(1,300+ exercise catalogue)]
+        ExDB[(Exercise catalogue)]
         Routines[Routines & split plans]
         Workout[Workout session engine]
         Volume[Heatmap & 1RM calculations]
