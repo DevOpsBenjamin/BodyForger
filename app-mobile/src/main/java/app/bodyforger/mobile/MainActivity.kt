@@ -8,15 +8,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import app.bodyforger.mobile.navigation.BodyForgerNavHost
 import app.bodyforger.mobile.navigation.Destination
+import app.bodyforger.mobile.navigation.Tab
 import app.bodyforger.mobile.navigation.currentTab
 import app.bodyforger.mobile.navigation.switchTab
+import app.bodyforger.mobile.onboarding.OnboardingViewModel
+import app.bodyforger.mobile.onboarding.ScreenTourOverlay
+import app.bodyforger.mobile.onboarding.TourStop
 import app.bodyforger.mobile.ui.components.ActiveWorkoutMiniBar
 import app.bodyforger.mobile.ui.components.BodyForgerBottomNav
 import app.bodyforger.mobile.ui.components.ResumeWorkoutDialog
@@ -43,14 +51,55 @@ class MainActivity : ComponentActivity() {
  * Everything else is a destination — see `navigation/BodyForgerNavHost`.
  */
 @Composable
-fun BodyForgerApp(workout: LiveWorkoutViewModel = koinViewModel()) {
+fun BodyForgerApp(
+    workout: LiveWorkoutViewModel = koinViewModel(),
+    onboarding: OnboardingViewModel = koinViewModel()
+) {
     val navController = rememberNavController()
     val currentDestination by navController.currentBackStackEntryAsState()
     val currentTab = currentDestination?.destination.currentTab()
 
+    val tourDue by onboarding.tourDue.collectAsState()
+    var tourStop by remember { mutableStateOf(TourStop.entries.first()) }
+
+    // A replay asked for from Settings arrives as the tour falling due again; it has to start
+    // over rather than resume at the stop the last run ended on.
+    LaunchedEffect(tourDue) {
+        if (tourDue == true) tourStop = TourStop.entries.first()
+    }
+
+    // The tour drives the navigation rather than the athlete: each stop moves the app to the
+    // screen it is about, and the card is drawn over whatever arrives.
+    LaunchedEffect(tourDue, tourStop) {
+        if (tourDue == true) {
+            tourStop.tab?.let(navController::switchTab) ?: navController.navigate(tourStop.destination)
+        }
+    }
+
     val interruptedSession by workout.resumable.collectAsState()
     val liveWorkout by workout.active.collectAsState()
     val restTimer by workout.restTimer.collectAsState()
+
+    if (tourDue == true) {
+        ScreenTourOverlay(
+            stop = tourStop,
+            onNext = {
+                val next = tourStop.next()
+                if (next == null) {
+                    // The last stop is Settings; the tour hands the app back on Home, where it
+                    // would have opened had there been no tour.
+                    onboarding.markTourSeen()
+                    navController.switchTab(Tab.HOME)
+                } else {
+                    tourStop = next
+                }
+            },
+            onSkip = {
+                onboarding.markTourSeen()
+                navController.switchTab(Tab.HOME)
+            }
+        )
+    }
 
     // A session left open is settled before anything else: the athlete must not discover it
     // in the middle of the next one.

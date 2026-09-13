@@ -25,7 +25,19 @@ data class AppSettingsEntity(
      * Unit a height is written and read in, as a [app.bodyforger.core.model.HeightUnit] name;
      * null means centimetres. The height itself is stored in centimetres whatever this says.
      */
-    val defaultHeightUnit: String? = null
+    val defaultHeightUnit: String? = null,
+    /**
+     * Highest screen-tour version the athlete has already been through, 0 meaning never.
+     *
+     * Kept apart from [setupVersionDone] so a tour that gains a stop can be re-offered without
+     * asking again for a name and a pair of units that were already given.
+     */
+    val tourVersionSeen: Int = 0,
+    /**
+     * Highest setup-flow version the athlete has been through, 0 meaning never. Skipping the
+     * flow counts as going through it: it is an answer, and the flow never insists.
+     */
+    val setupVersionDone: Int = 0
 ) {
     companion object {
         const val SINGLETON_ID = 1

@@ -44,4 +44,21 @@ class AppSettingsTest {
             assertEquals(unit, WeightUnit.valueOf(AppSettingsEntity(defaultWeightUnit = unit.name).defaultWeightUnit!!))
         }
     }
+
+    @Test
+    fun `the two onboarding counters answer separately`() {
+        val stored = AppSettingsEntity(tourVersionSeen = 1, setupVersionDone = 1)
+
+        // A tour that gains a stop is offered again; the setup flow is not.
+        val afterTourRaise = stored.copy(tourVersionSeen = 0)
+
+        assertEquals(0, afterTourRaise.tourVersionSeen)
+        assertEquals(1, afterTourRaise.setupVersionDone)
+    }
+
+    @Test
+    fun `never having seen anything reads as zero, not as done`() {
+        assertEquals(0, AppSettingsEntity().tourVersionSeen)
+        assertEquals(0, AppSettingsEntity().setupVersionDone)
+    }
 }

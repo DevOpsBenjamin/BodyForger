@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
         AppSettingsEntity::class,
         BodyGoalEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = true
 )
 abstract class BodyForgerDatabase : RoomDatabase() {

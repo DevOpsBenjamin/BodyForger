@@ -545,4 +545,22 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="setup_step_scale_why">Grave votre profil dans la balance et relève la tare. Demande une pesée de calibration.</string>
     <string name="setup_step_goal">Poser un premier objectif</string>
     <string name="setup_step_goal_why">Facultatif. Il donne une direction aux premières semaines, et tient le graphe tant que l\'historique est trop court pour une tendance.</string>
+    <!-- Tour des écrans -->
+    <string name="tour_home_title">Accueil</string>
+    <string name="tour_home_body">Votre corps d\'un coup d\'œil : la dernière pesée, où va la composition, et le bouton pour vous peser.</string>
+    <string name="tour_planner_title">Planner</string>
+    <string name="tour_planner_body">Votre semaine, jour par jour. Vous posez une routine sur un jour et c\'est planifié — le détail des séries attendra la salle.</string>
+    <string name="tour_analytics_title">Stats</string>
+    <string name="tour_analytics_body">Ce que les séances totalisent : tonnage, volume, et comment le corps suit. Ça se remplit à mesure que vous enregistrez.</string>
+    <string name="tour_profile_title">Profil</string>
+    <string name="tour_profile_body">Qui vous êtes pour l\'application, et ce que vous avez soulevé jusqu\'ici. Records et historique sont là.</string>
+    <string name="tour_settings_title">Réglages</string>
+    <string name="tour_settings_body">Tout se configure ici : unités, profil de mesure, appairage de la balance. On y revient par l\'engrenage, sur l\'accueil et sur votre profil — et vous pourrez rejouer ce tour d\'ici.</string>
+    <string name="tour_next">Suivant</string>
+    <string name="tour_finish">C\'est parti</string>
+    <string name="tour_skip">Passer le tour</string>
+    <string name="settings_onboarding">Mise en route</string>
+    <string name="settings_onboarding_summary">Rejouer la présentation</string>
+    <string name="settings_onboarding_tour_why">Le tour est proposé une fois, sur une installation neuve, et n\'insiste plus jamais — que vous l\'ayez suivi ou passé.</string>
+    <string name="settings_onboarding_replay_tour">Revoir le tour des écrans</string>
 </resources>

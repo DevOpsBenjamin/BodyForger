@@ -34,6 +34,7 @@ import app.bodyforger.core.bia.ModelSelector
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
+import app.bodyforger.mobile.onboarding.OnboardingViewModel
 import app.bodyforger.mobile.profile.GoalsViewModel
 import app.bodyforger.mobile.scale.ScaleViewModel
 import app.bodyforger.mobile.ui.components.AddGoalDialog
@@ -43,6 +44,7 @@ import app.bodyforger.mobile.ui.components.BiaEngineSection
 import app.bodyforger.mobile.ui.components.BiaProfileInfoDialog
 import app.bodyforger.mobile.ui.components.DefaultUnitsSection
 import app.bodyforger.mobile.ui.components.GoalsSection
+import app.bodyforger.mobile.ui.components.OnboardingSettingsSection
 import app.bodyforger.mobile.ui.components.ScaleSettingsSection
 import app.bodyforger.mobile.ui.components.SectionStatus
 import app.bodyforger.mobile.ui.components.SettingsSection
@@ -69,7 +71,8 @@ fun SettingsScreen(
     scaleViewModel: ScaleViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     appSettingsViewModel: AppSettingsViewModel = koinViewModel(),
-    goalsViewModel: GoalsViewModel = koinViewModel()
+    goalsViewModel: GoalsViewModel = koinViewModel(),
+    onboardingViewModel: OnboardingViewModel = koinViewModel()
 ) {
     val state by scaleViewModel.state.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
@@ -259,6 +262,18 @@ fun SettingsScreen(
                 )
             }
         }
+
+        SettingsSection(
+            title = stringResource(R.string.settings_onboarding),
+            status = SectionStatus.NEUTRAL,
+            summary = stringResource(R.string.settings_onboarding_summary),
+            isExpanded = openSection == Section.ONBOARDING,
+            onToggle = { openSection = openSection.toggled(Section.ONBOARDING) }
+        ) {
+            // Replaying leaves the screen: the tour starts on Home and drives its own way
+            // through the tabs.
+            OnboardingSettingsSection(onReplayTour = onboardingViewModel::replayTour)
+        }
     }
 
     if (addingGoal) {
@@ -309,7 +324,8 @@ private enum class Section {
     SCALE,
     GOALS,
     UNIT,
-    ENGINE;
+    ENGINE,
+    ONBOARDING;
 
     fun toggled(tapped: Section): Section = if (this == tapped) NONE else tapped
 }
