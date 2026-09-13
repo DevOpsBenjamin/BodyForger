@@ -34,3 +34,5 @@ serviceAccountKey*.json
 # Fichier de confort local : lien vers AGENTS.md, qui est la source suivie
 CLAUDE.md
 forgefit-private
+# Session handover: working state between Claude Code sessions, never shipped.
+HANDOVER.md
