@@ -5,8 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -54,13 +56,18 @@ fun HomeActionCards(
     scaleName: String? = null,
     modifier: Modifier = Modifier
 ) {
+    // Both cards stand to the height of the taller: side by side, one shorter than the other
+    // reads as an unfinished layout rather than as less content.
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Card(
             modifier = Modifier
                 .weight(1f)
+                .fillMaxHeight()
                 .border(1.dp, NeonLime.copy(alpha = 0.35f), RoundedCornerShape(18.dp)),
             colors = CardDefaults.cardColors(containerColor = SurfaceDark),
             shape = RoundedCornerShape(18.dp)
@@ -140,6 +147,7 @@ fun HomeActionCards(
         Card(
             modifier = Modifier
                 .weight(1f)
+                .fillMaxHeight()
                 .border(1.dp, ElectricCyan.copy(alpha = 0.35f), RoundedCornerShape(18.dp)),
             colors = CardDefaults.cardColors(containerColor = SurfaceDark),
             shape = RoundedCornerShape(18.dp)

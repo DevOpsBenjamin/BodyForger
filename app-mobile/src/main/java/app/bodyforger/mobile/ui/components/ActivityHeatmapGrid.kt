@@ -17,17 +17,18 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import app.bodyforger.mobile.R
-import androidx.compose.ui.res.stringResource
-import app.bodyforger.mobile.stats.TrainingStats
-import app.bodyforger.core.model.WorkoutSession
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.WorkoutSession
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.stats.TrainingStats
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceDark
@@ -49,13 +50,18 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // The title yields its width first: the count on the right is the shorter of
+                // the two and the one nobody wants wrapped across the heading.
                 Text(
                     text = stringResource(R.string.heatmap_title),
                     color = TextMuted,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
+                    letterSpacing = 1.sp,
+                    lineHeight = 13.sp,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = stringResource(
                         R.string.profile_sessions_this_week,
@@ -63,7 +69,9 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
                     ),
                     color = NeonLime,
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 13.sp,
+                    textAlign = TextAlign.End
                 )
             }
 

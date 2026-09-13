@@ -516,7 +516,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="goals_no_trend_yet">Not enough weeks yet to read a trend</string>
     <string name="goals_dialog_title">New milestone</string>
     <string name="goals_dialog_mass">Target mass (kg)</string>
-    <string name="goals_dialog_fat">Target body fat (%%, optional)</string>
+    <string name="goals_dialog_fat" formatted="false">Target body fat (%, optional)</string>
     <string name="goals_dialog_horizon">Horizon (optional)</string>
     <string name="goals_dialog_horizon_none">No horizon</string>
     <string name="goals_dialog_horizon_months">In %1$d months</string>

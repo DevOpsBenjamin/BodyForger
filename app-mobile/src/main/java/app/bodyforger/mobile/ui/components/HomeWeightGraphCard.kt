@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.BodyLog
@@ -103,51 +106,73 @@ fun HomeWeightGraphCard(
                     }
                 }
 
+                // The chip carries a short figure or nothing at all. A sentence in its place
+                // wrapped onto three lines and climbed over the title beside it.
                 Column(horizontalAlignment = Alignment.End) {
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(ElectricCyan.copy(alpha = 0.15f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.TrendingDown,
-                            contentDescription = null,
-                            tint = ElectricCyan,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
+                    if (monthDelta != null) {
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(ElectricCyan.copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (monthDelta <= 0) Icons.AutoMirrored.Filled.TrendingDown
+                                else Icons.AutoMirrored.Filled.TrendingUp,
+                                contentDescription = null,
+                                tint = ElectricCyan,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(R.string.home_month_delta, monthDelta),
+                                color = ElectricCyan,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    if (median != null) {
                         Text(
-                            text = monthDelta?.let {
-                                stringResource(R.string.home_month_delta, it)
-                            } ?: stringResource(R.string.home_month_delta_unavailable),
-                            color = ElectricCyan,
+                            text = stringResource(R.string.home_median, median),
+                            color = TextMuted,
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    } else if (goal != null) {
+                        Text(
+                            text = stringResource(R.string.home_goal_line, goal.goal.targetMassKg),
+                            color = AmberGold,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
-                    Text(
-                        text = median?.let { stringResource(R.string.home_median, it) }
-                            ?: goal?.let { standing ->
-                                stringResource(R.string.home_goal_line, standing.goal.targetMassKg)
-                            }
-                            ?: stringResource(R.string.home_median_unavailable),
-                        color = TextMuted,
-                        fontSize = 11.sp,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            SimpleBodyGraphCanvas(
-                weighIns = weighIns,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(110.dp)
-            )
+                    .height(110.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                SimpleBodyGraphCanvas(weighIns = weighIns, modifier = Modifier.fillMaxSize())
+
+                // Said where the curve would be, rather than squeezed into the header.
+                if (median == null) {
+                    Text(
+                        text = stringResource(R.string.home_median_unavailable),
+                        color = TextMuted,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 

@@ -516,7 +516,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="goals_no_trend_yet">Pas encore assez de semaines pour lire une tendance</string>
     <string name="goals_dialog_title">Nouveau palier</string>
     <string name="goals_dialog_mass">Masse visée (kg)</string>
-    <string name="goals_dialog_fat">Masse grasse visée (%%, facultatif)</string>
+    <string name="goals_dialog_fat" formatted="false">Masse grasse visée (%, facultatif)</string>
     <string name="goals_dialog_horizon">Horizon (facultatif)</string>
     <string name="goals_dialog_horizon_none">Sans horizon</string>
     <string name="goals_dialog_horizon_months">Dans %1$d mois</string>
