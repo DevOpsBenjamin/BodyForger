@@ -1,5 +1,6 @@
 package app.bodyforger.mobile.stats
 
+import app.bodyforger.core.model.MuscleGroup
 import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.core.model.WorkoutSet
@@ -151,6 +152,50 @@ object TrainingStats {
 
     private const val SECONDS_PER_MINUTE = 60.0
 
+    /**
+     * What the week's plan asks for: the routines the planner assigned to a weekday.
+     *
+     * A routine assigned to three days is three sessions, and its sets count three times. A
+     * week with nothing assigned asks for nothing, which is a legitimate answer rather than a
+     * figure to invent.
+     */
+    fun plannedThisWeek(routines: List<Routine>): PlannedWeek {
+        val assigned = routines.flatMap { routine ->
+            routine.assignedDays.map { routine }
+        }
+
+        return PlannedWeek(
+            sessions = assigned.size,
+            sets = assigned.sumOf { routine -> routine.exercises.sumOf { it.sets.size } },
+            setsByMuscle = assigned
+                .flatMap { routine -> routine.exercises }
+                .groupBy { it.primaryMuscle }
+                .mapValues { (_, exercises) -> exercises.sumOf { it.sets.size } }
+        )
+    }
+
+    /** Validated sets in the last seven days, counted per muscle the exercise works first. */
+    fun completedSetsByMuscle(sessions: List<WorkoutSession>, todayEpochMs: Long): Map<MuscleGroup, Int> {
+        val since = todayEpochMs - DAYS_IN_A_WEEK * MILLIS_PER_DAY
+        return sessions
+            .filter { it.startedAtEpochMs in since..todayEpochMs }
+            .flatMap { it.sets }
+            .filter { it.isCompleted }
+            .groupingBy { it.primaryMuscle }
+            .eachCount()
+    }
+
+    /** Validated sets in the last seven days, all muscles together. */
+    fun completedSetsThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Int {
+        val since = todayEpochMs - DAYS_IN_A_WEEK * MILLIS_PER_DAY
+        return sessions
+            .filter { it.startedAtEpochMs in since..todayEpochMs }
+            .flatMap { it.sets }
+            .count { it.isCompleted }
+    }
+
+    private const val MILLIS_PER_DAY = 86_400_000L
+
     fun estimatedOneRepMax(set: WorkoutSet): Double =
         set.weightKg * (1.0 + set.reps / EPLEY_DIVISOR)
 }
@@ -162,3 +207,12 @@ data class PersonalRecord(
     val bestWeightKg: Double,
     val bestReps: Int
 )
+
+/** What a week's assigned routines add up to. Zero everywhere when nothing is planned. */
+data class PlannedWeek(
+    val sessions: Int,
+    val sets: Int,
+    val setsByMuscle: Map<MuscleGroup, Int>
+) {
+    val isEmpty: Boolean get() = sessions == 0
+}

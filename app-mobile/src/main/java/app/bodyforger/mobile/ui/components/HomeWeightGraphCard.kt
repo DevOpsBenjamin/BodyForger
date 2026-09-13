@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.BodyLog
+import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.stats.BodyMetrics
 import app.bodyforger.mobile.stats.GoalStanding
@@ -55,6 +56,8 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 @Composable
 fun HomeWeightGraphCard(
     weighIns: List<BodyLog>,
+    /** What the athlete reads a body mass in. Storage and every computation stay in kilograms. */
+    unit: WeightUnit = WeightUnit.KG,
     /** The milestone being worked towards, drawn as a line and named below the curve. */
     goal: GoalStanding? = null,
     modifier: Modifier = Modifier
@@ -91,13 +94,13 @@ fun HomeWeightGraphCard(
                         modifier = Modifier.padding(top = 2.dp)
                     ) {
                         Text(
-                            text = latest?.let { "%.1f".format(it.massKg) } ?: NO_WEIGHT,
+                            text = latest?.let { unit.format(it.massKg) } ?: NO_WEIGHT,
                             color = TextPrimary,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Black
                         )
                         Text(
-                            text = " kg",
+                            text = " ${unit.symbol}",
                             color = TextSecondary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -126,7 +129,12 @@ fun HomeWeightGraphCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = stringResource(R.string.home_month_delta, monthDelta),
+                                // Signed, so a gain reads as a gain: the conversion is
+                                // applied to the difference, not to two masses subtracted after.
+                                text = stringResource(
+                                    R.string.home_month_delta,
+                                    "%+.1f %s".format(unit.fromKilograms(monthDelta), unit.symbol)
+                                ),
                                 color = ElectricCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
@@ -136,14 +144,17 @@ fun HomeWeightGraphCard(
 
                     if (median != null) {
                         Text(
-                            text = stringResource(R.string.home_median, median),
+                            text = stringResource(R.string.home_median, unit.formatWithSymbol(median)),
                             color = TextMuted,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     } else if (goal != null) {
                         Text(
-                            text = stringResource(R.string.home_goal_line, goal.goal.targetMassKg),
+                            text = stringResource(
+                                R.string.home_goal_line,
+                                unit.formatWithSymbol(goal.goal.targetMassKg)
+                            ),
                             color = AmberGold,
                             fontSize = 11.sp,
                             modifier = Modifier.padding(top = 4.dp)

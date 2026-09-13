@@ -287,7 +287,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="bio_composition_title">BODY COMPOSITION</string>
     <string name="bio_total_mass">TOTAL MASS</string>
     <string name="bio_body_fat">BODY FAT (BF)</string>
-    <string name="bio_lean_fat_summary">Lean Mass: %1$s kg (%2$d%%) | Fat Mass: %3$s kg</string>
+    <string name="bio_lean_fat_summary">Lean Mass: %1$s (%2$d%%) | Fat Mass: %3$s</string>
     <string name="bio_segmental_title">5-ZONE SEGMENTAL ANALYSIS</string>
     <string name="bio_segment_trunk">Trunk (Torso &amp; Abdomen)</string>
     <string name="bio_segment_right_arm">Right Arm</string>
@@ -484,9 +484,9 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="scale_search_then_pick">Start the search, then pick your scale from the list. </string>
     <string name="routine_exercise_count">%1$d exercises</string>
     <string name="routine_summary">%1$d exercises • ~%2$d min</string>
-    <string name="scale_mass_and_fat">%1$.2f kg · %2$.1f %% body fat</string>
+    <string name="scale_mass_and_fat">%1$s · %2$.1f %% body fat</string>
     <string name="scale_step_of">Step %1$d of %2$d</string>
-    <string name="scale_mass_only_line">%1$.2f kg · body fat not measured</string>
+    <string name="scale_mass_only_line">%1$s · body fat not measured</string>
     <string name="bio_body_fat_absent">—</string>
     <string name="settings_default_unit">DEFAULT WEIGHT UNIT</string>
     <string name="home_rest_day">REST</string>
@@ -505,8 +505,8 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="goals_empty">No milestone yet. A goal is a direction, not a deadline — nothing fails when its horizon passes.</string>
     <string name="goals_add">+ Add a milestone</string>
     <string name="goals_remove">Remove this milestone</string>
-    <string name="goals_target_mass">%1$.1f kg</string>
-    <string name="goals_target_mass_and_fat">%1$.1f kg · %2$.1f %%</string>
+    <string name="goals_target_mass">%1$s</string>
+    <string name="goals_target_mass_and_fat">%1$s · %2$.1f %%</string>
     <string name="goals_validated_on">Reached on %1$s</string>
     <string name="goals_validated_but_drifted">Reached on %1$s — median back above since</string>
     <string name="goals_awaiting_first_weigh_in">Weigh in once to give this goal a direction</string>
@@ -515,17 +515,17 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="goals_projection_against_horizon">At this rate: %1$s — horizon %2$s</string>
     <string name="goals_no_trend_yet">Not enough weeks yet to read a trend</string>
     <string name="goals_dialog_title">New milestone</string>
-    <string name="goals_dialog_mass">Target mass (kg)</string>
+    <string name="goals_dialog_mass">Target mass (%1$s)</string>
     <string name="goals_dialog_fat" formatted="false">Target body fat (%, optional)</string>
     <string name="goals_dialog_horizon">Horizon (optional)</string>
     <string name="goals_dialog_horizon_none">No horizon</string>
     <string name="goals_dialog_horizon_months">In %1$d months</string>
     <string name="goals_dialog_hint">A milestone is reached when the weekly median crosses it two weeks running. A week counts from %1$d weigh-ins; %2$d reads it far better.</string>
-    <string name="home_month_delta">%1$+.1f kg this month</string>
+    <string name="home_month_delta">%1$s this month</string>
     <string name="home_month_delta_unavailable">No monthly trend yet</string>
-    <string name="home_median">7-day median: %1$.1f kg</string>
+    <string name="home_median">7-day median: %1$s</string>
     <string name="home_median_unavailable">Weigh in to start a trend</string>
-    <string name="home_goal_line">Goal: %1$.1f kg</string>
+    <string name="home_goal_line">Goal: %1$s</string>
     <string name="settings_default_units">DEFAULT UNITS</string>
     <string name="settings_units_weight">WEIGHT</string>
     <string name="settings_units_height">HEIGHT</string>
@@ -535,4 +535,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="height_unit_inches">Inches</string>
     <string name="goals_dialog_horizon_on_a_date">On a date</string>
     <string name="goals_dialog_horizon_must_be_future">A horizon lies ahead — pick a date still to come</string>
+    <string name="analytics_volume_no_plan">No routine assigned this week — the planner decides what this measures against.</string>
+    <string name="bio_segmental_unavailable">This reading did not measure the limbs — eight electrodes are needed, which means gripping the handle.</string>
 </resources>

@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.stats.GoalProgress
 import app.bodyforger.mobile.ui.theme.AmberGold
@@ -48,6 +49,8 @@ import java.time.LocalDate
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddGoalDialog(
+    /** What the athlete types in. What gets stored is kilograms, converted here. */
+    unit: WeightUnit,
     onDismiss: () -> Unit,
     onConfirm: (massKg: Double, bodyFat: Double?, horizon: LocalDate?) -> Unit
 ) {
@@ -58,7 +61,7 @@ fun AddGoalDialog(
     var month by remember { mutableStateOf("") }
     var year by remember { mutableStateOf("") }
 
-    val massKg = massText.replace(',', '.').toDoubleOrNull()
+    val massKg = massText.replace(',', '.').toDoubleOrNull()?.let { unit.toKilograms(it) }
     val bodyFat = fatText.replace(',', '.').toDoubleOrNull()
     val horizonDate = when (val choice = horizon) {
         HorizonChoice.None -> null
@@ -81,7 +84,7 @@ fun AddGoalDialog(
                 OutlinedTextField(
                     value = massText,
                     onValueChange = { massText = it },
-                    label = { Text(stringResource(R.string.goals_dialog_mass)) },
+                    label = { Text(stringResource(R.string.goals_dialog_mass, unit.symbol)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()

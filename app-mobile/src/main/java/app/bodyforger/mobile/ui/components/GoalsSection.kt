@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.BodyGoal
+import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.stats.GoalProgress
 import app.bodyforger.mobile.stats.GoalStanding
@@ -40,6 +41,7 @@ import java.time.format.FormatStyle
 @Composable
 fun GoalsSection(
     standings: List<GoalStanding>,
+    unit: WeightUnit,
     onAdd: () -> Unit,
     onRemove: (BodyGoal) -> Unit,
     onToggleValidated: (BodyGoal, Boolean) -> Unit
@@ -57,6 +59,7 @@ fun GoalsSection(
         standings.forEach { standing ->
             GoalRow(
                 standing = standing,
+                unit = unit,
                 onRemove = { onRemove(standing.goal) },
                 onToggleValidated = { onToggleValidated(standing.goal, !standing.goal.isValidated) }
             )
@@ -76,6 +79,7 @@ fun GoalsSection(
 @Composable
 private fun GoalRow(
     standing: GoalStanding,
+    unit: WeightUnit,
     onRemove: () -> Unit,
     onToggleValidated: () -> Unit
 ) {
@@ -93,8 +97,14 @@ private fun GoalRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = goal.targetBodyFatPercentage
-                    ?.let { stringResource(R.string.goals_target_mass_and_fat, goal.targetMassKg, it) }
-                    ?: stringResource(R.string.goals_target_mass, goal.targetMassKg),
+                    ?.let {
+                        stringResource(
+                            R.string.goals_target_mass_and_fat,
+                            unit.formatWithSymbol(goal.targetMassKg),
+                            it
+                        )
+                    }
+                    ?: stringResource(R.string.goals_target_mass, unit.formatWithSymbol(goal.targetMassKg)),
                 color = if (goal.isValidated) NeonLime else TextPrimary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold

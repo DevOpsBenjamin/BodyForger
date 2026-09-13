@@ -37,10 +37,14 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 
 @Composable
 fun HomeVolumeProgressCard(
-    currentSessions: Int = 3,
-    targetSessions: Int = 4,
-    currentSets: Int = 36,
-    targetSets: Int = 45,
+    /** Sessions completed in the last seven days. */
+    currentSessions: Int,
+    /** Sessions the planner asked for: one per weekday a routine is assigned to. */
+    targetSessions: Int,
+    /** Sets validated in the last seven days. */
+    currentSets: Int,
+    /** Sets those assigned routines plan. */
+    targetSets: Int,
     modifier: Modifier = Modifier
 ) {
     Card(

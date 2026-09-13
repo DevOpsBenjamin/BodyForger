@@ -158,6 +158,7 @@ fun SettingsScreen(
             onToggle = { openSection = openSection.toggled(Section.SCALE) }
         ) {
             ScaleSettingsSection(
+                unit = defaultUnit,
                 state = state,
                 measurementProfile = measurementProfile,
                 onStartScan = { requestPermissions.launch(permissions) },
@@ -172,14 +173,24 @@ fun SettingsScreen(
             status = if (goalStandings.any { !it.goal.isValidated }) SectionStatus.DONE else SectionStatus.INCOMPLETE,
             summary = goalStandings.firstOrNull { !it.goal.isValidated }?.let { standing ->
                 standing.goal.targetBodyFatPercentage
-                    ?.let { fat -> stringResource(R.string.goals_target_mass_and_fat, standing.goal.targetMassKg, fat) }
-                    ?: stringResource(R.string.goals_target_mass, standing.goal.targetMassKg)
+                    ?.let { fat ->
+                        stringResource(
+                            R.string.goals_target_mass_and_fat,
+                            defaultUnit.formatWithSymbol(standing.goal.targetMassKg),
+                            fat
+                        )
+                    }
+                    ?: stringResource(
+                        R.string.goals_target_mass,
+                        defaultUnit.formatWithSymbol(standing.goal.targetMassKg)
+                    )
             } ?: stringResource(R.string.settings_goals_none),
             isExpanded = openSection == Section.GOALS,
             onToggle = { openSection = openSection.toggled(Section.GOALS) }
         ) {
             GoalsSection(
                 standings = goalStandings,
+                unit = defaultUnit,
                 onAdd = { addingGoal = true },
                 onRemove = goalsViewModel::remove,
                 onToggleValidated = goalsViewModel::setValidated
@@ -221,6 +232,7 @@ fun SettingsScreen(
 
     if (addingGoal) {
         AddGoalDialog(
+            unit = defaultUnit,
             onDismiss = { addingGoal = false },
             onConfirm = { massKg, bodyFat, horizon ->
                 goalsViewModel.add(massKg, bodyFat, horizon)

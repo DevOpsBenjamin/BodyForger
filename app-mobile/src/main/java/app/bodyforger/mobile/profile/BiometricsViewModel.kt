@@ -11,12 +11,13 @@ import app.bodyforger.core.database.entity.toProfile
 import app.bodyforger.core.model.AthleteProfile
 import app.bodyforger.core.model.BodyCompositionReport
 import app.bodyforger.core.model.BodyLog
+import app.bodyforger.core.model.WeightUnit
+import java.time.LocalDate
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.time.LocalDate
 
 /**
  * What the biometrics screens show: the athlete's last weigh-in, read back as body composition.
@@ -27,13 +28,21 @@ import java.time.LocalDate
 class BiometricsViewModel(
     bodyLogDao: BodyLogDao,
     identityDao: AthleteIdentityDao,
-    appSettingsDao: AppSettingsDao
+    private val appSettingsDao: AppSettingsDao
 ) : ViewModel() {
 
     /** Every weigh-in, most recent first — what the home curve is drawn from. */
     val history: StateFlow<List<BodyLog>> = bodyLogDao.observeAll()
         .map { rows -> rows.map { it.toDomain() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), emptyList())
+
+    /** What a body mass is read in. Everything stored and computed stays in kilograms. */
+    val weightUnit: StateFlow<WeightUnit> = appSettingsDao.observe()
+        .map { entity ->
+            entity?.defaultWeightUnit?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() }
+                ?: WeightUnit.KG
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), WeightUnit.KG)
 
     val state: StateFlow<BiometricsState> = combine(
         identityDao.observe().map { it?.toProfile() ?: AthleteProfile() },

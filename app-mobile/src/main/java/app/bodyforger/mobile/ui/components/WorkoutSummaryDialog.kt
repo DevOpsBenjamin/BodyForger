@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.core.model.WorkoutActivityCategory
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
@@ -58,6 +59,8 @@ data class ActivitySegmentSummary(
 
 @Composable
 fun WorkoutSummaryDialog(
+    /** Totals follow the athlete's preference: the sets they add up may each use another. */
+    unit: WeightUnit = WeightUnit.KG,
     session: WorkoutSession,
     onConfirmSave: () -> Unit,
     onCancel: () -> Unit
@@ -177,7 +180,7 @@ fun WorkoutSummaryDialog(
                             val tonnageDisplay = if (totalVolumeKg >= 1000) {
                                 "${(totalVolumeKg / 100.0).toInt() / 10.0} T"
                             } else {
-                                "${totalVolumeKg.toInt()} kg"
+                                unit.formatWithSymbol(totalVolumeKg)
                             }
                             Text(text = tonnageDisplay, color = ElectricCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }
