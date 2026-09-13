@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.AthleteProfile
 import app.bodyforger.core.model.BiologicalSex
+import app.bodyforger.core.model.HeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
@@ -51,16 +52,19 @@ import java.time.LocalDate
 @Composable
 fun AthleteProfileForm(
     profile: AthleteProfile,
+    /** How the athlete writes a height. Storage is centimetres whatever this says. */
+    heightUnit: HeightUnit = HeightUnit.CM,
     onSave: (sex: BiologicalSex?, birthDateIso: String?, heightCm: Double?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var sex by remember(profile.sex) { mutableStateOf(profile.sex) }
     var birthDateIso by remember(profile.birthDateIso) { mutableStateOf(profile.birthDateIso) }
-    var heightText by remember(profile.heightCm) {
-        mutableStateOf(profile.heightCm?.let { formatHeight(it) }.orEmpty())
+    var heightText by remember(profile.heightCm, heightUnit) {
+        mutableStateOf(profile.heightCm?.let { heightUnit.format(it) }.orEmpty())
     }
 
-    val height = heightText.toDoubleOrNull()
+    // Typed in the chosen unit, kept in centimetres: the equations and the scale read no other.
+    val height = heightText.replace(',', '.').toDoubleOrNull()?.let { heightUnit.toCentimetres(it) }
     val typed = profile.copy(sex = sex, birthDateIso = birthDateIso, heightCm = height)
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -68,7 +72,7 @@ fun AthleteProfileForm(
         Spacer(Modifier.height(14.dp))
         BirthDateField(typed) { birthDateIso = it }
         Spacer(Modifier.height(14.dp))
-        HeightField(heightText) { heightText = it }
+        HeightField(heightText, heightUnit) { heightText = it }
 
         Spacer(Modifier.height(18.dp))
         Button(
@@ -177,19 +181,16 @@ private fun BirthDateField(profile: AthleteProfile, onChanged: (String?) -> Unit
 }
 
 @Composable
-private fun HeightField(value: String, onChanged: (String) -> Unit) {
+private fun HeightField(value: String, unit: HeightUnit, onChanged: (String) -> Unit) {
     FieldLabel(stringResource(R.string.profile_height))
     CompactNumberInput(
         value = value,
         onValueChange = onChanged,
-        placeholder = "cm",
+        placeholder = unit.symbol,
         isDecimal = true,
         modifier = Modifier.width(88.dp)
     )
 }
-
-private fun formatHeight(heightCm: Double): String =
-    if (heightCm % 1.0 == 0.0) heightCm.toInt().toString() else heightCm.toString()
 
 @Composable
 private fun FieldLabel(text: String) {

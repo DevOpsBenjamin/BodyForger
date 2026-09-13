@@ -489,7 +489,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="scale_mass_only_line">%1$.2f kg · body fat not measured</string>
     <string name="bio_body_fat_absent">—</string>
     <string name="settings_default_unit">DEFAULT WEIGHT UNIT</string>
-    <string name="settings_default_unit_hint">Applies to exercises you add from now on. An exercise keeps its own unit, so a machine labelled in pounds can stay in pounds. Nothing already logged is rewritten.</string>
     <string name="home_rest_day">REST</string>
     <string name="home_rest_day_detail">No routine planned today</string>
     <string name="home_session_exercises">%1$d exercises</string>
@@ -527,4 +526,11 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="home_median">7-day median: %1$.1f kg</string>
     <string name="home_median_unavailable">Weigh in to start a trend</string>
     <string name="home_goal_line">Goal: %1$.1f kg</string>
+    <string name="settings_default_units">DEFAULT UNITS</string>
+    <string name="settings_units_weight">WEIGHT</string>
+    <string name="settings_units_height">HEIGHT</string>
+    <string name="settings_units_summary">%1$s · %2$s</string>
+    <string name="settings_units_hint">Weight applies to exercises you add from now on; an exercise keeps its own unit. Height only changes how it is written — it is stored in centimetres either way, because that is what the composition equations and the scale expect.</string>
+    <string name="height_unit_cm">Centimetres</string>
+    <string name="height_unit_inches">Inches</string>
 </resources>

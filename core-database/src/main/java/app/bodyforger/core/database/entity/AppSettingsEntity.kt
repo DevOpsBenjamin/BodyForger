@@ -20,7 +20,12 @@ data class AppSettingsEntity(
      * null means kilograms. An exercise may still carry another one — a machine labelled in
      * pounds stays in pounds — so this is a starting point, not a constraint.
      */
-    val defaultWeightUnit: String? = null
+    val defaultWeightUnit: String? = null,
+    /**
+     * Unit a height is written and read in, as a [app.bodyforger.core.model.HeightUnit] name;
+     * null means centimetres. The height itself is stored in centimetres whatever this says.
+     */
+    val defaultHeightUnit: String? = null
 ) {
     companion object {
         const val SINGLETON_ID = 1

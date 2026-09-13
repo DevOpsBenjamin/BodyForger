@@ -489,7 +489,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="scale_mass_only_line">%1$.2f kg · masse grasse non mesurée</string>
     <string name="bio_body_fat_absent">—</string>
     <string name="settings_default_unit">UNITÉ DE POIDS PAR DÉFAUT</string>
-    <string name="settings_default_unit_hint">S\'applique aux exercices ajoutés à partir de maintenant. Un exercice garde sa propre unité : une machine graduée en livres peut rester en livres. Rien de déjà enregistré n\'est réécrit.</string>
     <string name="home_rest_day">REPOS</string>
     <string name="home_rest_day_detail">Aucune routine prévue aujourd\'hui</string>
     <string name="home_session_exercises">%1$d exercices</string>
@@ -527,4 +526,11 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="home_median">Médiane 7j : %1$.1f kg</string>
     <string name="home_median_unavailable">Pesez-vous pour amorcer une tendance</string>
     <string name="home_goal_line">Objectif : %1$.1f kg</string>
+    <string name="settings_default_units">UNITÉS PAR DÉFAUT</string>
+    <string name="settings_units_weight">POIDS</string>
+    <string name="settings_units_height">TAILLE</string>
+    <string name="settings_units_summary">%1$s · %2$s</string>
+    <string name="settings_units_hint">Le poids s\'applique aux exercices ajoutés à partir de maintenant ; chaque exercice garde le sien. La taille ne change que son écriture — elle reste stockée en centimètres, parce que c\'est ce qu\'attendent les équations de composition et la balance.</string>
+    <string name="height_unit_cm">Centimètres</string>
+    <string name="height_unit_inches">Pouces</string>
 </resources>

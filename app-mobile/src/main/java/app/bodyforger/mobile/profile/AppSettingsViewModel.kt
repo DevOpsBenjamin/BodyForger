@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import app.bodyforger.core.bia.ModelSelector
 import app.bodyforger.core.database.dao.AppSettingsDao
 import app.bodyforger.core.database.entity.AppSettingsEntity
+import app.bodyforger.core.model.HeightUnit
 import app.bodyforger.core.model.WeightUnit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,6 +38,15 @@ class AppSettingsViewModel(
         .map { entity -> entity?.defaultWeightUnit.toWeightUnit() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), DEFAULT_UNIT)
 
+    /** The unit a height is written and read in. Centimetres until the athlete says otherwise. */
+    val defaultHeightUnit: StateFlow<HeightUnit> = settings
+        .map { entity -> entity?.defaultHeightUnit.toHeightUnit() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), DEFAULT_HEIGHT_UNIT)
+
+    fun selectDefaultHeightUnit(unit: HeightUnit) {
+        viewModelScope.launch { appSettingsDao.setDefaultHeightUnit(unit.name) }
+    }
+
     fun selectEngine(engineId: String) {
         viewModelScope.launch { appSettingsDao.setBiaEngine(engineId) }
     }
@@ -49,7 +59,12 @@ class AppSettingsViewModel(
         const val SUBSCRIPTION_GRACE_MS = 5_000L
         val DEFAULT_UNIT = WeightUnit.KG
 
+        val DEFAULT_HEIGHT_UNIT = HeightUnit.CM
+
         /** An unreadable stored name falls back rather than crashing an app that starts up. */
+        fun String?.toHeightUnit(): HeightUnit =
+            this?.let { runCatching { HeightUnit.valueOf(it) }.getOrNull() } ?: DEFAULT_HEIGHT_UNIT
+
         fun String?.toWeightUnit(): WeightUnit =
             this?.let { runCatching { WeightUnit.valueOf(it) }.getOrNull() } ?: DEFAULT_UNIT
     }

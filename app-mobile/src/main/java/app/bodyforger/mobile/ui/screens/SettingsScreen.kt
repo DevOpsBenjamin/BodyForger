@@ -41,7 +41,7 @@ import app.bodyforger.mobile.ui.components.AthleteIdentityForm
 import app.bodyforger.mobile.ui.components.AthleteProfileForm
 import app.bodyforger.mobile.ui.components.BiaEngineSection
 import app.bodyforger.mobile.ui.components.BiaProfileInfoDialog
-import app.bodyforger.mobile.ui.components.DefaultWeightUnitSection
+import app.bodyforger.mobile.ui.components.DefaultUnitsSection
 import app.bodyforger.mobile.ui.components.GoalsSection
 import app.bodyforger.mobile.ui.components.ScaleSettingsSection
 import app.bodyforger.mobile.ui.components.SectionStatus
@@ -75,6 +75,7 @@ fun SettingsScreen(
     val engineIds = appSettingsViewModel.engineIds
     val selectedEngine by appSettingsViewModel.selectedEngineId.collectAsState()
     val defaultUnit by appSettingsViewModel.defaultWeightUnit.collectAsState()
+    val defaultHeightUnit by appSettingsViewModel.defaultHeightUnit.collectAsState()
     val goalStandings by goalsViewModel.standings.collectAsState()
     var addingGoal by remember { mutableStateOf(false) }
 
@@ -139,6 +140,7 @@ fun SettingsScreen(
         ) {
             AthleteProfileForm(
                 profile = profile,
+                heightUnit = defaultHeightUnit,
                 onSave = { sex, birthDateIso, heightCm ->
                     profileViewModel.save(profile.name, sex, birthDateIso, heightCm)
                     openSection = Section.NONE
@@ -185,15 +187,17 @@ fun SettingsScreen(
         }
 
         SettingsSection(
-            title = stringResource(R.string.settings_default_unit),
+            title = stringResource(R.string.settings_default_units),
             status = SectionStatus.NEUTRAL,
-            summary = defaultUnit.label(),
+            summary = stringResource(R.string.settings_units_summary, defaultUnit.label(), defaultHeightUnit.label()),
             isExpanded = openSection == Section.UNIT,
             onToggle = { openSection = openSection.toggled(Section.UNIT) }
         ) {
-            DefaultWeightUnitSection(
-                selected = defaultUnit,
-                onSelect = appSettingsViewModel::selectDefaultWeightUnit
+            DefaultUnitsSection(
+                weightUnit = defaultUnit,
+                heightUnit = defaultHeightUnit,
+                onSelectWeight = appSettingsViewModel::selectDefaultWeightUnit,
+                onSelectHeight = appSettingsViewModel::selectDefaultHeightUnit
             )
         }
 
