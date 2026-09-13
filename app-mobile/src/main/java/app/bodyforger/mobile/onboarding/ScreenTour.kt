@@ -40,8 +40,13 @@ enum class TourStop(
     /** Settings is reached by the gear, not by the bar, so this stop carries no tab. */
     SETTINGS(Destination.Settings(), null, R.string.tour_settings_title, R.string.tour_settings_body);
 
+    val isFirst: Boolean get() = ordinal == 0
+
     val isLast: Boolean get() = ordinal == entries.lastIndex
 
     /** The stop after this one, or null when the tour is over. */
     fun next(): TourStop? = entries.getOrNull(ordinal + 1)
+
+    /** The stop before this one, or null at the start — for reading one again. */
+    fun previous(): TourStop? = entries.getOrNull(ordinal - 1)
 }

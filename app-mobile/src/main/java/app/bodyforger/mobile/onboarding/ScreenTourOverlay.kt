@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,6 +60,7 @@ import app.bodyforger.mobile.ui.theme.TextTertiary
 fun ScreenTourOverlay(
     stop: TourStop,
     onNext: () -> Unit,
+    onPrevious: () -> Unit,
     onSkip: () -> Unit
 ) {
     Dialog(
@@ -99,6 +104,15 @@ fun ScreenTourOverlay(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        // A stop read too fast is worth going back to; nothing here is
+                        // written down, so stepping back costs nothing.
+                        IconButton(onClick = onPrevious, enabled = !stop.isFirst) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.tour_previous),
+                                tint = if (stop.isFirst) SurfaceBorder else TextMuted
+                            )
+                        }
                         StopIndicator(stop)
                         Button(
                             onClick = onNext,

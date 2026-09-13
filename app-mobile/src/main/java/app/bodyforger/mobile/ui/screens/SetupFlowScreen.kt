@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,8 +22,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -91,9 +97,14 @@ fun SetupFlowScreen(
     val defaultUnit by appSettingsViewModel.defaultWeightUnit.collectAsState()
     val goalStandings by goalsViewModel.standings.collectAsState()
 
-    // Back would drop the athlete on a home screen the flow has not finished setting up, with
-    // no way of asking for the rest. Leaving is done by the skip buttons, which record it.
-    BackHandler {}
+    fun back() {
+        step.previous()?.let { step = it }
+    }
+
+    // Back walks the flow rather than leaving it: dropping the athlete on a home screen the
+    // flow has not finished setting up would give them no way of asking for the rest. Leaving
+    // is done by the skip button, which records it.
+    BackHandler { back() }
 
     val isAnswered = when (step) {
         // Kilograms and centimetres are already an answer; this step only offers to change it.
@@ -117,14 +128,12 @@ fun SetupFlowScreen(
             .navigationBarsPadding()
             .padding(horizontal = 20.dp)
     ) {
-        StepIndicator(step)
-
         Text(
             text = stringResource(step.titleRes),
             color = TextPrimary,
             fontSize = 22.sp,
             fontWeight = FontWeight.Black,
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(top = 28.dp)
         )
         Text(
             text = stringResource(step.whyRes),
@@ -148,25 +157,51 @@ fun SetupFlowScreen(
             )
         }
 
-        Button(
-            onClick = ::advance,
-            colors = ButtonDefaults.buttonColors(containerColor = NeonLime, contentColor = Color.Black),
-            shape = RoundedCornerShape(14.dp),
+        // Back, where the athlete stands, forward: one row, at the thumb, saying at a glance
+        // how much of this is left.
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .padding(top = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = stringResource(
-                    when {
-                        isAnswered && step.isLast -> R.string.setup_finish
-                        isAnswered -> R.string.setup_continue
-                        else -> step.skipRes ?: R.string.setup_continue
-                    }
-                ),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
-            )
+            IconButton(onClick = ::back, enabled = !step.isFirst) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.setup_previous),
+                    tint = if (step.isFirst) SurfaceBorder else TextMuted
+                )
+            }
+
+            StepIndicator(step)
+
+            Button(
+                onClick = ::advance,
+                colors = ButtonDefaults.buttonColors(containerColor = NeonLime, contentColor = Color.Black),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 18.dp),
+                modifier = Modifier.height(46.dp)
+            ) {
+                Text(
+                    text = stringResource(
+                        when {
+                            step.isLast && isAnswered -> R.string.setup_finish
+                            isAnswered -> R.string.setup_continue
+                            else -> R.string.setup_skip_step
+                        }
+                    ),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(start = 6.dp)
+                        .size(16.dp)
+                )
+            }
         }
 
         // Present from the first screen, as asked: someone who wants none of this should not
@@ -287,13 +322,12 @@ private fun ScalePairingStep(
     )
 }
 
-/** Where the athlete is in the flow: one dot per step, the current one lit. */
+/** Where the athlete is in the flow: one dot per step, the ones behind them lit. */
 @Composable
 private fun StepIndicator(step: SetupStep) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(top = 20.dp)
+        verticalAlignment = Alignment.CenterVertically
     ) {
         SetupStep.entries.forEach { entry ->
             Box(

@@ -1,7 +1,6 @@
 package app.bodyforger.mobile.onboarding
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -29,17 +28,18 @@ class SetupFlowTest {
     }
 
     @Test
-    fun `only units are unskippable, and only because they already have an answer`() {
-        assertNull(SetupStep.UNITS.skipRes)
-        SetupStep.entries.filter { it != SetupStep.UNITS }.forEach { step ->
-            assertNotNull("${step.name} must offer a way out", step.skipRes)
-        }
-    }
+    fun `previous walks back to the start and stops there`() {
+        var step = SetupStep.entries.last()
+        var walked = 1
 
-    @Test
-    fun `the scale is skipped in its own words, not in the generic ones`() {
-        // Skipping pairing means "not right now", which is not what skipping a name means.
-        assertTrue(SetupStep.SCALE.skipRes != SetupStep.NAME.skipRes)
+        while (true) {
+            step = step.previous() ?: break
+            walked++
+        }
+
+        assertEquals(SetupStep.entries.size, walked)
+        assertTrue(step.isFirst)
+        assertNull(SetupStep.entries.first().previous())
     }
 
     @Test

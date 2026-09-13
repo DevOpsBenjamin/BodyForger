@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import app.bodyforger.mobile.navigation.BodyForgerNavHost
@@ -58,6 +59,7 @@ fun BodyForgerApp(
     val navController = rememberNavController()
     val currentDestination by navController.currentBackStackEntryAsState()
     val currentTab = currentDestination?.destination.currentTab()
+    val onSetupScreen = currentDestination?.destination?.hasRoute<Destination.Setup>() == true
 
     val tourDue by onboarding.tourDue.collectAsState()
     val setupDue by onboarding.setupDue.collectAsState()
@@ -80,8 +82,18 @@ fun BodyForgerApp(
     // The tour comes first, then the questions: being shown the screens is what makes the
     // questions about them mean something. Both are waited for rather than assumed — a null
     // is the settings row not read yet, and neither should flash by while it loads.
-    LaunchedEffect(tourDue, setupDue) {
-        if (tourDue == false && setupDue == true) navController.navigate(Destination.Setup)
+    //
+    // Going in and coming back out both follow the stored answer, never the tap that caused
+    // it. Leaving the screen on the tap and recording it in the background raced: the flow
+    // was still owed for the instant the write took, and the athlete was put straight back
+    // on the step they had just left.
+    LaunchedEffect(tourDue, setupDue, onSetupScreen) {
+        when {
+            tourDue == false && setupDue == true && !onSetupScreen ->
+                navController.navigate(Destination.Setup) { launchSingleTop = true }
+
+            setupDue == false && onSetupScreen -> navController.switchTab(Tab.HOME)
+        }
     }
 
     val interruptedSession by workout.resumable.collectAsState()
@@ -102,6 +114,7 @@ fun BodyForgerApp(
                     tourStop = next
                 }
             },
+            onPrevious = { tourStop.previous()?.let { tourStop = it } },
             onSkip = {
                 onboarding.markTourSeen()
                 navController.switchTab(Tab.HOME)
@@ -146,10 +159,7 @@ fun BodyForgerApp(
     ) { innerPadding ->
         BodyForgerNavHost(
             navController = navController,
-            onSetupFinished = {
-                onboarding.markSetupDone()
-                navController.switchTab(Tab.HOME)
-            },
+            onSetupFinished = onboarding::markSetupDone,
             workout = workout,
             modifier = Modifier.padding(innerPadding)
         )

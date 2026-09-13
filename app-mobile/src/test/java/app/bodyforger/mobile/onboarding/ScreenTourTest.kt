@@ -41,6 +41,20 @@ class ScreenTourTest {
     }
 
     @Test
+    fun `previous walks back to the start and stops there`() {
+        var stop = TourStop.entries.last()
+        var walked = 1
+
+        while (true) {
+            stop = stop.previous() ?: break
+            walked++
+        }
+
+        assertEquals(TourStop.entries.size, walked)
+        assertTrue(stop.isFirst)
+    }
+
+    @Test
     fun `only the last stop is the last one`() {
         assertEquals(1, TourStop.entries.count { it.isLast })
     }
