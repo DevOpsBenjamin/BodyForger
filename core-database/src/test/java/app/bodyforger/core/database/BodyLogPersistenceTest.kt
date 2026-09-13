@@ -45,9 +45,27 @@ class BodyLogPersistenceTest {
         val restored = BodyLogWithImpedances(log.toEntity(), log.impedanceRows()).toDomain()
 
         assertEquals(log.massKg, restored.massKg, 1e-9)
-        assertEquals(log.bodyFatPercentage, restored.bodyFatPercentage, 1e-9)
+        assertEquals(log.bodyFatPercentage!!, restored.bodyFatPercentage!!, 1e-9)
         assertEquals(log.restingHeartRateBpm, restored.restingHeartRateBpm)
         assertEquals(log.rawImpedances.ohmsByReading, restored.rawImpedances.ohmsByReading)
+    }
+
+    @Test
+    fun `a weigh-in without body fat survives the round trip as an absence`() {
+        // The handle stayed in its cradle: the mass is real and is kept, the percentage is
+        // absent. Storing a zero here would be indistinguishable from a genuine measurement.
+        val massOnly = log.copy(
+            bodyFatPercentage = null,
+            rawImpedances = RawImpedances.NONE,
+            restingHeartRateBpm = null
+        )
+
+        val restored = BodyLogWithImpedances(massOnly.toEntity(), massOnly.impedanceRows()).toDomain()
+
+        assertEquals(massOnly.massKg, restored.massKg, 1e-9)
+        assertEquals(null, restored.bodyFatPercentage)
+        assertTrue(restored.rawImpedances.isEmpty)
+        assertTrue(massOnly.impedanceRows().isEmpty())
     }
 
     @Test

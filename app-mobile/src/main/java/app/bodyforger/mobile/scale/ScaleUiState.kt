@@ -31,7 +31,11 @@ data class ScaleUiState(
      *
      * Nothing is stored while that percentage is missing; the reading waits for an entry.
      */
-    val weightAwaitingBodyFat: Double? = null,
+    /**
+     * Set when the last weigh-in measured mass and nothing else, purely so the interface can
+     * say why no composition followed. The reading itself is already stored.
+     */
+    val massOnlyReadingKg: Double? = null,
     val failure: SessionFailure? = null,
     /** Message from a system-refused scan, distinct from finding nothing. */
     val scanError: String? = null,

@@ -31,7 +31,7 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 @Composable
 fun WeighInFeedback(state: ScaleUiState, onDismiss: () -> Unit) {
     val failure = state.failure
-    val awaiting = state.weightAwaitingBodyFat
+    val awaiting = state.massOnlyReadingKg
 
     when {
         state.isWeighing -> Feedback(

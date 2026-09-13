@@ -124,7 +124,8 @@ fun BiometricsScreen(
                         Text(text = stringResource(R.string.bio_body_fat), color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "${lastLog.bodyFatPercentage}%",
+                                text = lastLog.bodyFatPercentage?.let { "$it%" }
+                                    ?: stringResource(R.string.bio_body_fat_absent),
                                 color = NeonLime,
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Black

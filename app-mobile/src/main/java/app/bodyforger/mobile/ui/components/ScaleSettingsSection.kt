@@ -69,7 +69,7 @@ fun ScaleSettingsSection(
             }
         }
         state.failure?.let { Failure(it) }
-        state.weightAwaitingBodyFat?.let { massKg ->
+        state.massOnlyReadingKg?.let { massKg ->
             Card {
                 Text(stringResource(R.string.scale_mass_only_title), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text("%.2f kg".format(massKg), color = ElectricCyan, fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -85,7 +85,9 @@ fun ScaleSettingsSection(
             Card {
                 Text(stringResource(R.string.scale_last_weigh_in), color = TextSecondary, fontSize = 11.sp)
                 Text(
-                    stringResource(R.string.scale_mass_and_fat, log.massKg, log.bodyFatPercentage),
+                    log.bodyFatPercentage
+                        ?.let { stringResource(R.string.scale_mass_and_fat, log.massKg, it) }
+                        ?: stringResource(R.string.scale_mass_only_line, log.massKg),
                     color = TextPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold

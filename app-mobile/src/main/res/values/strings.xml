@@ -331,7 +331,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="scale_weigh_in_interrupted">Weigh-in interrupted</string>
     <string name="scale_search_failed">Search unavailable</string>
     <string name="scale_mass_only_title">Weigh-in recorded, without composition</string>
-    <string name="scale_mass_only_body">The scale read no impedance — the handle was not gripped. The reading waits for a body fat figure before it is kept.</string>
+    <string name="scale_mass_only_body">The scale read no impedance — the handle was not gripped. The mass is kept; body composition is simply absent for this reading.</string>
     <string name="scale_last_weigh_in">Last weigh-in</string>
     <string name="scale_resistances_kept">%1$d resistances read and kept</string>
     <string name="scale_no_impedance">No impedance: mass only</string>
@@ -494,4 +494,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="scale_mass_and_fat">%1$.2f kg · %2$.1f %% body fat</string>
     <string name="scale_step_of">Step %1$d of %2$d</string>
     <string name="home_month_delta_placeholder">-0.4 kg this month</string>
+    <string name="scale_mass_only_line">%1$.2f kg · body fat not measured</string>
+    <string name="bio_body_fat_absent">—</string>
 </resources>

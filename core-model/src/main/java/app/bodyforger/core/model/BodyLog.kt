@@ -4,7 +4,7 @@ package app.bodyforger.core.model
  * Body composition derived from the raw impedances.
  *
  * Exists only where impedances were read. Not to be confused with the body fat percentage of
- * a [BodyLog], which is always present. Model: `docs/BIA_ENGINE.md`.
+ * a [BodyLog], which the scale may or may not have measured. Model: `docs/BIA_ENGINE.md`.
  */
 data class BodyCompositionReport(
     /** Fat-free mass: everything that is not fat — muscle, bone, water, organs. */
@@ -67,7 +67,12 @@ data class BodyLog(
     val dateIso: String,
     val measuredAtEpochMs: Long,
     val massKg: Double,
-    val bodyFatPercentage: Double,
+    /**
+     * `null` when the scale weighed without measuring — the handle left in its cradle, shoes
+     * kept on. The mass is still a real measurement and is kept; the percentage is absent
+     * rather than invented, so it enters no average and no chart of its own.
+     */
+    val bodyFatPercentage: Double?,
     val rawImpedances: RawImpedances = RawImpedances.NONE,
     val restingHeartRateBpm: Int? = null
 ) {
