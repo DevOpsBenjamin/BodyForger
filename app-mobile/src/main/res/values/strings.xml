@@ -352,12 +352,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="bio_empty_no_profile">Fill in your measurement profile first, then weigh yourself.</string>
 
     <!-- Placeholder copy: still hardcoded demo data, not yet wired to real values -->
-    <string name="home_date_placeholder">Friday 28 August 2026</string>
-    <string name="home_next_session_placeholder">PUSH DAY</string>
-    <string name="home_next_session_detail_placeholder">5 exercises • 50 min</string>
-    <string name="home_scale_device_placeholder">Huawei Scale 3 BLE</string>
     <string name="home_median_placeholder">7-day median: 78.6 kg</string>
-    <string name="profile_streak_placeholder">🔥 14 consecutive weeks</string>
 
     <!-- Built-in exercise catalogue: one key per seeded exercise -->
     <string name="ex_hanging_leg_raise">Hanging Leg Raise</string>
@@ -497,4 +492,14 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="bio_body_fat_absent">—</string>
     <string name="settings_default_unit">DEFAULT WEIGHT UNIT</string>
     <string name="settings_default_unit_hint">Applies to exercises you add from now on. An exercise keeps its own unit, so a machine labelled in pounds can stay in pounds. Nothing already logged is rewritten.</string>
+    <string name="home_rest_day">REST</string>
+    <string name="home_rest_day_detail">No routine planned today</string>
+    <string name="home_session_exercises">%1$d exercises</string>
+    <string name="home_session_exercises_and_duration">%1$d exercises • ~%2$d min</string>
+    <string name="home_scale_none">No scale paired</string>
+    <plurals name="profile_streak">
+        <item quantity="one">🔥 %1$d consecutive week</item>
+        <item quantity="other">🔥 %1$d consecutive weeks</item>
+    </plurals>
+    <string name="profile_streak_none">No streak yet — train this week to start one</string>
 </resources>

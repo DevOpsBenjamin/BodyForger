@@ -1,10 +1,13 @@
 package app.bodyforger.mobile.stats
 
+import app.bodyforger.core.model.Routine
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.core.model.WorkoutSet
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import kotlin.math.ceil
 
 /**
  * What a training history adds up to.
@@ -92,7 +95,61 @@ object TrainingStats {
     fun sessionsThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Int =
         activeDayOffsets(sessions, todayEpochMs, DAYS_IN_A_WEEK).size
 
+    /**
+     * Weeks trained in an unbroken run, counting back from the current one.
+     *
+     * A week counts when it holds at least one session. The current week is forgiving: an
+     * athlete who has not trained yet this Monday keeps the run their previous weeks earned,
+     * because a streak that collapses every Monday morning measures the calendar, not them.
+     *
+     * Weeks start on Monday, as ISO has it.
+     */
+    fun consecutiveTrainingWeeks(sessions: List<WorkoutSession>, todayEpochMs: Long): Int {
+        if (sessions.isEmpty()) return 0
+
+        val zone = ZoneId.systemDefault()
+        val thisWeek = Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
+            .with(DayOfWeek.MONDAY)
+        val trained = sessions
+            .map { Instant.ofEpochMilli(it.startedAtEpochMs).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
+            .toSet()
+
+        var week = if (thisWeek in trained) thisWeek else thisWeek.minusWeeks(1)
+        var run = 0
+        while (week in trained) {
+            run++
+            week = week.minusWeeks(1)
+        }
+        return run
+    }
+
     const val DAYS_IN_A_WEEK = 7
+
+    /**
+     * How long a routine should take, from the rest the athlete actually set.
+     *
+     * Rest is real data — their own value, per exercise. The work itself is not measured
+     * anywhere, so a set is counted at [SECONDS_PER_SET]: long enough to cover a working set
+     * and the walk to the rack, short enough not to dominate the total. The last rest of the
+     * routine is dropped, since nobody rests after the final set before leaving.
+     *
+     * The result is an estimate and is labelled as one on screen.
+     */
+    fun estimatedRoutineMinutes(routine: Routine): Int? {
+        val sets = routine.exercises.sumOf { it.sets.size }
+        if (sets == 0) return null
+
+        val restSeconds = routine.exercises.sumOf { it.restTimeSeconds * it.sets.size }
+        val lastRest = routine.exercises.lastOrNull()?.restTimeSeconds ?: 0
+        val totalSeconds = restSeconds - lastRest + sets * SECONDS_PER_SET
+
+        return ceil(totalSeconds / SECONDS_PER_MINUTE).toInt().coerceAtLeast(1)
+    }
+
+    /** A working set, rack walk included. Not measured — see `docs/TRAINING_STATS.md`. */
+    const val SECONDS_PER_SET = 45
+
+    private const val SECONDS_PER_MINUTE = 60.0
 
     fun estimatedOneRepMax(set: WorkoutSet): Double =
         set.weightKg * (1.0 + set.reps / EPLEY_DIVISOR)

@@ -23,19 +23,21 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import app.bodyforger.mobile.ui.theme.TextMuted
-import app.bodyforger.mobile.ui.theme.SurfaceBorder
-import app.bodyforger.mobile.R
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.Routine
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.stats.TrainingStats
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
+import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceDark
+import app.bodyforger.mobile.ui.theme.TextMuted
 import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 
@@ -46,6 +48,10 @@ fun HomeActionCards(
     isScaleReady: Boolean,
     onWeighIn: () -> Unit,
     onConfigureScale: () -> Unit,
+    /** The routine the planner assigned to today, or `null` on a rest day. */
+    todaysRoutine: Routine? = null,
+    /** The name the paired scale advertised, or `null` when none is paired. */
+    scaleName: String? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -81,13 +87,24 @@ fun HomeActionCards(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = stringResource(R.string.home_next_session_placeholder),
+                        text = todaysRoutine?.name ?: stringResource(R.string.home_rest_day),
                         color = TextPrimary,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Black
                     )
                     Text(
-                        text = stringResource(R.string.home_next_session_detail_placeholder),
+                        text = todaysRoutine?.let { routine ->
+                            val minutes = TrainingStats.estimatedRoutineMinutes(routine)
+                            if (minutes == null) {
+                                stringResource(R.string.home_session_exercises, routine.exercises.size)
+                            } else {
+                                stringResource(
+                                    R.string.home_session_exercises_and_duration,
+                                    routine.exercises.size,
+                                    minutes
+                                )
+                            }
+                        } ?: stringResource(R.string.home_rest_day_detail),
                         color = TextSecondary,
                         fontSize = 11.sp,
                         modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
@@ -155,7 +172,7 @@ fun HomeActionCards(
                         fontWeight = FontWeight.Black
                     )
                     Text(
-                        text = stringResource(R.string.home_scale_device_placeholder),
+                        text = scaleName ?: stringResource(R.string.home_scale_none),
                         color = TextSecondary,
                         fontSize = 11.sp,
                         modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)

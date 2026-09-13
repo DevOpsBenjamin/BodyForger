@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.bodyforger.mobile.R
+import app.bodyforger.mobile.library.LibraryViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
 import app.bodyforger.mobile.profile.BiometricsViewModel
 import app.bodyforger.mobile.scale.ScaleViewModel
@@ -49,6 +50,7 @@ import app.bodyforger.mobile.ui.theme.SurfaceElevated
 import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -59,12 +61,20 @@ fun HomeScreen(
     scaleViewModel: ScaleViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     biometricsViewModel: BiometricsViewModel = koinViewModel(),
+    library: LibraryViewModel = koinViewModel(),
     onOpenSettings: () -> Unit = {}
 ) {
     val scaleState by scaleViewModel.state.collectAsState()
     val weighIns by biometricsViewModel.history.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
     val measurementProfile = profile.biaProfileOn(LocalDate.now())
+
+    val today = LocalDate.now()
+    val routines by library.routines.collectAsState()
+    // The planner assigns routines to weekdays; today's is whichever claims this one.
+    val todaysRoutine = remember(routines, today) {
+        routines.firstOrNull { today.dayOfWeek.value in it.assignedDays }
+    }
 
     // A weigh-in is driven from here: this is the screen the athlete reaches standing on the scale.
     WeighInFeedback(state = scaleState, onDismiss = scaleViewModel::clearWeighInFeedback)
@@ -105,7 +115,7 @@ fun HomeScreen(
                     letterSpacing = 1.5.sp
                 )
                 Text(
-                    text = stringResource(R.string.home_date_placeholder),
+                    text = today.format(HOME_DATE_FORMAT).replaceFirstChar { it.uppercase() },
                     color = TextSecondary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
@@ -139,6 +149,8 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         HomeActionCards(
+            todaysRoutine = todaysRoutine,
+            scaleName = scaleState.onlyAssociation?.advertisedName,
             onNavigateToWorkout = onNavigateToWorkout,
             onNavigateToBiometrics = onNavigateToBiometrics,
             isScaleReady = scaleState.isAssociated && measurementProfile != null,
@@ -157,3 +169,6 @@ fun HomeScreen(
         HomeVolumeProgressCard()
     }
 }
+
+/** "Friday 28 August 2026" in English, "vendredi 28 août 2026" in French — the locale decides. */
+private val HOME_DATE_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy")
