@@ -46,6 +46,11 @@ import app.bodyforger.mobile.ui.theme.TextTertiary
  *
  * Back does not dismiss it. Leaving is done by Skip, which is always on screen, so there is
  * exactly one way out and it is one the app can record.
+ *
+ * The scrim is light on purpose. It was opaque enough to hide the screen underneath, which
+ * left the card talking about something nobody could see — the screen has to stay readable
+ * behind it, since the screen is the subject. The card carries its own solid background, so
+ * its own text loses no contrast.
  */
 @Composable
 fun ScreenTourOverlay(
@@ -64,7 +69,7 @@ fun ScreenTourOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.82f)),
+                .background(Color.Black.copy(alpha = 0.45f)),
             contentAlignment = Alignment.Center
         ) {
             Card(
