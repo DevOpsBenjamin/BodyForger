@@ -1,0 +1,59 @@
+name: Version Bump
+
+# A merge into main only produces a release when it actually changes the app's
+# version. Every other merge builds nothing — that is what pull requests are for.
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'app-mobile/build.gradle.kts'
+
+jobs:
+  detect:
+    name: Detect Version Change
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+      version: ${{ steps.compare.outputs.version }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # the push plus its parent, enough to diff the version
+
+      - name: Compare versionName Against the Parent Commit
+        id: compare
+        run: |
+          read_version() {
+            grep -oE 'versionName = "[^"]+"' | head -1 | cut -d'"' -f2
+          }
+          current=$(read_version < app-mobile/build.gradle.kts)
+          previous=$(git show HEAD^:app-mobile/build.gradle.kts 2>/dev/null | read_version || true)
+
+          echo "previous: ${previous:-<none>}"
+          echo "current : ${current:-<none>}"
+
+          if [ -z "$current" ]; then
+            echo "::error::No versionName found in app-mobile/build.gradle.kts"
+            exit 1
+          fi
+
+          if [ "$current" = "$previous" ]; then
+            echo "Version unchanged — no release."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version moved to $current — releasing."
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$current" >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    name: Release
+    needs: detect
+    if: needs.detect.outputs.changed == 'true'
+    uses: ./.github/workflows/release.yml
+    with:
+      version: ${{ needs.detect.outputs.version }}
+    permissions:
+      contents: write

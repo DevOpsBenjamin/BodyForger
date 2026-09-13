@@ -1,0 +1,88 @@
+name: Release
+
+# Two ways in, one build: a pushed tag, or a version bump detected on main by
+# version-bump.yml, which calls this workflow.
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version to release, without the leading v'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without the leading v'
+        required: true
+        type: string
+
+permissions:
+  contents: write   # create the release and its tag
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Resolve Version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version="${{ inputs.version }}"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$version"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant Execute Permission to Gradlew
+        run: chmod +x gradlew
+
+      - name: Run Unit Tests
+        run: ./gradlew test --stacktrace
+
+      # Debug builds on purpose: no keystore reaches CI, and an unsigned release
+      # APK installs nowhere. Swap this for assembleRelease the day the signing
+      # secrets exist.
+      - name: Build APKs
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Collect APKs
+        run: |
+          mkdir -p release
+          cp app-mobile/build/outputs/apk/debug/*.apk "release/bodyforger-mobile-${{ steps.version.outputs.version }}.apk"
+          cp app-wear/build/outputs/apk/debug/*.apk "release/bodyforger-wear-${{ steps.version.outputs.version }}.apk"
+          ls -la release
+
+      - name: Publish Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="Debug builds of BodyForger ${{ steps.version.outputs.tag }}.
+
+          These APKs are **debug-signed**: installable side by side with nothing else, and not suitable for the Play Store. Signed builds arrive with the upload keystore."
+          if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+            gh release upload "${{ steps.version.outputs.tag }}" release/*.apk --clobber
+          else
+            gh release create "${{ steps.version.outputs.tag }}" release/*.apk \
+              --title "${{ steps.version.outputs.tag }}" \
+              --notes "$notes" \
+              --target "${{ github.sha }}"
+          fi
