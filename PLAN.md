@@ -5,7 +5,7 @@
 **BodyForger** is a native, offline-first, wrist-first fitness and body composition suite designed to merge the best of two open-source projects into one unified ecosystem:
 
 1. **SimpleBodyGraph** (Personal DEXA-calibrated BIA engine, Huawei Scale 3 reverse-engineered BLE GATT driver, tape measurements, body fat / lean mass goals).
-2. **openGym** (1,300+ exercise library, animations, comprehensive set mechanics with drop-sets, rest-pause, warmups, and volume progression).
+2. **openGym** — for how it models a set: drop-sets, rest-pause, warm-ups and volume progression. Its exercise library is not imported; BodyForger seeds its own, deliberately small catalogue.
 
 The motivation stems from daily frustrations with commercial solutions like **Hevy**, particularly:
 - Weak, dependent Wear OS companion apps that freeze or fail when the screen goes to sleep.
@@ -21,7 +21,7 @@ The motivation stems from daily frustrations with commercial solutions like **He
 |                                      BodyForger                                       |
 +-----------------------+-------------------------------+-------------------------------+
 |  1. WRIST-FIRST WEAR  |  2. CLINICAL BIA & SCALES     |  3. ADVANCED WORKOUT CORE     |
-|  - Health Services    |  - BLE Scales + Standard      |  - Exercise Catalogue (openGym)|
+|  - Health Services    |  - BLE Scales + Standard      |  - Curated Exercise Catalogue  |
 |  - Continuous HR      |  - DEXA BIA 8-Electrode Model |  - Drop-Sets & Rest-Pause     |
 |  - Ambient / Screen-Off| - Tape Measurements          |  - Heatmap, Volume & 1RM      |
 |  - Rest Haptics       |  - Milestone Paliers          |  - Routine & Split Builder    |
@@ -73,23 +73,30 @@ The motivation stems from daily frustrations with commercial solutions like **He
 ### 🏋️ 3. Strength & Exercise Mechanics (openGym)
 
 #### 3.1. Set Data Model
-Sets use a dual-axis discriminator:
+A set carries one kind, not two axes — a warm-up is a kind of set like any other:
 ```kotlin
-enum class SetPhase { WORK, WARMUP }
-enum class SetType { STRAIGHT, DROPSET, RESTPAUSE }
+enum class RoutineSetType { NORMAL, WARMUP, DROPSET, FAILURE, REST_PAUSE }
 
 data class WorkoutSet(
-    val id: String,
-    val phase: SetPhase = SetPhase.WORK,
-    val type: SetType = SetType.STRAIGHT,
-    val weightKg: Double,
-    val reps: Int,
+    val id: String = UUID.randomUUID().toString(),
+    val sessionId: String = "",
+    val exerciseId: String,
+    val type: RoutineSetType = RoutineSetType.NORMAL,
+    val weightKg: Double = 0.0,
+    val weightUnit: WeightUnit = WeightUnit.KG,
+    val reps: Int = 0,
     val rpe: Double? = null,
     val isCompleted: Boolean = false,
-    val drops: List<DropSubSet> = emptyList(),      // Additional drops for dropsets
-    val clusters: List<ClusterSubSet> = emptyList() // Decomposition for rest-pause
+    val side: UnilateralSide = UnilateralSide.NONE,
+    val restTimeSeconds: Int = 90,
+    val completedAtEpochMs: Long? = null
 )
 ```
+A drop-set and a rest-pause are **kinds of set**, not sets containing sub-sets: each drop and
+each cluster is its own row, ordered by `setIndex`. Tonnage and volume therefore count them
+without special cases, and nothing has to be flattened before it is stored.
+
+`side` exists for unilateral exercises, which are logged left then right in strict order.
 
 ### 🔄 4. Google Health Connect & MCP AI Sync
 
@@ -155,9 +162,10 @@ comes before the watch, because it is what teaches the record shapes the watch w
 - [x] **Phase 1** — BIA engine & BLE scale driver. *Done and past the original scope: the driver
   runs pairing, HUID engraving, the encrypted handshake, the tare and telemetry decoding, held by
   110 tests; ForgeFit MIT fills every field of `BodyCompositionReport` from published equations.*
-- [~] **Phase 2** — openGym catalogue & workout models. *The domain models, routines, the live
-  session and its persistence are in place. 124 exercises are seeded; the openGym import
-  (1,300+) has not been done.*
+- [x] **Phase 2** — Workout models & exercise catalogue. *The domain models, routines, the live
+  session and its persistence are in place, and 124 exercises are seeded — a catalogue kept
+  deliberately small, with the athlete free to add their own. Importing openGym's library was
+  considered and dropped.*
 - [ ] **Phase 5 — next** — Health Connect exporter, on the phone. *`core-healthconnect` is a stub.
   The mapping it needs already exists: `HealthConnectExerciseType` carries 46 canonical types with
   their `segmentTypeId`. The phone already produces real sessions and real weigh-ins that go
