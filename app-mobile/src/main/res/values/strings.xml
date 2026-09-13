@@ -533,4 +533,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="settings_units_hint">Weight applies to exercises you add from now on; an exercise keeps its own unit. Height only changes how it is written — it is stored in centimetres either way, because that is what the composition equations and the scale expect.</string>
     <string name="height_unit_cm">Centimetres</string>
     <string name="height_unit_inches">Inches</string>
+    <string name="goals_dialog_horizon_on_a_date">On a date</string>
+    <string name="goals_dialog_horizon_must_be_future">A horizon lies ahead — pick a date still to come</string>
 </resources>

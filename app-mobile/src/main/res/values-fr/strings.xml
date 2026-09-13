@@ -533,4 +533,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="settings_units_hint">Le poids s\'applique aux exercices ajoutés à partir de maintenant ; chaque exercice garde le sien. La taille ne change que son écriture — elle reste stockée en centimètres, parce que c\'est ce qu\'attendent les équations de composition et la balance.</string>
     <string name="height_unit_cm">Centimètres</string>
     <string name="height_unit_inches">Pouces</string>
+    <string name="goals_dialog_horizon_on_a_date">À une date</string>
+    <string name="goals_dialog_horizon_must_be_future">Un horizon est devant — choisissez une date à venir</string>
 </resources>
