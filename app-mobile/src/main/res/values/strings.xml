@@ -485,4 +485,13 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="ex_overhead_cable_triceps_extension">Overhead Cable Triceps Extension</string>
     <string name="ex_single_arm_cable_triceps_extension">Single-Arm Cable Triceps Extension</string>
     <string name="ex_parallel_bar_triceps_dips">Parallel Bar Triceps Dips</string>
+
+    <!-- Interpolated labels -->
+    <string name="bio_segment_share">%1$s of muscle mass</string>
+    <string name="scale_search_then_pick">Start the search, then pick your scale from the list. </string>
+    <string name="routine_exercise_count">%1$d exercises</string>
+    <string name="routine_summary">%1$d exercises • ~%2$d min</string>
+    <string name="scale_mass_and_fat">%1$.2f kg · %2$.1f %% body fat</string>
+    <string name="scale_step_of">Step %1$d of %2$d</string>
+    <string name="home_month_delta_placeholder">-0.4 kg this month</string>
 </resources>

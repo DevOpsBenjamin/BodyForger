@@ -32,8 +32,8 @@ internal fun NotAssociated(onStartScan: () -> Unit) {
     Card {
         Text(stringResource(R.string.settings_scale_none), color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         Text(
-            // Sans ce geste, la balance ne s'annonce pas et reste invisible au scan.
-            "Lancez la recherche, puis choisissez votre balance dans la liste. " +
+            // Without this gesture the scale does not advertise, and stays invisible to the scan.
+            stringResource(R.string.scale_search_then_pick) +
                 stringResource(R.string.scale_pairing_hint),
             color = TextSecondary,
             fontSize = 13.sp,

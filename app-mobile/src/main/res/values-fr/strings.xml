@@ -485,4 +485,13 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="ex_overhead_cable_triceps_extension">Extension Triceps Overhead Poulie</string>
     <string name="ex_single_arm_cable_triceps_extension">Extension Triceps Poulie Unilatérale</string>
     <string name="ex_parallel_bar_triceps_dips">Dips Triceps Barres Parallèles</string>
+
+    <!-- Interpolated labels -->
+    <string name="bio_segment_share">%1$s de la masse musculaire</string>
+    <string name="scale_search_then_pick">Lancez la recherche, puis choisissez votre balance dans la liste. </string>
+    <string name="routine_exercise_count">%1$d exercices</string>
+    <string name="routine_summary">%1$d exercices • ~%2$d min</string>
+    <string name="scale_mass_and_fat">%1$.2f kg · %2$.1f %% de masse grasse</string>
+    <string name="scale_step_of">Étape %1$d sur %2$d</string>
+    <string name="home_month_delta_placeholder">-0.4 kg ce mois</string>
 </resources>
