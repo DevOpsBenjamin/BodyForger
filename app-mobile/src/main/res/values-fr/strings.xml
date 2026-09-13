@@ -1,0 +1,488 @@
+<resources>
+    <string name="app_name">BodyForger</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_planner">Programme</string>
+    <string name="nav_analytics">Stats</string>
+    <string name="nav_profile">Profil</string>
+
+    <!-- General Actions -->
+    <string name="action_save">ENREGISTRER</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_close">Fermer</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_edit">Modifier la routine</string>
+    <string name="action_duplicate">Dupliquer</string>
+    <string name="action_share_json">Partager (JSON)</string>
+    <string name="action_create">CRÉER</string>
+    <string name="action_start">LANCER</string>
+    <string name="action_resume">REPRENDRE</string>
+    <string name="action_add_set">AJOUTER UNE SÉRIE</string>
+    <string name="action_add_exercise">AJOUTER UN EXERCICE</string>
+    <string name="action_validate">Valider</string>
+    <string name="action_reset">Réinitialiser</string>
+
+    <!-- Routine Editor -->
+    <string name="routine_editor_new_title">NOUVELLE ROUTINE</string>
+    <string name="routine_editor_edit_title">MODIFIER ROUTINE</string>
+    <string name="routine_editor_untitled">Sans titre</string>
+    <string name="routine_editor_title_label">TITRE DE LA ROUTINE</string>
+    <string name="routine_editor_title_hint">Ex: Push Day, Séance Pecs/Épaules...</string>
+    <string name="routine_editor_notes_label">NOTES DE ROUTINE (Optionnel)</string>
+    <string name="routine_editor_notes_hint">Ex: Échauffement 5 min rameur + focus tempo 3-0-1-0</string>
+    <string name="routine_editor_no_exercises">Aucun exercice ajouté</string>
+    <string name="routine_editor_no_exercises_hint">Appuyez ci-dessous pour composer votre séance</string>
+    <string name="routine_editor_rest_prefix">Repos: </string>
+    <string name="routine_editor_col_set">SÉRIE</string>
+    <string name="routine_editor_col_kg">KG</string>
+    <string name="routine_editor_col_reps">RÉPÉTITIONS</string>
+    <string name="routine_editor_reps_to">à</string>
+    <string name="routine_editor_move_up">⬆ Déplacer vers le haut</string>
+    <string name="routine_editor_move_down">⬇ Déplacer vers le bas</string>
+    <string name="routine_editor_replace_exercise">"🔄 Remplacer l\'exercice"</string>
+    <string name="routine_editor_remove_exercise">"✕ Retirer l\'exercice"</string>
+
+    <!-- Rest Picker Dialog -->
+    <string name="dialog_rest_title">⏱️ TEMPS DE REPOS</string>
+
+    <!-- Set Type Dialog -->
+    <string name="dialog_set_options_title">⚙️ OPTIONS DE LA SÉRIE</string>
+    <string name="dialog_set_type_label">TYPE DE SÉRIE :</string>
+    <string name="dialog_set_format_label">FORMAT DES RÉPÉTITIONS :</string>
+    <string name="dialog_set_fixed_reps">Répétitions fixes</string>
+    <string name="dialog_set_rep_range">Plage (ex: 8-12)</string>
+
+    <!-- Delete Confirmation -->
+    <string name="dialog_delete_routine_title">🗑️ SUPPRIMER LA ROUTINE</string>
+    <string name="dialog_delete_routine_msg">"Êtes-vous sûr de vouloir supprimer cette routine \? Cette action est irréversible."</string>
+
+    <!-- Planner Day Assignment -->
+    <string name="planner_assign_title">"📅 PLANIFIER LE %1$s"</string>
+    <string name="planner_assign_btn">+ AFFECTER UNE ROUTINE</string>
+    <string name="planner_unassign_btn">Retirer de ce jour</string>
+
+    <!-- Weight Unit Dialog -->
+    <string name="dialog_weight_unit_title">"⚖️ UNITÉ DE CHARGE DU POIDS"</string>
+    <string name="dialog_weight_unit_desc">"Saisissez la charge comme indiquée sur votre équipement (ex: plaques de machines graduées en lbs ou poids libres en kg) :"</string>
+    <string name="dialog_weight_unit_kg_sub">Poids libres, barres et haltères standards</string>
+    <string name="dialog_weight_unit_lbs_sub">Machines guidées et colonnes de charges</string>
+
+    <!-- Live Workout -->
+    <string name="workout_live_title">SÉANCE EN DIRECT</string>
+    <string name="workout_live_active_mini_title">SÉANCE EN COURS</string>
+    <string name="workout_live_active_mini_rest">REPOS %1$s</string>
+    <string name="workout_live_finish_btn">TERMINER LA SÉANCE</string>
+    <string name="workout_live_validate_set">VALIDER LA SÉRIE</string>
+    <string name="workout_live_rest_timer">CHRONOMÈTRE DE REPOS</string>
+    <string name="workout_live_skip_rest">PASSER</string>
+    <string name="workout_live_add_30s">+30s</string>
+    <string name="workout_live_minus_15s">-15s</string>
+    <string name="workout_live_col_set">SÉRIE</string>
+    <string name="workout_live_col_previous">PRÉC.</string>
+    <string name="workout_live_col_weight">KG</string>
+    <string name="workout_live_col_done">VAL.</string>
+    <string name="workout_live_col_reps">REPS</string>
+    <string name="workout_live_unilateral_warning">Enchaîner Côté Gauche puis Côté Droit avant le repos</string>
+
+    <!-- Workout Summary -->
+    <string name="workout_summary_title">🎉 SÉANCE VALIDÉE !</string>
+    <string name="workout_summary_subtitle">Superbe séance ! Voici le résumé de tes performances :</string>
+    <string name="workout_summary_duration">Durée</string>
+    <string name="workout_summary_volume">Tonnage Total</string>
+    <string name="workout_summary_sets_completed">Séries Validées</string>
+    <string name="workout_summary_muscle_volume">FATIGUE &amp; VOLUME PAR MUSCLE</string>
+    <string name="workout_summary_segments_title">SEGMENTS GOOGLE HEALTH CONNECT</string>
+    <string name="workout_summary_save_btn">ENREGISTRER ET QUITTER</string>
+    <string name="workout_live_free_session_title">Séance libre</string>
+
+    <!-- Domain vocabulary: the model carries identity, the labels live here -->
+    <!-- UnilateralSide -->
+    <string name="unilateral_side_none">Bilatéral</string>
+    <string name="unilateral_side_left">Côté gauche</string>
+    <string name="unilateral_side_right">Côté droit</string>
+    <string name="unilateral_side_badge_none"></string>
+    <string name="unilateral_side_badge_left">G</string>
+    <string name="unilateral_side_badge_right">D</string>
+    <!-- RoutineSetType -->
+    <string name="set_type_normal">Normale</string>
+    <string name="set_type_warmup">Échauffement</string>
+    <string name="set_type_dropset">Dégressive (drop set)</string>
+    <string name="set_type_failure">À l\'échec</string>
+    <string name="set_type_rest_pause">Rest-pause</string>
+    <string name="set_type_badge_normal">1</string>
+    <string name="set_type_badge_warmup">ÉCH</string>
+    <string name="set_type_badge_dropset">DROP</string>
+    <string name="set_type_badge_failure">ÉCHEC</string>
+    <string name="set_type_badge_rest_pause">RP</string>
+    <!-- WeightUnit -->
+    <string name="weight_unit_kg">Kilogrammes (kg)</string>
+    <string name="weight_unit_lbs">Livres (lbs)</string>
+    <!-- MuscleGroup -->
+    <string name="muscle_group_chest">Pectoraux</string>
+    <string name="muscle_group_back">Dos</string>
+    <string name="muscle_group_shoulders">Épaules</string>
+    <string name="muscle_group_biceps">Biceps</string>
+    <string name="muscle_group_triceps">Triceps</string>
+    <string name="muscle_group_quadriceps">Quadriceps</string>
+    <string name="muscle_group_hamstrings">Ischios</string>
+    <string name="muscle_group_glutes">Fessiers</string>
+    <string name="muscle_group_calves">Mollets</string>
+    <string name="muscle_group_abs">Abdos</string>
+    <string name="muscle_group_full_body">Corps complet</string>
+    <!-- EquipmentType -->
+    <string name="equipment_barbell">Barre</string>
+    <string name="equipment_dumbbell">Haltères</string>
+    <string name="equipment_cable">Poulie</string>
+    <string name="equipment_machine">Machine</string>
+    <string name="equipment_machine_convergent">Convergente</string>
+    <string name="equipment_bodyweight">Poids du corps</string>
+    <string name="equipment_kettlebell">Kettlebell</string>
+    <string name="equipment_other">Autre</string>
+    <!-- WorkoutActivityCategory -->
+    <string name="activity_category_strength_training">Musculation</string>
+    <string name="activity_category_elliptical">Vélo elliptique</string>
+    <string name="activity_category_stationary_biking">Vélo stationnaire</string>
+    <string name="activity_category_treadmill_running">Course sur tapis</string>
+    <string name="activity_category_treadmill_walking">Marche sur tapis</string>
+    <string name="activity_category_rowing_machine">Rameur</string>
+    <string name="activity_category_stretching">Étirements &amp; mobilité</string>
+    <string name="activity_category_hiit">HIIT &amp; circuit</string>
+    <string name="activity_category_calisthenics">Poids du corps</string>
+    <string name="activity_category_other">Autre</string>
+    <string name="workout_live_delete_btn">Supprimer la séance</string>
+    <string name="workout_live_delete_title">Supprimer cette séance ?</string>
+    <string name="workout_live_delete_body">Rien n\'est conservé : la séance et toutes les séries saisies disparaissent définitivement. Elle n\'apparaîtra dans aucun historique ni aucune statistique.</string>
+    <string name="workout_live_delete_confirm">SUPPRIMER</string>
+    <string name="resume_workout_title">Séance interrompue</string>
+    <string name="resume_workout_sets_done">%1$d série(s) déjà validée(s).</string>
+    <string name="resume_workout_no_sets">Aucune série n\'avait encore été validée.</string>
+    <string name="resume_workout_resume">REPRENDRE</string>
+    <string name="resume_workout_finish">TERMINER EN L\'ÉTAT</string>
+    <string name="resume_workout_delete">SUPPRIMER</string>
+    <string name="profile_sex">Sexe biologique</string>
+    <string name="profile_sex_male">Homme</string>
+    <string name="profile_sex_female">Femme</string>
+    <string name="profile_birth_date">Date de naissance</string>
+    <string name="profile_birth_date_with_age">Date de naissance — %1$d ans</string>
+    <string name="profile_height">Taille (cm)</string>
+    <string name="profile_day">JJ</string>
+    <string name="profile_month">MM</string>
+    <string name="profile_year">AAAA</string>
+    <string name="profile_save">ENREGISTRER MON PROFIL</string>
+    <string name="profile_incomplete">REMPLISSEZ LES TROIS CHAMPS</string>
+    <string name="settings_athlete">ATHLÈTE</string>
+    <string name="settings_athlete_name">Nom</string>
+    <string name="settings_athlete_anonymous">Anonyme</string>
+    <string name="settings_athlete_hint">Sert seulement à nommer vos données. Rien n\'est envoyé nulle part.</string>
+    <string name="settings_bia_profile">PROFIL DE MESURE BIA</string>
+    <string name="settings_bia_configured">Configuré</string>
+    <string name="settings_bia_missing">À remplir avant toute pesée</string>
+    <string name="settings_bia_info_title">Pourquoi la balance en a-t-elle besoin ?</string>
+    <string name="settings_bia_info_body">La balance calcule elle-même la masse grasse, et il lui faut votre sexe, votre âge et votre taille pour cela. On les lui annonce avant chaque pesée.
+
+Sans eux, aucune mesure n\'est lancée : un chiffre inventé reviendrait plausible, et serait ensuite stocké comme s\'il était le vôtre.
+
+C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne se périme jamais en silence.</string>
+    <string name="settings_scale">BALANCE CONNECTÉE</string>
+    <string name="settings_scale_none">Aucune balance appairée</string>
+    <string name="settings_scale_paired">Appairée</string>
+    <string name="settings_engine">MOTEUR DE COMPOSITION</string>
+    <string name="settings_engine_forgefit_mit">ForgeFit MIT</string>
+    <string name="settings_engine_forgefit_mit_desc">Modèle ouvert, équations publiées</string>
+    <string name="settings_engine_forgefit_private">ForgeFit Private</string>
+    <string name="settings_engine_forgefit_private_desc">Modèle avancé</string>
+    <string name="home_scale_not_configured">Aucune balance configurée</string>
+    <string name="home_scale_measure">Se peser</string>
+    <string name="nav_settings">PARAMÈTRES</string>
+    <string name="settings_measurement_id">Identifiant de mesure : %1$s</string>
+    <string name="weigh_in_running">Pesée en cours…</string>
+    <string name="weigh_in_failed">Pesée interrompue</string>
+    <string name="weigh_in_weight_only">Poids seul</string>
+    <string name="weigh_in_weight_only_body">%1$.2f kg relevés, sans composition corporelle : la balance n\'a relevé aucune impédance. La poignée n\'a pas été saisie.</string>
+    <string name="scale_paired_with">Associée · %1$s</string>
+    <string name="scale_tare">Tare de calibration : %1$.2f kg</string>
+    <string name="scale_forget">Oublier cette balance</string>
+    <string name="scale_picker_title">Quelle balance ?</string>
+    <string name="profile_stat_sessions">Séances</string>
+    <string name="profile_stat_tonnage">Tonnage total</string>
+    <string name="profile_stat_hours">Heures gym</string>
+    <string name="unit_tonnes">%1$.1f T</string>
+    <string name="unit_hours">%1$.0f h</string>
+    <string name="profile_history_empty">Aucune séance pour l\'instant. Vos séances terminées apparaîtront ici.</string>
+    <string name="stats_weekly_tonnage">Tonnage hebdo</string>
+    <string name="stats_records_empty">Aucun record pour l\'instant. Ils apparaîtront dès que vous aurez validé des séries chargées.</string>
+    <string name="stats_record_best_set">%1$.1f kg × %2$d reps</string>
+    <string name="unit_kilograms">%1$.1f kg</string>
+    <string name="stats_one_rep_max">1RM : %1$s</string>
+    <string name="stats_record_prefix">Record : %1$s</string>
+    <string name="home_weight_measured">%1$d pesée(s)</string>
+    <string name="profile_sessions_this_week">%1$d séance(s) cette semaine</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_back">Retour</string>
+    <string name="cd_options">Options</string>
+    <string name="cd_settings">Paramètres</string>
+    <string name="cd_avatar">Avatar</string>
+    <string name="cd_catalog">Catalogue</string>
+    <string name="cd_validate">Valider</string>
+    <string name="cd_view_detail">Voir détail</string>
+    <string name="cd_delete_set">Supprimer série</string>
+    <string name="cd_set_validated">Validé</string>
+    <string name="cd_drag_to_reorder">Maintenir et glisser pour réorganiser</string>
+    <string name="cd_remove_from_day">Retirer du jour</string>
+    <!-- Planner -->
+    <string name="planner_header_title">PROGRAMMES &amp; SÉANCES</string>
+    <string name="planner_header_subtitle">Planning Hebdo</string>
+    <string name="planner_catalog_line1">CATALOGUE</string>
+    <string name="planner_catalog_line2">D\'EXERCICES</string>
+    <string name="planner_my_routines">MES ROUTINES (%1$d)</string>
+    <string name="planner_new">NOUVELLE</string>
+    <string name="planner_empty_title">Aucune routine créée</string>
+    <string name="planner_empty_hint">Cliquez sur + NOUVELLE pour créer votre premier entraînement !</string>
+    <string name="planner_day_assign">AFFECTER</string>
+    <string name="planner_day_rest">Repos &amp; Récupération Musculaire</string>
+    <string name="planner_day_empty">Aucune routine assignée. Appuyez sur AFFECTER pour ajouter votre entraînement du jour.</string>
+    <string name="planner_routine_empty">Aucun exercice ajouté pour l\'instant</string>
+    <string name="planner_routine_launch">LANCER</string>
+    <string name="assign_routine_prompt">Sélectionnez les routines à réaliser le %1$s :</string>
+    <string name="assign_routine_empty">Aucune routine enregistrée.</string>
+    <!-- Exercise catalogue -->
+    <string name="catalog_title">CATALOGUE</string>
+    <string name="catalog_count">EXERCICES (%1$d)</string>
+    <string name="catalog_search_hint">Rechercher un mouvement, un muscle...</string>
+    <string name="catalog_filter_custom">Perso</string>
+    <string name="catalog_filter_one_side">1 Côté</string>
+    <string name="catalog_filter_equipment_all">Matériel : Tout</string>
+    <string name="catalog_filter_equipment_one">Matériel : %1$s</string>
+    <string name="catalog_filter_equipment_many">Matériel (%1$d)</string>
+    <string name="catalog_muscle_prompt">Sélectionnez un ou plusieurs muscles (recherche en muscle principal et secondaire) :</string>
+    <string name="catalog_equipment_prompt">Sélectionnez le matériel disponible (idéal salle ou home gym) :</string>
+    <string name="catalog_equipment_apply_all">Tout matériel</string>
+    <string name="catalog_equipment_apply">Appliquer (%1$d)</string>
+    <!-- Exercise creation -->
+    <string name="create_exercise_top_eyebrow">PERSONNALISATION</string>
+    <string name="create_exercise_top_title">CRÉER UN EXERCICE</string>
+    <string name="create_exercise_name_label">NOM DU MOUVEMENT</string>
+    <string name="create_exercise_name_hint">Ex: Développé Incliné Prise Neutre</string>
+    <string name="create_exercise_health_sync">SYNCHRO GOOGLE / SAMSUNG HEALTH</string>
+    <string name="create_exercise_unilateral">Mouvement Unilatéral (1 Bras / 1 Jambe)</string>
+    <string name="create_exercise_unilateral_hint">Enchaînement strict Côté Gauche ➡️ Côté Droit</string>
+    <string name="create_exercise_save">ENREGISTRER CET EXERCICE</string>
+    <!-- Home -->
+    <string name="home_today">AUJOURD\'HUI</string>
+    <string name="home_start">DÉMARRER</string>
+    <string name="home_measure">MESURE</string>
+    <string name="home_bia_weigh_in">PESÉE BIA</string>
+    <string name="home_volume_title">VOLUME DE LA SEMAINE</string>
+    <string name="home_volume_sessions">%1$d / %2$d Séances</string>
+    <string name="home_volume_sets_done">%1$d séries effectives réalisées</string>
+    <string name="home_volume_target">Objectif : %1$d séries</string>
+    <string name="home_composition_title">COMPOSITION CORPORELLE</string>
+    <string name="heatmap_title">RÉGULARITÉ &amp; ENTRAÎNEMENT</string>
+    <string name="heatmap_less">Moins</string>
+    <string name="heatmap_more">Plus</string>
+    <!-- Biometrics -->
+    <string name="bio_title">BIOMÉTRIE &amp; BIA DEXA</string>
+    <string name="bio_composition_title">COMPOSITION CORPORELLE</string>
+    <string name="bio_total_mass">MASSE TOTALE</string>
+    <string name="bio_body_fat">TAUX DE GRAS (BF)</string>
+    <string name="bio_lean_fat_summary">Masse Maigre : %1$s kg (%2$d%%) | Masse Grasse : %3$s kg</string>
+    <string name="bio_segmental_title">ANALYSE SEGMENTAIRE 5 ZONES</string>
+    <string name="bio_segment_trunk">Tronc (Torse &amp; Abdomen)</string>
+    <string name="bio_segment_right_arm">Bras Droit</string>
+    <string name="bio_segment_left_arm">Bras Gauche</string>
+    <string name="bio_segment_right_leg">Jambe Droite</string>
+    <string name="bio_segment_left_leg">Jambe Gauche</string>
+    <string name="bio_water_title">COMPARTIMENTS HYDRIQUES</string>
+    <string name="bio_total_water">Eau Totale (TBW)</string>
+    <string name="bio_skeletal_muscle">Muscle Squelettique</string>
+    <string name="bio_weigh_in_button">PESER AVEC LA BALANCE</string>
+    <string name="bio_empty_title">AUCUNE MESURE</string>
+    <!-- Analytics -->
+    <string name="analytics_title">STATISTIQUES &amp; ANALYSES</string>
+    <string name="analytics_tab_biometrics">🧬 Biométrie BIA</string>
+    <string name="analytics_volume_title">VOLUME PAR GROUPE MUSCULAIRE (SÉRIES)</string>
+    <string name="analytics_prs_title">ESTIMATION DES 1RM &amp; RECORDS (PRS)</string>
+    <string name="analytics_sets_progress">%1$d / %2$d séries</string>
+    <string name="profile_history_title">HISTORIQUE DES ACTIVITÉS</string>
+    <!-- Workout -->
+    <string name="reorder_title">Réorganiser</string>
+    <string name="reorder_done">Terminé</string>
+    <string name="reorder_exercise_sets">%1$s • %2$d séries</string>
+    <string name="routine_reorder_exercises">⇅ Réorganiser les exercices</string>
+    <string name="routine_unit">⚖️ Unité : %1$s</string>
+    <string name="workout_live_replace_exercise">Remplacer l\'exercice</string>
+    <string name="workout_live_remove_exercise">Supprimer l\'exercice</string>
+    <string name="workout_live_set_number">SÉRIE %1$d</string>
+    <string name="workout_live_rest_title">CHRONO DE REPOS</string>
+    <string name="summary_sets_count">%1$d séries</string>
+    <string name="summary_segment">Segment %1$d : %2$s</string>
+    <string name="share_routine_name">Routine : %1$s</string>
+    <!-- Scale -->
+    <string name="scale_pairing_hint">L\'appairage grave votre profil dans sa mémoire et demande une pesée de calibration.</string>
+    <string name="scale_search">Rechercher une balance</string>
+    <string name="scale_searching">Recherche en cours…</string>
+    <string name="scale_none_found">Aucun appareil pour l\'instant. Assurez-vous que la balance est à portée.</string>
+    <string name="scale_other_devices">Autres appareils détectés</string>
+    <string name="scale_stop">Arrêter</string>
+    <string name="scale_pairing_in_progress">Appairage en cours</string>
+    <string name="scale_calibration_note">Une simple pesée de calibration termine l\'appairage : sans elle, l\'association ne sera pas enregistrée.</string>
+    <string name="scale_weigh_in_interrupted">Pesée interrompue</string>
+    <string name="scale_search_failed">Recherche impossible</string>
+    <string name="scale_mass_only_title">Pesée relevée, sans composition</string>
+    <string name="scale_mass_only_body">La balance n\'a pas relevé d\'impédance — la poignée n\'a pas été saisie. Le relevé attend une saisie du taux de masse grasse avant d\'être conservé.</string>
+    <string name="scale_last_weigh_in">Dernière pesée</string>
+    <string name="scale_resistances_kept">%1$d résistances relevées et conservées</string>
+    <string name="scale_no_impedance">Aucune impédance : masse seule</string>
+    <string name="scale_scan_failed">La recherche a échoué.</string>
+    <string name="scale_instruction_tap_to_wake">Tapotez la balance du pied</string>
+    <string name="scale_instruction_stay_off">Restez hors du plateau</string>
+    <string name="scale_instruction_step_on">Montez sur la balance</string>
+    <string name="scale_instruction_step_on_barefoot">Montez pieds nus sur la balance</string>
+    <string name="scale_instruction_grip_handle">Saisissez la poignée des deux mains</string>
+    <string name="scale_instruction_step_off">Descendez du plateau</string>
+    <string name="scale_failure_not_found">Balance introuvable. Tapotez-la pour la réveiller.</string>
+    <string name="scale_failure_connection_lost">Liaison perdue en cours de séquence.</string>
+    <string name="scale_failure_rejected">La balance a refusé la connexion.</string>
+    <string name="scale_failure_timed_out">Aucune mesure : la pesée n\'a pas abouti à temps.</string>
+    <string name="scale_failure_not_associated">Aucune balance associée.</string>
+    <string name="scale_failure_device_error">La balance a signalé une erreur.</string>
+    <string name="bio_empty_body">Montez sur la balance pour votre première pesée : la composition corporelle se lit sur vos propres mesures, pas sur un exemple.</string>
+    <string name="bio_empty_no_profile">Renseignez d\'abord votre profil de mesure, puis pesez-vous.</string>
+
+    <!-- Placeholder copy: still hardcoded demo data, not yet wired to real values -->
+    <string name="home_date_placeholder">Vendredi 28 Août 2026</string>
+    <string name="home_next_session_placeholder">PUSH DAY</string>
+    <string name="home_next_session_detail_placeholder">5 exercices • 50 min</string>
+    <string name="home_scale_device_placeholder">Huawei Scale 3 BLE</string>
+    <string name="home_median_placeholder">Médiane 7j : 78.6 kg</string>
+    <string name="profile_name_placeholder">BENJAMIN D.</string>
+    <string name="profile_streak_placeholder">🔥 14 semaines consécutives</string>
+
+    <!-- Built-in exercise catalogue: one key per seeded exercise -->
+    <string name="ex_hanging_leg_raise">Relevés de Jambes Suspendu</string>
+    <string name="ex_lying_leg_raise">Relevés de Jambes au Sol</string>
+    <string name="ex_cable_crunch">Crunch Poulie Haute</string>
+    <string name="ex_seated_machine_crunch">Crunch Machine Assise</string>
+    <string name="ex_floor_crunch">Crunch Sol</string>
+    <string name="ex_plank">Gainage Planche</string>
+    <string name="ex_side_plank">Gainage Latéral</string>
+    <string name="ex_cable_pallof_press">Pallof Press Poulie</string>
+    <string name="ex_russian_twist">Russian Twist</string>
+    <string name="ex_ab_wheel_rollout">Roue Abdominale</string>
+    <string name="ex_burpees">Burpees</string>
+    <string name="ex_elliptical_trainer">Vélo Elliptique</string>
+    <string name="ex_treadmill_incline_walk">Tapis de Course (Marche Inclinée)</string>
+    <string name="ex_treadmill_run">Tapis de Course (Course)</string>
+    <string name="ex_stretching_and_general_mobility">Étirements &amp; Mobilité Globale</string>
+    <string name="ex_foam_rolling">Rouleau de Massage (Foam Roller)</string>
+    <string name="ex_back_squat">Back Squat</string>
+    <string name="ex_front_squat">Front Squat</string>
+    <string name="ex_hack_squat_machine">Hack Squat Machine</string>
+    <string name="ex_smith_machine_squat">Squat Smith Machine</string>
+    <string name="ex_belt_squat_machine">Belt Squat Machine</string>
+    <string name="ex_45_incline_leg_press">Presse à Cuisses Inclinée 45°</string>
+    <string name="ex_horizontal_leg_press">Presse à Cuisses Horizontale</string>
+    <string name="ex_leg_extension_machine">Leg Extension Machine</string>
+    <string name="ex_single_leg_extension_machine">Leg Extension Unilatérale Machine</string>
+    <string name="ex_bulgarian_split_squat">Split Squat Bulgare</string>
+    <string name="ex_walking_lunges">Fentes Marchantes</string>
+    <string name="ex_stationary_bike_cycling">Vélo Stationnaire / Biking</string>
+    <string name="ex_seated_leg_curl_machine">Leg Curl Assis Machine</string>
+    <string name="ex_lying_leg_curl_machine">Leg Curl Couché Machine</string>
+    <string name="ex_single_leg_curl_machine">Leg Curl Unilatéral Machine</string>
+    <string name="ex_barbell_romanian_deadlift">Soulevé de Terre Roumain Barre</string>
+    <string name="ex_dumbbell_romanian_deadlift">Soulevé de Terre Roumain Haltères</string>
+    <string name="ex_barbell_hip_thrust">Hip Thrust Barre</string>
+    <string name="ex_hip_thrust_machine">Hip Thrust Machine</string>
+    <string name="ex_hip_abduction_machine">Abducteurs Machine</string>
+    <string name="ex_hip_adduction_machine">Adducteurs Machine</string>
+    <string name="ex_cable_glute_kickback">Kickback Fessier Poulie</string>
+    <string name="ex_kettlebell_swing">Kettlebell Swing</string>
+    <string name="ex_stairmaster_stair_climber">StairMaster (Simulateur d\'Escaliers)</string>
+    <string name="ex_standing_calf_raise_machine">Mollets Debout Machine</string>
+    <string name="ex_seated_calf_raise_machine">Mollets Assis Machine</string>
+    <string name="ex_leg_press_calf_raise">Mollets Presse à Cuisses</string>
+    <string name="ex_jump_rope">Corde à Sauter</string>
+    <string name="ex_pull_up_pronated_grip">Tractions Pronation</string>
+    <string name="ex_chin_up_supinated_grip">Tractions Supination</string>
+    <string name="ex_pull_up_neutral_grip">Tractions Prise Neutre</string>
+    <string name="ex_dead_hang_pronated_grip">Dead Hang Pronation</string>
+    <string name="ex_dead_hang_supinated_grip">Dead Hang Supination</string>
+    <string name="ex_dead_hang_neutral_grip">Dead Hang Prise Neutre</string>
+    <string name="ex_assisted_pull_up_machine_pronated_grip">Tractions Assistées Machine Pronation</string>
+    <string name="ex_assisted_chin_up_machine_supinated_grip">Tractions Assistées Machine Supination</string>
+    <string name="ex_assisted_pull_up_machine_neutral_grip">Tractions Assistées Machine Prise Neutre</string>
+    <string name="ex_deadlift">Soulevé de Terre</string>
+    <string name="ex_trap_bar_deadlift">Soulevé de Terre Trap Bar</string>
+    <string name="ex_wide_grip_lat_pulldown">Tirage Vertical Prise Large</string>
+    <string name="ex_neutral_grip_lat_pulldown">Tirage Vertical Prise Neutre</string>
+    <string name="ex_lat_pulldown_machine">Tirage Vertical Machine</string>
+    <string name="ex_converging_lat_pulldown">Tirage Vertical Convergent</string>
+    <string name="ex_single_arm_cable_pulldown">Tirage Vertical Poulie Unilatéral</string>
+    <string name="ex_pull_over_poulie_haute">Pull-Over Poulie Haute</string>
+    <string name="ex_seated_cable_row">Tirage Horizontal Poulie Basse</string>
+    <string name="ex_wide_grip_seated_row">Tirage Horizontal Prise Large</string>
+    <string name="ex_single_arm_cable_row">Tirage Horizontal Poulie Unilatéral</string>
+    <string name="ex_bent_over_barbell_row">Rowing Barre Buste Penché</string>
+    <string name="ex_single_arm_dumbbell_row">Rowing Haltère Unilatéral</string>
+    <string name="ex_t_bar_row">T-Bar Row</string>
+    <string name="ex_seated_row_machine">Rowing Assis Machine</string>
+    <string name="ex_converging_row_machine">Rowing Convergent Machine</string>
+    <string name="ex_45_back_extension">Extensions Lombaires Banc 45°</string>
+    <string name="ex_seated_lower_back_machine">Machine à Lombaires Assise</string>
+    <string name="ex_rowing_machine">Rameur (Rowing)</string>
+    <string name="ex_barbell_biceps_curl">Curl Biceps Barre</string>
+    <string name="ex_ez_bar_preacher_curl">Curl Pupitre Barre EZ</string>
+    <string name="ex_dumbbell_biceps_curl">Curl Biceps Haltères</string>
+    <string name="ex_incline_dumbbell_curl">Curl Biceps Incliné</string>
+    <string name="ex_dumbbell_hammer_curl">Curl Marteau Haltères</string>
+    <string name="ex_single_arm_dumbbell_preacher_curl">Curl Pupitre Haltère Unilatéral</string>
+    <string name="ex_rope_cable_curl">Curl Corde Poulie Basse</string>
+    <string name="ex_single_arm_low_cable_curl">Curl Biceps Poulie Basse Unilatéral</string>
+    <string name="ex_biceps_curl_machine">Curl Biceps Machine</string>
+    <string name="ex_converging_biceps_curl">Curl Biceps Convergent</string>
+    <string name="ex_barbell_reverse_curl">Curl Inversé Barre</string>
+    <string name="ex_bench_press">Développé Couché</string>
+    <string name="ex_incline_bench_press">Développé Incliné</string>
+    <string name="ex_decline_bench_press">Développé Décliné</string>
+    <string name="ex_close_grip_bench_press">Développé Couché Prise Serrée</string>
+    <string name="ex_smith_machine_bench_press">Développé Couché Smith Machine</string>
+    <string name="ex_smith_machine_incline_press">Développé Incliné Smith Machine</string>
+    <string name="ex_dumbbell_bench_press">Développé Couché Haltères</string>
+    <string name="ex_incline_dumbbell_press">Développé Incliné Haltères</string>
+    <string name="ex_dumbbell_fly">Écarté Couché Haltères</string>
+    <string name="ex_chest_press_machine">Développé Couché Machine</string>
+    <string name="ex_incline_press_machine">Développé Incliné Machine</string>
+    <string name="ex_converging_chest_press">Développé Couché Convergent</string>
+    <string name="ex_converging_incline_press">Développé Incliné Convergent</string>
+    <string name="ex_pec_deck_machine">Pec Deck Machine</string>
+    <string name="ex_cable_crossover">Écartés Poulies Vis-à-Vis</string>
+    <string name="ex_low_cable_fly">Écartés Poulie Basse</string>
+    <string name="ex_bodyweight_dips">Dips Poids du Corps</string>
+    <string name="ex_assisted_dips_machine">Dips Assistés Machine</string>
+    <string name="ex_seated_dips_machine">Dips Assis Machine</string>
+    <string name="ex_push_ups">Pompes Classiques</string>
+    <string name="ex_decline_push_ups">Pompes Déclinées</string>
+    <string name="ex_overhead_press">Développé Militaire</string>
+    <string name="ex_dumbbell_shoulder_press">Développé Épaules Haltères</string>
+    <string name="ex_shoulder_press_machine">Développé Épaules Machine</string>
+    <string name="ex_converging_shoulder_press">Développé Épaules Convergent</string>
+    <string name="ex_smith_machine_shoulder_press">Développé Épaules Smith Machine</string>
+    <string name="ex_dumbbell_lateral_raise">Élévations Latérales Haltères</string>
+    <string name="ex_single_arm_cable_lateral_raise">Élévations Latérales Poulie Unilatérale</string>
+    <string name="ex_lateral_raise_machine">Élévations Latérales Machine</string>
+    <string name="ex_cable_face_pull">Face Pull Poulie</string>
+    <string name="ex_reverse_pec_deck">Oiseau Machine</string>
+    <string name="ex_bent_over_dumbbell_reverse_fly">Oiseau Haltères Buste Penché</string>
+    <string name="ex_single_arm_cable_reverse_fly">Oiseau Poulie Unilatéral</string>
+    <string name="ex_dumbbell_front_raise">Élévations Frontales Haltères</string>
+    <string name="ex_skull_crusher">Barre au Front</string>
+    <string name="ex_close_grip_bench_press_triceps">Développé Couché Prise Serrée Triceps</string>
+    <string name="ex_rope_triceps_pushdown">Extension Triceps Poulie Corde</string>
+    <string name="ex_bar_triceps_pushdown">Extension Triceps Poulie Barre</string>
+    <string name="ex_overhead_cable_triceps_extension">Extension Triceps Overhead Poulie</string>
+    <string name="ex_single_arm_cable_triceps_extension">Extension Triceps Poulie Unilatérale</string>
+    <string name="ex_parallel_bar_triceps_dips">Dips Triceps Barres Parallèles</string>
+</resources>

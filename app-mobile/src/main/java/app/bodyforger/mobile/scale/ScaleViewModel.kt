@@ -1,0 +1,282 @@
+package app.bodyforger.mobile.scale
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import app.bodyforger.core.ble.AndroidGattTransport
+import app.bodyforger.core.ble.AndroidScaleScanner
+import app.bodyforger.core.ble.DiscoveredScale
+import app.bodyforger.core.ble.PairingState
+import app.bodyforger.core.ble.ScaleIdentifier
+import app.bodyforger.core.ble.ScanRejected
+import app.bodyforger.core.ble.SessionFailure
+import app.bodyforger.core.ble.WeighInState
+import app.bodyforger.core.ble.huawei.HuaweiPairingSession
+import app.bodyforger.core.ble.huawei.HuaweiScaleModel
+import app.bodyforger.core.ble.huawei.HuaweiWeighInSession
+import app.bodyforger.core.database.dao.AthleteIdentityDao
+import app.bodyforger.core.database.dao.BodyLogDao
+import app.bodyforger.core.database.dao.ScaleAssociationDao
+import app.bodyforger.core.database.entity.impedanceRows
+import app.bodyforger.core.database.entity.toDomain
+import app.bodyforger.core.database.entity.toEntity
+import app.bodyforger.core.model.BiaProfile
+import app.bodyforger.core.model.BodyLog
+import app.bodyforger.core.model.ScaleAssociation
+import app.bodyforger.core.model.ScaleUserProfile
+import app.bodyforger.mobile.R
+import java.time.Instant
+import java.time.ZoneId
+import java.util.UUID
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
+
+/**
+ * Scale state and the course of a weigh-in, from scan to database write.
+ *
+ * The driver and protocol live in `core-ble`; this only chains them and exposes progress.
+ */
+class ScaleViewModel(
+    application: Application,
+    private val athleteIdentityDao: AthleteIdentityDao,
+    private val bodyLogDao: BodyLogDao,
+    private val scaleAssociationDao: ScaleAssociationDao
+) : AndroidViewModel(application) {
+
+    private val scanner = AndroidScaleScanner(application)
+    /** Scanning only ever needs to recognise an advertised name. */
+    private val identifier = ScaleIdentifier(HuaweiScaleModel::recognise)
+
+    /**
+     * The running scan.
+     *
+     * ⚠️ Android cannot open a GATT connection while a scan runs, so it must be genuinely
+     * cancelled — not merely hidden in the state.
+     */
+    private var scanJob: Job? = null
+
+    private val _state = MutableStateFlow(ScaleUiState())
+    val state: StateFlow<ScaleUiState> = _state.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val huid = athleteIdentityDao.huidOrCreate(System.currentTimeMillis())
+            val lastLog = bodyLogDao.mostRecent()?.toDomain()
+            _state.value = _state.value.copy(huid = huid, lastLog = lastLog)
+        }
+        viewModelScope.launch {
+            scaleAssociationDao.observeAll().collect { rows ->
+                val huid = _state.value.huid
+                _state.value = _state.value.copy(
+                    associations = rows.map { it.toDomain() }.map { if (huid != null) it.copy(huid = huid) else it }
+                )
+            }
+        }
+    }
+
+    /** Scans for nearby scales. */
+    fun startScan() {
+        if (_state.value.isScanning) return
+        _state.value = _state.value.copy(
+            isScanning = true,
+            discovered = emptyList(),
+            failure = null,
+            scanError = null
+        )
+        scanJob = viewModelScope.launch {
+            scanner.scan(identifier).catch { cause ->
+                _state.value = _state.value.copy(
+                    isScanning = false,
+                    scanError = (cause as? ScanRejected)?.message
+                        ?: getApplication<Application>().getString(R.string.scale_scan_failed)
+                )
+            }.collect { found ->
+                val known = _state.value.discovered
+                _state.value = _state.value.copy(
+                    // Compatible ones first, then the closest: the order in which one
+                    // looks around for one's own scale.
+                    discovered = (known.filterNot { it.deviceAddress == found.deviceAddress } + found)
+                        .sortedWith(
+                            compareByDescending<DiscoveredScale> { it.isCompatible }
+                                .thenByDescending { it.signalStrengthDbm }
+                        )
+                )
+            }
+        }
+    }
+
+    fun stopScan() {
+        scanJob?.cancel()
+        scanJob = null
+        _state.value = _state.value.copy(isScanning = false)
+    }
+
+    /**
+     * Runs pairing: HUID engraving, then the tare.
+     *
+     * ⚠️ Engraving consumes a flash slot for good, and happens **before** the athlete steps
+     * on. Replaying overwrites the same slot, the HUID never changing.
+     */
+    fun associate(scale: DiscoveredScale, profile: BiaProfile) {
+        // An unrecognised device has no driver: engraving on it would fail silently.
+        if (!scale.isCompatible) return
+        val huid = _state.value.huid ?: return
+        if (_state.value.isPairing) return
+
+        stopScan()
+        _state.value = _state.value.copy(isPairing = true, failure = null, progress = null)
+        viewModelScope.launch {
+            val device = bluetoothDevice(scale.deviceAddress)
+            val model = HuaweiScaleModel.identify(scale.advertisedName)
+            if (device == null || model == null) {
+                _state.value = _state.value.copy(isPairing = false, failure = SessionFailure.DEVICE_NOT_FOUND)
+                return@launch
+            }
+
+            val transport = AndroidGattTransport(getApplication(), device, model.gattProfile)
+            try {
+                HuaweiPairingSession(transport, model).run(
+                    deviceAddress = scale.deviceAddress,
+                    advertisedName = scale.advertisedName,
+                    huid = huid,
+                    profile = ScaleUserProfile(profile, lastWeightKg = lastKnownWeightKg())
+                ).collect { state ->
+                    when (state) {
+                        is PairingState.Progress -> _state.value = _state.value.copy(
+                            pairingStep = state.index to state.totalSteps,
+                            pairingInstructions = state.instructions
+                        )
+                        is PairingState.Failed -> _state.value = _state.value.copy(
+                            failure = state.reason,
+                            pairingStep = null,
+                            pairingInstructions = emptyList()
+                        )
+                        is PairingState.Completed -> {
+                            scaleAssociationDao
+                                .upsert(state.association.toEntity(System.currentTimeMillis()))
+                            _state.value = _state.value.copy(
+                                discovered = emptyList(),
+                                pairingStep = null,
+                                pairingInstructions = emptyList()
+                            )
+                            state.validation?.let { handle(WeighInState.Completed(it), scale.deviceAddress) }
+                        }
+                    }
+                }
+            } finally {
+                transport.close()
+                _state.value = _state.value.copy(isPairing = false)
+            }
+        }
+    }
+
+    /** Clears what the last weigh-in left on screen, once the athlete has read it. */
+    fun clearWeighInFeedback() {
+        _state.value = _state.value.copy(failure = null, weightAwaitingBodyFat = null, progress = null)
+    }
+
+    /** Forgets one scale by address, the others staying paired. */
+    fun forgetScale(deviceAddress: String) {
+        viewModelScope.launch {
+            scaleAssociationDao.forget(deviceAddress)
+            _state.value = _state.value.copy(progress = null)
+        }
+    }
+
+    /** Runs a weigh-in on one paired scale, and stores its reading. */
+    fun weighIn(deviceAddress: String, profile: BiaProfile) {
+        val association = _state.value.associations.firstOrNull { it.deviceAddress == deviceAddress } ?: return
+        val huid = _state.value.huid ?: return
+        if (_state.value.isWeighing) return
+
+        stopScan()
+        _state.value = _state.value.copy(
+            isWeighing = true,
+            failure = null,
+            progress = null,
+            weightAwaitingBodyFat = null
+        )
+        viewModelScope.launch {
+            val device = bluetoothDevice(association.deviceAddress)
+            if (device == null) {
+                _state.value = _state.value.copy(isWeighing = false, failure = SessionFailure.DEVICE_NOT_FOUND)
+                return@launch
+            }
+
+            val model = HuaweiScaleModel.identify(association.advertisedName)
+            if (model == null) {
+                _state.value = _state.value.copy(isWeighing = false, failure = SessionFailure.DEVICE_ERROR)
+                return@launch
+            }
+            val transport = AndroidGattTransport(getApplication(), device, model.gattProfile)
+            try {
+                HuaweiWeighInSession(transport, model).run(
+                    association = association,
+                    huid = huid,
+                    profile = ScaleUserProfile(profile, lastWeightKg = lastKnownWeightKg())
+                ).collect { state -> handle(state, association.deviceAddress) }
+            } finally {
+                transport.close()
+                _state.value = _state.value.copy(isWeighing = false)
+            }
+        }
+    }
+
+    private suspend fun handle(state: WeighInState, deviceAddress: String) {
+        when (state) {
+            is WeighInState.Progress -> _state.value = _state.value.copy(progress = state)
+            is WeighInState.LiveWeight -> Unit
+            is WeighInState.Failed -> _state.value = _state.value.copy(failure = state.reason, progress = null)
+            is WeighInState.Completed -> {
+                val telemetry = state.telemetry
+                val measuredAt = telemetry.measuredAt
+                    ?.atZone(ZoneId.systemDefault())?.toInstant()
+                    ?: Instant.now()
+
+                // A weigh-in without BIA — shoes left on, incomplete contact — yields a mass
+                // and nothing else: it is announced rather than swallowed.
+                val bodyFat = telemetry.bodyFatPercentage
+                if (bodyFat == null) {
+                    _state.value = _state.value.copy(
+                        weightAwaitingBodyFat = telemetry.massKg,
+                        progress = null
+                    )
+                    return
+                }
+
+                val log = BodyLog(
+                    id = UUID.randomUUID().toString(),
+                    dateIso = measuredAt.atZone(ZoneId.systemDefault()).toLocalDate().toString(),
+                    measuredAtEpochMs = measuredAt.toEpochMilli(),
+                    massKg = telemetry.massKg,
+                    bodyFatPercentage = bodyFat,
+                    rawImpedances = telemetry.rawImpedances,
+                    restingHeartRateBpm = telemetry.heartRateBpm
+                )
+                bodyLogDao.save(log.toEntity(deviceAddress), log.impedanceRows())
+                _state.value = _state.value.copy(lastLog = log, progress = null)
+            }
+        }
+    }
+
+    /**
+     * The best known weight to announce, which the scale uses to frame its measurement.
+     *
+     * Last reading first, pairing tare next; failing both, nothing is announced rather than
+     * an invented figure.
+     */
+    private fun lastKnownWeightKg(): Double? =
+        _state.value.lastLog?.massKg
+            ?: _state.value.associations.firstOrNull()?.tareKg?.takeIf { it > 0.0 }
+
+    private fun bluetoothDevice(address: String) = runCatching {
+        getApplication<Application>()
+            .getSystemService(android.bluetooth.BluetoothManager::class.java)
+            ?.adapter
+            ?.getRemoteDevice(address)
+    }.getOrNull()
+}

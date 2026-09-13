@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">BodyForger</string>
+    <string name="tile_name">Actions Rapides BodyForger</string>
+    <string name="tile_description">Démarrer une séance active ou lancer une pesée BIA en Bluetooth</string>
+    <string name="tile_header">BODYFORGER</string>
+    <string name="tile_status_ready">Prêt pour l\'entraînement</string>
+    <string name="action_start_workout">Lancer Séance</string>
+    <string name="action_start_weigh_in">Pesée BIA</string>
+
+    <string name="weigh_in_title">PESÉE BIA</string>
+    <string name="weigh_in_state_scanning">Recherche balance…</string>
+    <string name="weigh_in_state_authenticating">Négociation GATT…</string>
+    <string name="weigh_in_state_step_on">Montez sur le plateau</string>
+    <string name="weigh_in_state_measuring">Mesure 50 + 250 kHz…</string>
+    <string name="weigh_in_state_completed">Pesée enregistrée !</string>
+
+    <string name="workout_title">SÉANCE ACTIVE</string>
+    <string name="btn_validate_set">VALIDER SÉRIE</string>
+    <string name="btn_skip_rest">PASSER</string>
+    <string name="label_rest">REPOS</string>
+    <string name="label_set">SÉRIE</string>
+    <string name="btn_finish_workout">TERMINER</string>
+    <string name="btn_back_to_menu">RETOUR AU MENU</string>
+</resources>
