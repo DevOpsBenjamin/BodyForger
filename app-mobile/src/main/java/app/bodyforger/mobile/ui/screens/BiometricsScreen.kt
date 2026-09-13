@@ -274,7 +274,7 @@ fun SegmentalRow(label: String, value: String, percentage: String, isLast: Boole
     ) {
         Column {
             Text(text = label, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            Text(text = "$percentage de la masse musculaire", color = TextMuted, fontSize = 11.sp)
+            Text(text = stringResource(R.string.bio_segment_share, percentage), color = TextMuted, fontSize = 11.sp)
         }
         Text(text = value, color = ElectricCyan, fontSize = 15.sp, fontWeight = FontWeight.Bold)
     }

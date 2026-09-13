@@ -187,7 +187,7 @@ fun PlannerRoutineCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${routine.exercises.size} exercices • ~${routine.exercises.size * 10} min",
+                    text = stringResource(R.string.routine_summary, routine.exercises.size, routine.exercises.size * 10),
                     color = TextSecondary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium

@@ -37,7 +37,7 @@ internal fun Pairing(state: ScaleUiState) {
         }
         state.pairingStep?.let { (index, total) ->
             Text(
-                "Étape ${index + 1} sur $total",
+                stringResource(R.string.scale_step_of, index + 1, total),
                 color = ElectricCyan,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 10.dp)
@@ -83,7 +83,7 @@ internal fun AssociatedScale(
 
         state.progress?.let { progress ->
             Text(
-                "Étape ${progress.index + 1} sur ${progress.totalSteps}",
+                stringResource(R.string.scale_step_of, progress.index + 1, progress.totalSteps),
                 color = ElectricCyan,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 12.dp)

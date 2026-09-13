@@ -85,7 +85,7 @@ fun ScaleSettingsSection(
             Card {
                 Text(stringResource(R.string.scale_last_weigh_in), color = TextSecondary, fontSize = 11.sp)
                 Text(
-                    "%.2f kg · %.1f %% de masse grasse".format(log.massKg, log.bodyFatPercentage),
+                    stringResource(R.string.scale_mass_and_fat, log.massKg, log.bodyFatPercentage),
                     color = TextPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold

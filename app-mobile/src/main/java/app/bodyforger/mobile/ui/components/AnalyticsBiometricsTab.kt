@@ -250,7 +250,7 @@ private fun SegmentalAnalyticsRow(label: String, value: String, percentage: Stri
     ) {
         Column {
             Text(text = label, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            Text(text = "$percentage de la masse musculaire", color = TextMuted, fontSize = 10.sp)
+            Text(text = stringResource(R.string.bio_segment_share, percentage), color = TextMuted, fontSize = 10.sp)
         }
         Text(text = value, color = ElectricCyan, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
