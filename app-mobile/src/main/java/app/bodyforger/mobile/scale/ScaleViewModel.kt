@@ -176,7 +176,7 @@ class ScaleViewModel(
 
     /** Clears what the last weigh-in left on screen, once the athlete has read it. */
     fun clearWeighInFeedback() {
-        _state.value = _state.value.copy(failure = null, weightAwaitingBodyFat = null, progress = null)
+        _state.value = _state.value.copy(failure = null, massOnlyReadingKg = null, progress = null)
     }
 
     /** Forgets one scale by address, the others staying paired. */
@@ -198,7 +198,7 @@ class ScaleViewModel(
             isWeighing = true,
             failure = null,
             progress = null,
-            weightAwaitingBodyFat = null
+            massOnlyReadingKg = null
         )
         viewModelScope.launch {
             val device = bluetoothDevice(association.deviceAddress)
@@ -237,28 +237,25 @@ class ScaleViewModel(
                     ?.atZone(ZoneId.systemDefault())?.toInstant()
                     ?: Instant.now()
 
-                // A weigh-in without BIA — shoes left on, incomplete contact — yields a mass
-                // and nothing else: it is announced rather than swallowed.
-                val bodyFat = telemetry.bodyFatPercentage
-                if (bodyFat == null) {
-                    _state.value = _state.value.copy(
-                        weightAwaitingBodyFat = telemetry.massKg,
-                        progress = null
-                    )
-                    return
-                }
-
+                // A weigh-in without BIA — the handle left in its cradle — yields a mass and
+                // nothing else. That mass is a real measurement and is kept: the percentage is
+                // absent, which the weight chart does not care about and the composition
+                // screen reads as "not measured".
                 val log = BodyLog(
                     id = UUID.randomUUID().toString(),
                     dateIso = measuredAt.atZone(ZoneId.systemDefault()).toLocalDate().toString(),
                     measuredAtEpochMs = measuredAt.toEpochMilli(),
                     massKg = telemetry.massKg,
-                    bodyFatPercentage = bodyFat,
+                    bodyFatPercentage = telemetry.bodyFatPercentage,
                     rawImpedances = telemetry.rawImpedances,
                     restingHeartRateBpm = telemetry.heartRateBpm
                 )
                 bodyLogDao.save(log.toEntity(deviceAddress), log.impedanceRows())
-                _state.value = _state.value.copy(lastLog = log, progress = null)
+                _state.value = _state.value.copy(
+                    lastLog = log,
+                    massOnlyReadingKg = log.massKg.takeIf { log.bodyFatPercentage == null },
+                    progress = null
+                )
             }
         }
     }

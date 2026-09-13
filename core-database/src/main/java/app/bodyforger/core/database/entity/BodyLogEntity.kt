@@ -24,7 +24,8 @@ data class BodyLogEntity(
     val dateIso: String,
     val measuredAtEpochMs: Long,
     val massKg: Double,
-    val bodyFatPercentage: Double,
+    /** Absent when the scale weighed without measuring composition. */
+    val bodyFatPercentage: Double?,
     val restingHeartRateBpm: Int?,
     /** Address of the scale that produced this reading, or `null` for a manual entry. */
     val sourceDeviceAddress: String? = null

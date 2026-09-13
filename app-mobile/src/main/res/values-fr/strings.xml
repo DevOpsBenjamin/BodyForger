@@ -331,7 +331,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="scale_weigh_in_interrupted">Pesée interrompue</string>
     <string name="scale_search_failed">Recherche impossible</string>
     <string name="scale_mass_only_title">Pesée relevée, sans composition</string>
-    <string name="scale_mass_only_body">La balance n\'a pas relevé d\'impédance — la poignée n\'a pas été saisie. Le relevé attend une saisie du taux de masse grasse avant d\'être conservé.</string>
+    <string name="scale_mass_only_body">La balance n\'a pas relevé d\'impédance — la poignée n\'a pas été saisie. La masse est conservée ; la composition corporelle est simplement absente pour ce relevé.</string>
     <string name="scale_last_weigh_in">Dernière pesée</string>
     <string name="scale_resistances_kept">%1$d résistances relevées et conservées</string>
     <string name="scale_no_impedance">Aucune impédance : masse seule</string>
@@ -494,4 +494,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="scale_mass_and_fat">%1$.2f kg · %2$.1f %% de masse grasse</string>
     <string name="scale_step_of">Étape %1$d sur %2$d</string>
     <string name="home_month_delta_placeholder">-0.4 kg ce mois</string>
+    <string name="scale_mass_only_line">%1$.2f kg · masse grasse non mesurée</string>
+    <string name="bio_body_fat_absent">—</string>
 </resources>
