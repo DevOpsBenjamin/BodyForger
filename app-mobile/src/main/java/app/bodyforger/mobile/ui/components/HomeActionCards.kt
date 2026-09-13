@@ -73,7 +73,11 @@ fun HomeActionCards(
             shape = RoundedCornerShape(18.dp)
         ) {
             Column(
-                modifier = Modifier.padding(14.dp),
+                // Filling the height is what gives SpaceBetween something to spread: without
+                // it the column wraps its content and the button floats wherever the text ends.
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(14.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
@@ -153,7 +157,11 @@ fun HomeActionCards(
             shape = RoundedCornerShape(18.dp)
         ) {
             Column(
-                modifier = Modifier.padding(14.dp),
+                // Filling the height is what gives SpaceBetween something to spread: without
+                // it the column wraps its content and the button floats wherever the text ends.
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(14.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
