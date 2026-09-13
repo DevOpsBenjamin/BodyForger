@@ -1,8 +1,8 @@
 name: Android & Wear OS CI
 
+# Pull requests only. A merge into main builds nothing: what main produces is a
+# release, and that is driven by a tag or a version bump — see release.yml.
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -32,17 +32,7 @@ jobs:
       - name: Run Unit Tests
         run: ./gradlew test --stacktrace
 
+      # Nothing is uploaded: the point is that it compiles. Installable APKs
+      # belong to a release, and the app is run from Android Studio anyway.
       - name: Build Debug APKs (Mobile & Wear OS)
         run: ./gradlew assembleDebug --stacktrace
-
-      - name: Upload Mobile APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-mobile-debug
-          path: app-mobile/build/outputs/apk/debug/*.apk
-
-      - name: Upload Wear OS APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-wear-debug
-          path: app-wear/build/outputs/apk/debug/*.apk
