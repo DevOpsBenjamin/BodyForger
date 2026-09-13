@@ -18,7 +18,7 @@
 
 **BodyForger** is a personal, open-source fitness and body tracking project under active development (**WIP**). It's a native dual-app ecosystem (**Android APK + Wear OS Native**) that brings together two things I previously tracked in separate places:
 
-1. **Workouts** — routines, a 1,300+ exercise library and advanced set mechanics (drop-sets, rest-pause, 1RM), building on **[openGym](https://gitlab.com/DuarteSantos8/opengym)**.
+1. **Workouts** — routines, a built-in exercise catalogue and advanced set mechanics (drop-sets, rest-pause, 1RM), building on **[openGym](https://gitlab.com/DuarteSantos8/opengym)**. BodyForger currently seeds 124 exercises of its own; importing openGym's 1,300+ library is planned, not done.
 2. **Body composition** — DEXA-calibrated BIA modelling, BLE smart scales and tape measurements, carried over from **[SimpleBodyGraph](https://github.com/DevOpsBenjamin/SimpleBodyGraph)**, a small earlier app of mine that only did scale tracking. For a mature, broadly supported take on that half, see **[openScale](https://github.com/oliexdev/openScale)**.
 
 ### Why this project?

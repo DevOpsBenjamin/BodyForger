@@ -33,4 +33,4 @@ serviceAccountKey*.json
 
 # Fichier de confort local : lien vers AGENTS.md, qui est la source suivie
 CLAUDE.md
-forgefit-private/
+forgefit-private

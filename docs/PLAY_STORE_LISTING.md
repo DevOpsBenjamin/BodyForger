@@ -38,9 +38,9 @@ Connect directly to smart scales via Bluetooth Low Energy (BLE):
 • Segmental muscle and body fat tracking calibrated against DEXA reference models
 • Progress tracked against median trends rather than noisy single weigh-ins
 
-3. EXTENSIVE 1,300+ EXERCISE CATALOGUE
+3. BUILT-IN EXERCISE CATALOGUE
 Built on the openGym exercise database:
-• 1,300+ exercises with execution instructions and animations
+• A curated exercise catalogue, searchable by muscle group and equipment
 • Full support for advanced set types: Drop sets, Rest-Pause, Myo-reps, Warm-up, and RPE
 • Automatic 1RM estimation (Epley / Brzycki models)
 • Muscle heatmap and weekly working volume balance
