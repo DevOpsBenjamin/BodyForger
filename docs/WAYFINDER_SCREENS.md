@@ -43,7 +43,7 @@ flowchart TD
     BIAHub -->|Manage goal| BodyGoalEditor[Milestone editor & 7-day trend]
 
     %% --- TAB 4: CATALOGUE ---
-    TabCatalog --> CatalogListView[1,300+ exercise list]
+    TabCatalog --> CatalogListView[Exercise list]
     CatalogListView -->|Filter / search| CatalogListView
     CatalogListView -->|Tap exercise| ExerciseDetailView[Exercise detail sheet]
     ExerciseDetailView -->|Calculate| OneRMCalculator[Epley/Brzycki 1RM calculator]
@@ -87,7 +87,7 @@ flowchart TD
 | **`RoutineEditorScreen`** | Creating and editing session templates (split, PPL, upper/lower). | `Routine?` (when editing). | `onAddExercise()`, `onReorderExercises()`, `onSaveRoutine()`. |
 | **`ExerciseDetailScreen`** | Execution guide, primary/secondary target muscles, 1RM history. | `exerciseId: String`. | `onAddToCurrentWorkout()`, `onCalculate1RM()`. |
 | **`BiometricsScreen`** | Clinical body-composition analysis and BLE weigh-in. | `BiaProfile`, `List<BodyLog>`. | `onTriggerBLEScan()`, `onUpdateGoal()`, `onExportHealthConnect()`. |
-| **`CatalogScreen`** | Explorer for the 1,300+ openGym exercises, with instant search. | `SearchFilter(muscle, equipment)`. | `onSelectExercise()`, `onApplyFilter()`. |
+| **`CatalogScreen`** | Explorer for the exercise catalogue, with instant search. | `SearchFilter(muscle, equipment)`. | `onSelectExercise()`, `onApplyFilter()`. |
 
 ---
 
