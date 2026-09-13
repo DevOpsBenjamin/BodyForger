@@ -25,6 +25,7 @@ import app.bodyforger.mobile.ui.screens.PlannerScreen
 import app.bodyforger.mobile.ui.screens.ProfileScreen
 import app.bodyforger.mobile.ui.screens.RoutineEditorScreen
 import app.bodyforger.mobile.ui.screens.SettingsScreen
+import app.bodyforger.mobile.ui.screens.SetupFlowScreen
 import app.bodyforger.mobile.ui.screens.WorkoutScreen
 import app.bodyforger.mobile.ui.screens.toRoutineExercise
 import app.bodyforger.mobile.ui.text.displayName
@@ -40,6 +41,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun BodyForgerNavHost(
     navController: NavHostController,
+    /** Called when the setup flow is gone through or dropped; both record the same thing. */
+    onSetupFinished: () -> Unit,
     modifier: Modifier = Modifier,
     library: LibraryViewModel = koinViewModel(),
     workout: LiveWorkoutViewModel = koinViewModel(),
@@ -107,6 +110,10 @@ fun BodyForgerNavHost(
                 onBack = navController::navigateUp,
                 expandScale = entry.toRoute<Destination.Settings>().expandScale
             )
+        }
+
+        composable<Destination.Setup> {
+            SetupFlowScreen(onFinish = onSetupFinished)
         }
 
         composable<Destination.RoutineEditor> {

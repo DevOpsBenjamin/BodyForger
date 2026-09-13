@@ -1,5 +1,6 @@
 package app.bodyforger.mobile.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,15 +19,19 @@ import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.TextMuted
 
 /**
- * Playing the first-run guidance again.
+ * Playing the first-run guidance again — the screen tour, the setup questions, or both.
  *
- * The tour never re-offers itself once it has been answered — finished or skipped are the
- * same answer — so this is the only way back to it. Someone who skipped it on the first
- * evening and wants it a week later has nowhere else to ask.
+ * Neither re-offers itself once it has been answered, and skipping counts as answering, so
+ * this is the only way back to them. Someone who skipped the tour on the first evening and
+ * wants it a week later has nowhere else to ask.
+ *
+ * They are replayed apart because they are recorded apart: coming back for the tour is no
+ * reason to be asked again for a name and a pair of units already given.
  */
 @Composable
 fun OnboardingSettingsSection(
     onReplayTour: () -> Unit,
+    onReplaySetup: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -36,17 +41,21 @@ fun OnboardingSettingsSection(
             fontSize = 12.sp,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-        OutlinedButton(
-            onClick = onReplayTour,
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonLime),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = stringResource(R.string.settings_onboarding_replay_tour),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        ReplayButton(R.string.settings_onboarding_replay_tour, onReplayTour)
+        ReplayButton(R.string.settings_onboarding_replay_setup, onReplaySetup)
+    }
+}
+
+@Composable
+private fun ReplayButton(@StringRes labelRes: Int, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = NeonLime),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+    ) {
+        Text(text = stringResource(labelRes), fontSize = 13.sp, fontWeight = FontWeight.Bold)
     }
 }

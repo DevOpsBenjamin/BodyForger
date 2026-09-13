@@ -536,15 +536,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="goals_dialog_horizon_must_be_future">A horizon lies ahead — pick a date still to come</string>
     <string name="analytics_volume_no_plan">No routine assigned this week — the planner decides what this measures against.</string>
     <string name="bio_segmental_unavailable">This reading did not measure the limbs — eight electrodes are needed, which means gripping the handle.</string>
-    <!-- Setup guide -->
-    <string name="setup_guide_title">GETTING STARTED</string>
-    <string name="setup_guide_progress">%1$d of %2$d done</string>
-    <string name="setup_step_profile">Measurement profile</string>
-    <string name="setup_step_profile_why">Sex, birth date and height. The scale computes its own figures from these, so nothing can be weighed without them.</string>
-    <string name="setup_step_scale">Pair your scale</string>
-    <string name="setup_step_scale_why">Engraves your profile into the scale and reads the tare. It takes a calibration weigh-in.</string>
-    <string name="setup_step_goal">Set a first goal</string>
-    <string name="setup_step_goal_why">Optional. It gives the first weeks a direction, and fills the chart while the history is too short for a trend.</string>
     <!-- Screen tour -->
     <string name="tour_home_title">Home</string>
     <string name="tour_home_body">Your body at a glance: the last weigh-in, where the composition is heading, and the button to weigh yourself.</string>
@@ -561,6 +552,23 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="tour_skip">Skip the tour</string>
     <string name="settings_onboarding">Getting started</string>
     <string name="settings_onboarding_summary">Replay the guidance</string>
-    <string name="settings_onboarding_tour_why">The tour is offered once, on a fresh install, and never insists again — whether you went through it or skipped it.</string>
+    <string name="settings_onboarding_tour_why">The tour and the setup questions are offered once, on a fresh install, and never insist again — whether you went through them or skipped them.</string>
     <string name="settings_onboarding_replay_tour">Replay the screen tour</string>
+    <!-- Setup flow -->
+    <string name="setup_units_title">Kilograms, or pounds?</string>
+    <string name="setup_units_why">This comes first because everything asked for below is written in it — a height typed before you said inches is a height in the wrong unit. Kilograms and centimetres unless you say otherwise.</string>
+    <string name="setup_name_title">How should the app call you?</string>
+    <string name="setup_name_why">A first name is enough, and nothing is checked against it. It stays on this phone.</string>
+    <string name="setup_profile_title">Your measurement profile</string>
+    <string name="setup_profile_why">Sex, birth date and height. A scale does not measure a body fat percentage — it computes one from these, so nothing can be weighed until they are filled.</string>
+    <string name="setup_scale_title">Do you have a Bluetooth scale?</string>
+    <string name="setup_scale_why">Only for someone who owns one. Pairing engraves your profile into the scale and reads its tare, and it takes a calibration weigh-in — so if the scale is in another room, skip this and come back to it from Settings.</string>
+    <string name="setup_goals_title">Where are you heading?</string>
+    <string name="setup_goals_why">Worth doing: a goal gives the first weeks a direction, and holds the chart while the history is too short for a trend. Several milestones read better than one far-off number — the next kilogram tells you more about this month than the last one does.</string>
+    <string name="setup_continue">Continue</string>
+    <string name="setup_finish">Done</string>
+    <string name="setup_skip_step">Skip this step</string>
+    <string name="setup_no_scale">I have no scale to pair</string>
+    <string name="setup_skip_all">Skip the whole setup</string>
+    <string name="settings_onboarding_replay_setup">Go through the setup again</string>
 </resources>

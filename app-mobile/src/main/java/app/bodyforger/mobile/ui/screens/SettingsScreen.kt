@@ -48,8 +48,6 @@ import app.bodyforger.mobile.ui.components.OnboardingSettingsSection
 import app.bodyforger.mobile.ui.components.ScaleSettingsSection
 import app.bodyforger.mobile.ui.components.SectionStatus
 import app.bodyforger.mobile.ui.components.SettingsSection
-import app.bodyforger.mobile.ui.components.SetupGuide
-import app.bodyforger.mobile.ui.components.SetupStep
 import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.Obsidian
 import app.bodyforger.mobile.ui.theme.TextPrimary
@@ -116,35 +114,6 @@ fun SettingsScreen(
             .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)
     ) {
         Header(onBack, huid = state.huid)
-
-        // Ordered by what unblocks what, not by importance of taste: the profile gates
-        // weighing, pairing needs the profile, a goal needs a weigh-in to be read against.
-        SetupGuide(
-            steps = listOf(
-                SetupStep(
-                    titleRes = R.string.setup_step_profile,
-                    reasonRes = R.string.setup_step_profile_why,
-                    isDone = profile.isComplete,
-                    blocking = true,
-                    onOpen = { openSection = Section.BIA }
-                ),
-                SetupStep(
-                    titleRes = R.string.setup_step_scale,
-                    reasonRes = R.string.setup_step_scale_why,
-                    isDone = state.isAssociated,
-                    blocking = true,
-                    onOpen = { openSection = Section.SCALE }
-                ),
-                SetupStep(
-                    titleRes = R.string.setup_step_goal,
-                    reasonRes = R.string.setup_step_goal_why,
-                    isDone = goalStandings.isNotEmpty(),
-                    blocking = false,
-                    onOpen = { openSection = Section.GOALS }
-                )
-            ),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
 
         SettingsSection(
             title = stringResource(R.string.settings_athlete),
@@ -272,7 +241,10 @@ fun SettingsScreen(
         ) {
             // Replaying leaves the screen: the tour starts on Home and drives its own way
             // through the tabs.
-            OnboardingSettingsSection(onReplayTour = onboardingViewModel::replayTour)
+            OnboardingSettingsSection(
+                onReplayTour = onboardingViewModel::replayTour,
+                onReplaySetup = onboardingViewModel::replaySetup
+            )
         }
     }
 

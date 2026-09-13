@@ -60,6 +60,7 @@ fun BodyForgerApp(
     val currentTab = currentDestination?.destination.currentTab()
 
     val tourDue by onboarding.tourDue.collectAsState()
+    val setupDue by onboarding.setupDue.collectAsState()
     var tourStop by remember { mutableStateOf(TourStop.entries.first()) }
 
     // A replay asked for from Settings arrives as the tour falling due again; it has to start
@@ -74,6 +75,13 @@ fun BodyForgerApp(
         if (tourDue == true) {
             tourStop.tab?.let(navController::switchTab) ?: navController.navigate(tourStop.destination)
         }
+    }
+
+    // The tour comes first, then the questions: being shown the screens is what makes the
+    // questions about them mean something. Both are waited for rather than assumed — a null
+    // is the settings row not read yet, and neither should flash by while it loads.
+    LaunchedEffect(tourDue, setupDue) {
+        if (tourDue == false && setupDue == true) navController.navigate(Destination.Setup)
     }
 
     val interruptedSession by workout.resumable.collectAsState()
@@ -138,6 +146,10 @@ fun BodyForgerApp(
     ) { innerPadding ->
         BodyForgerNavHost(
             navController = navController,
+            onSetupFinished = {
+                onboarding.markSetupDone()
+                navController.switchTab(Tab.HOME)
+            },
             workout = workout,
             modifier = Modifier.padding(innerPadding)
         )
