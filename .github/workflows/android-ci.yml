@@ -7,6 +7,13 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# A new push supersedes the run still going for the same branch. Without this, every commit
+# pushed to an open pull request starts an eleven-minute Android build, and the ones it
+# replaced keep going to tell us about code that no longer exists.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     name: Build APKs & Run Tests

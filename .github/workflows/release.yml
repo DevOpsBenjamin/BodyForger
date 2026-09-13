@@ -21,6 +21,12 @@ on:
 permissions:
   contents: write   # create the release and its tag
 
+# Releases queue rather than cancel: a publication interrupted halfway leaves a tag with
+# no APKs attached, which is worse than waiting.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Build & Publish Release
