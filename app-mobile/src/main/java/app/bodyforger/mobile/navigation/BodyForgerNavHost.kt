@@ -16,6 +16,7 @@ import app.bodyforger.core.model.Routine
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.library.LibraryViewModel
 import app.bodyforger.mobile.library.RoutineDraftViewModel
+import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.ui.screens.AnalyticsScreen
 import app.bodyforger.mobile.ui.screens.CatalogScreen
 import app.bodyforger.mobile.ui.screens.CreateExerciseScreen
@@ -42,12 +43,14 @@ fun BodyForgerNavHost(
     modifier: Modifier = Modifier,
     library: LibraryViewModel = koinViewModel(),
     workout: LiveWorkoutViewModel = koinViewModel(),
-    routineDraft: RoutineDraftViewModel = koinViewModel()
+    routineDraft: RoutineDraftViewModel = koinViewModel(),
+    appSettings: AppSettingsViewModel = koinViewModel()
 ) {
     val routines by library.routines.collectAsState()
     val exercises by library.exercises.collectAsState()
     val freeSessionTitle = stringResource(R.string.workout_live_free_session_title)
     val context = LocalContext.current
+    val defaultWeightUnit by appSettings.defaultWeightUnit.collectAsState()
 
     NavHost(
         navController = navController,
@@ -167,7 +170,7 @@ fun BodyForgerNavHost(
 
         composable<Destination.AddToRoutine> {
             ExercisePicker(navController, exercises) { chosen ->
-                routineDraft.addExercise(chosen.toRoutineExercise(routineDraft.draftId(), chosen.displayName(context)))
+                routineDraft.addExercise(chosen.toRoutineExercise(routineDraft.draftId(), chosen.displayName(context), defaultWeightUnit))
             }
         }
 
@@ -175,7 +178,7 @@ fun BodyForgerNavHost(
             val index = entry.toRoute<Destination.ReplaceInRoutine>().index
             ExercisePicker(navController, exercises) { chosen ->
                 routineDraft.addExercise(
-                    chosen.toRoutineExercise(routineDraft.draftId(), chosen.displayName(context)),
+                    chosen.toRoutineExercise(routineDraft.draftId(), chosen.displayName(context), defaultWeightUnit),
                     replacing = index
                 )
             }
@@ -184,14 +187,22 @@ fun BodyForgerNavHost(
         // An exercise added mid-session joins no routine.
         composable<Destination.AddToWorkout> {
             ExercisePicker(navController, exercises) { chosen ->
-                workout.addExercise(chosen.toRoutineExercise(routineId = "", displayName = chosen.displayName(context)))
+                workout.addExercise(chosen.toRoutineExercise(
+                        routineId = "",
+                        displayName = chosen.displayName(context),
+                        weightUnit = defaultWeightUnit
+                    ))
             }
         }
 
         composable<Destination.ReplaceInWorkout> { entry ->
             val index = entry.toRoute<Destination.ReplaceInWorkout>().index
             ExercisePicker(navController, exercises) { chosen ->
-                workout.replaceExercise(index, chosen.toRoutineExercise(routineId = "", displayName = chosen.displayName(context)))
+                workout.replaceExercise(index, chosen.toRoutineExercise(
+                        routineId = "",
+                        displayName = chosen.displayName(context),
+                        weightUnit = defaultWeightUnit
+                    ))
             }
         }
     }

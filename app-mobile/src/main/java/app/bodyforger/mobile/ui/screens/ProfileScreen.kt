@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.profile.AthleteProfileViewModel
 import app.bodyforger.mobile.stats.TrainingStats
 import app.bodyforger.mobile.ui.components.ActivityHeatmapCard
 import app.bodyforger.mobile.ui.components.HistoryWorkoutCard
@@ -68,10 +69,12 @@ data class HistoryWorkoutItem(
 @Composable
 fun ProfileScreen(
     onOpenSettings: () -> Unit = {},
-    library: LibraryViewModel = koinViewModel()
+    library: LibraryViewModel = koinViewModel(),
+    profileViewModel: AthleteProfileViewModel = koinViewModel()
 ) {
     val scrollState = rememberScrollState()
     val sessions by library.completedSessions.collectAsState()
+    val profile by profileViewModel.profile.collectAsState()
 
     val workoutHistory = remember(sessions) { sessions.map { it.toHistoryItem() } }
 
@@ -109,7 +112,8 @@ fun ProfileScreen(
 
                 Column {
                     Text(
-                        text = stringResource(R.string.profile_name_placeholder),
+                        text = profile.name?.takeIf { it.isNotBlank() }
+                            ?: stringResource(R.string.settings_athlete_anonymous),
                         color = TextPrimary,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Black,

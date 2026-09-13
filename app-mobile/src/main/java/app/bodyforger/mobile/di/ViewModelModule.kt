@@ -3,7 +3,7 @@ package app.bodyforger.mobile.di
 import app.bodyforger.mobile.library.LibraryViewModel
 import app.bodyforger.mobile.library.RoutineDraftViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
-import app.bodyforger.mobile.profile.BiaEngineViewModel
+import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.profile.BiometricsViewModel
 import app.bodyforger.mobile.scale.ScaleViewModel
 import app.bodyforger.mobile.workout.LiveWorkoutViewModel
@@ -24,7 +24,7 @@ val viewModelModule = module {
     viewModel { RoutineDraftViewModel() }
     viewModel { AthleteProfileViewModel(identityDao = get()) }
     viewModel { BiometricsViewModel(bodyLogDao = get(), identityDao = get(), appSettingsDao = get()) }
-    viewModel { BiaEngineViewModel(appSettingsDao = get()) }
+    viewModel { AppSettingsViewModel(appSettingsDao = get()) }
     viewModel {
         ScaleViewModel(
             application = androidApplication(),

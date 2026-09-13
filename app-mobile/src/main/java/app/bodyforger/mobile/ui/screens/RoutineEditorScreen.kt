@@ -233,13 +233,17 @@ fun RoutineEditorScreen(
 }
 
 /**
+ * [weightUnit] is the athlete's default at the moment of the pick, copied onto the exercise so
+ * it can be changed there afterwards without touching the setting or anything already logged.
+ *
  * [displayName] is the name the athlete was reading when they picked the exercise, and it is
  * what gets stored: a routine and a logged set keep that wording, they do not follow a later
  * change of locale. `exerciseId` is kept alongside for anything that needs the catalogue entry.
  */
 fun Exercise.toRoutineExercise(
     routineId: String = "",
-    displayName: String = name
+    displayName: String = name,
+    weightUnit: WeightUnit = WeightUnit.KG
 ): RoutineExercise = RoutineExercise(
     id = UUID.randomUUID().toString(),
     routineId = routineId,
@@ -249,7 +253,7 @@ fun Exercise.toRoutineExercise(
     primaryMuscle = primaryMuscleGroup,
     equipment = equipment,
     isUnilateral = isUnilateral,
-    weightUnit = WeightUnit.KG,
+    weightUnit = weightUnit,
     orderIndex = 0,
     restTimeSeconds = 90,
     notes = "",
