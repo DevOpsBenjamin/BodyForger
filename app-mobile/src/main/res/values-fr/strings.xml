@@ -352,12 +352,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="bio_empty_no_profile">Renseignez d\'abord votre profil de mesure, puis pesez-vous.</string>
 
     <!-- Placeholder copy: still hardcoded demo data, not yet wired to real values -->
-    <string name="home_date_placeholder">Vendredi 28 Août 2026</string>
-    <string name="home_next_session_placeholder">PUSH DAY</string>
-    <string name="home_next_session_detail_placeholder">5 exercices • 50 min</string>
-    <string name="home_scale_device_placeholder">Huawei Scale 3 BLE</string>
     <string name="home_median_placeholder">Médiane 7j : 78.6 kg</string>
-    <string name="profile_streak_placeholder">🔥 14 semaines consécutives</string>
 
     <!-- Built-in exercise catalogue: one key per seeded exercise -->
     <string name="ex_hanging_leg_raise">Relevés de Jambes Suspendu</string>
@@ -497,4 +492,14 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="bio_body_fat_absent">—</string>
     <string name="settings_default_unit">UNITÉ DE POIDS PAR DÉFAUT</string>
     <string name="settings_default_unit_hint">S\'applique aux exercices ajoutés à partir de maintenant. Un exercice garde sa propre unité : une machine graduée en livres peut rester en livres. Rien de déjà enregistré n\'est réécrit.</string>
+    <string name="home_rest_day">REPOS</string>
+    <string name="home_rest_day_detail">Aucune routine prévue aujourd\'hui</string>
+    <string name="home_session_exercises">%1$d exercices</string>
+    <string name="home_session_exercises_and_duration">%1$d exercices • ~%2$d min</string>
+    <string name="home_scale_none">Aucune balance associée</string>
+    <plurals name="profile_streak">
+        <item quantity="one">🔥 %1$d semaine consécutive</item>
+        <item quantity="other">🔥 %1$d semaines consécutives</item>
+    </plurals>
+    <string name="profile_streak_none">Aucune série en cours — entraînez-vous cette semaine</string>
 </resources>

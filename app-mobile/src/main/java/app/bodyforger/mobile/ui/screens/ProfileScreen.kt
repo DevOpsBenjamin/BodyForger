@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -75,6 +76,9 @@ fun ProfileScreen(
     val scrollState = rememberScrollState()
     val sessions by library.completedSessions.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
+    val streakWeeks = remember(sessions) {
+        TrainingStats.consecutiveTrainingWeeks(sessions, System.currentTimeMillis())
+    }
 
     val workoutHistory = remember(sessions) { sessions.map { it.toHistoryItem() } }
 
@@ -124,7 +128,13 @@ fun ProfileScreen(
                         modifier = Modifier.padding(top = 2.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.profile_streak_placeholder),
+                            // No streak yet says so and invites one, rather than leaving a hole
+                            // where a line will later appear.
+                            text = if (streakWeeks > 0) {
+                                pluralStringResource(R.plurals.profile_streak, streakWeeks, streakWeeks)
+                            } else {
+                                stringResource(R.string.profile_streak_none)
+                            },
                             color = AmberGold,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
