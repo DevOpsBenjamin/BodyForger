@@ -75,7 +75,8 @@ fun WearHomeScreen(
             Text(
                 text = probe,
                 color = NeonLime,
-                fontSize = 9.sp,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center
             )
 
