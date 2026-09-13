@@ -99,6 +99,11 @@ dependencies {
     implementation(project(":core-healthconnect"))
     implementation(project(":core-sync"))
 
+    // ForgeFit Private (included only when cloned or symlinked in)
+    findProject(":forgefit-private")?.let {
+        runtimeOnly(it)
+    }
+
     // Firebase (Mobile Only)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
