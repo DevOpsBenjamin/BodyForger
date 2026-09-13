@@ -103,7 +103,7 @@ fun AssignRoutineDialog(
                                     fontSize = 13.sp
                                 )
                                 Text(
-                                    text = "${routine.exercises.size} exercices",
+                                    text = stringResource(R.string.routine_exercise_count, routine.exercises.size),
                                     color = TextMuted,
                                     fontSize = 10.sp
                                 )

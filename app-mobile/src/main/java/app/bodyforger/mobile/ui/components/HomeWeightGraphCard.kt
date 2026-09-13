@@ -111,7 +111,7 @@ fun HomeWeightGraphCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "-0.4 kg ce mois",
+                            text = stringResource(R.string.home_month_delta_placeholder),
                             color = ElectricCyan,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
