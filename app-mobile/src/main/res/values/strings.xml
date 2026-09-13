@@ -357,7 +357,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="home_next_session_detail_placeholder">5 exercises • 50 min</string>
     <string name="home_scale_device_placeholder">Huawei Scale 3 BLE</string>
     <string name="home_median_placeholder">7-day median: 78.6 kg</string>
-    <string name="profile_name_placeholder">BENJAMIN D.</string>
     <string name="profile_streak_placeholder">🔥 14 consecutive weeks</string>
 
     <!-- Built-in exercise catalogue: one key per seeded exercise -->
