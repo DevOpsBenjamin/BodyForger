@@ -22,6 +22,8 @@ import app.bodyforger.mobile.navigation.BodyForgerNavHost
 import app.bodyforger.mobile.navigation.Destination
 import app.bodyforger.mobile.navigation.Tab
 import app.bodyforger.mobile.navigation.currentTab
+import app.bodyforger.mobile.navigation.leaveTour
+import app.bodyforger.mobile.navigation.showForTour
 import app.bodyforger.mobile.navigation.switchTab
 import app.bodyforger.mobile.onboarding.OnboardingViewModel
 import app.bodyforger.mobile.onboarding.ScreenTourOverlay
@@ -74,9 +76,7 @@ fun BodyForgerApp(
     // The tour drives the navigation rather than the athlete: each stop moves the app to the
     // screen it is about, and the card is drawn over whatever arrives.
     LaunchedEffect(tourDue, tourStop) {
-        if (tourDue == true) {
-            tourStop.tab?.let(navController::switchTab) ?: navController.navigate(tourStop.destination)
-        }
+        if (tourDue == true) navController.showForTour(tourStop.destination)
     }
 
     // The tour comes first, then the questions: being shown the screens is what makes the
@@ -109,7 +109,7 @@ fun BodyForgerApp(
                     // The last stop is Settings; the tour hands the app back on Home, where it
                     // would have opened had there been no tour.
                     onboarding.markTourSeen()
-                    navController.switchTab(Tab.HOME)
+                    navController.leaveTour()
                 } else {
                     tourStop = next
                 }
@@ -117,7 +117,7 @@ fun BodyForgerApp(
             onPrevious = { tourStop.previous()?.let { tourStop = it } },
             onSkip = {
                 onboarding.markTourSeen()
-                navController.switchTab(Tab.HOME)
+                navController.leaveTour()
             }
         )
     }
