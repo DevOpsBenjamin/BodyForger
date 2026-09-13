@@ -319,14 +319,14 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="summary_segment">Segment %1$d: %2$s</string>
     <string name="share_routine_name">Routine: %1$s</string>
     <!-- Scale -->
-    <string name="scale_pairing_hint">Pairing engraves your profile into the scale\'s memory and requires one calibration weigh-in.</string>
+    <string name="scale_pairing_hint">Pairing writes your profile into the scale and takes one calibration weigh-in.</string>
     <string name="scale_search">Search for a scale</string>
     <string name="scale_searching">Searching…</string>
     <string name="scale_none_found">No device yet. Make sure the scale is within range.</string>
     <string name="scale_other_devices">Other devices detected</string>
     <string name="scale_stop">Stop</string>
     <string name="scale_pairing_in_progress">Pairing in progress</string>
-    <string name="scale_calibration_note">A single calibration weigh-in completes the pairing: without it, the association is not saved.</string>
+    <string name="scale_calibration_note">Without the calibration weigh-in, the pairing is not saved.</string>
     <string name="scale_weigh_in_interrupted">Weigh-in interrupted</string>
     <string name="scale_search_failed">Search unavailable</string>
     <string name="scale_mass_only_title">Weigh-in recorded, without composition</string>
@@ -529,7 +529,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="settings_units_weight">WEIGHT</string>
     <string name="settings_units_height">HEIGHT</string>
     <string name="settings_units_summary">%1$s · %2$s</string>
-    <string name="settings_units_hint">Weight applies to exercises you add from now on; an exercise keeps its own unit. Height only changes how it is written — it is stored in centimetres either way, because that is what the composition equations and the scale expect.</string>
+    <string name="settings_units_hint">Each exercise keeps its own unit. Height is stored in centimetres either way.</string>
     <string name="height_unit_cm">Centimetres</string>
     <string name="height_unit_inches">Inches</string>
     <string name="goals_dialog_horizon_on_a_date">On a date</string>
@@ -552,7 +552,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="tour_skip">Skip the tour</string>
     <string name="settings_onboarding">Getting started</string>
     <string name="settings_onboarding_summary">Replay the guidance</string>
-    <string name="settings_onboarding_tour_why">The tour and the setup questions are offered once, on a fresh install, and never insist again — whether you went through them or skipped them.</string>
+    <string name="settings_onboarding_tour_why">Offered once, on a fresh install. Replay them here.</string>
     <string name="settings_onboarding_replay_tour">Replay the screen tour</string>
     <!-- Setup flow -->
     <string name="setup_units_title">Units</string>

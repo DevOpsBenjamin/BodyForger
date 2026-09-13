@@ -319,14 +319,14 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="summary_segment">Segment %1$d : %2$s</string>
     <string name="share_routine_name">Routine : %1$s</string>
     <!-- Scale -->
-    <string name="scale_pairing_hint">L\'appairage grave votre profil dans sa mémoire et demande une pesée de calibration.</string>
+    <string name="scale_pairing_hint">L\'appairage écrit votre profil dans la balance et demande une pesée de calibration.</string>
     <string name="scale_search">Rechercher une balance</string>
     <string name="scale_searching">Recherche en cours…</string>
     <string name="scale_none_found">Aucun appareil pour l\'instant. Assurez-vous que la balance est à portée.</string>
     <string name="scale_other_devices">Autres appareils détectés</string>
     <string name="scale_stop">Arrêter</string>
     <string name="scale_pairing_in_progress">Appairage en cours</string>
-    <string name="scale_calibration_note">Une simple pesée de calibration termine l\'appairage : sans elle, l\'association ne sera pas enregistrée.</string>
+    <string name="scale_calibration_note">Sans la pesée de calibration, l\'appairage n\'est pas enregistré.</string>
     <string name="scale_weigh_in_interrupted">Pesée interrompue</string>
     <string name="scale_search_failed">Recherche impossible</string>
     <string name="scale_mass_only_title">Pesée relevée, sans composition</string>
@@ -529,7 +529,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="settings_units_weight">POIDS</string>
     <string name="settings_units_height">TAILLE</string>
     <string name="settings_units_summary">%1$s · %2$s</string>
-    <string name="settings_units_hint">Le poids s\'applique aux exercices ajoutés à partir de maintenant ; chaque exercice garde le sien. La taille ne change que son écriture — elle reste stockée en centimètres, parce que c\'est ce qu\'attendent les équations de composition et la balance.</string>
+    <string name="settings_units_hint">Chaque exercice garde son unité. La taille reste stockée en centimètres.</string>
     <string name="height_unit_cm">Centimètres</string>
     <string name="height_unit_inches">Pouces</string>
     <string name="goals_dialog_horizon_on_a_date">À une date</string>
@@ -552,7 +552,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="tour_skip">Passer le tour</string>
     <string name="settings_onboarding">Mise en route</string>
     <string name="settings_onboarding_summary">Rejouer la présentation</string>
-    <string name="settings_onboarding_tour_why">Le tour et les questions de mise en route sont proposés une fois, sur une installation neuve, et n\'insistent plus jamais — que vous les ayez suivis ou passés.</string>
+    <string name="settings_onboarding_tour_why">Proposés une fois, sur une installation neuve. Rejouez-les ici.</string>
     <string name="settings_onboarding_replay_tour">Revoir le tour des écrans</string>
     <!-- Parcours de mise en route -->
     <string name="setup_units_title">Unités</string>
