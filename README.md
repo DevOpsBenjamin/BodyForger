@@ -24,7 +24,9 @@
 ### Why this project?
 I'm a long-time **Hevy** user and still recommend it — it's a good app. Two things about my own setup pushed me to build something else.
 
-The first is that at the end of a session I have to take my phone out for the sync to happen. I'd rather **the watch write to Health Connect itself**, and walk away.
+The first is that at the end of a session I have to take my phone out for the sync to happen. I'd rather finish, walk away, and find the session already in Health Connect.
+
+The watch cannot do that alone — Health Connect has no provider on Wear OS, which I checked on my own watch before building around it. So the aim is the next best thing, and it is still not what I have today: the watch logs the session by itself, hands it to the phone as soon as they are in range, and **the phone exports it without being opened**. The phone stays necessary; taking it out does not.
 
 The second is that the Health Connect sync doesn't feel quite dialled in for what I want out of it. I'm hoping to do better — though that's a hope, not a claim. This is a work in progress and it hasn't proven anything yet.
 

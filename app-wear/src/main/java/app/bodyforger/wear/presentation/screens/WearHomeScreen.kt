@@ -16,13 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.bodyforger.core.healthconnect.HealthConnectManager
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CompactButton
@@ -34,22 +32,11 @@ import app.bodyforger.wear.presentation.theme.ElectricCyan
 import app.bodyforger.wear.presentation.theme.NeonLime
 import app.bodyforger.wear.presentation.theme.Obsidian
 
-/**
- * Probe: does a Health Connect provider exist on the watch itself?
- *
- * The documentation contradicts itself on this — the answer decides whether the watch can
- * export on its own or has to hand its sessions to the phone. Read it off a real device,
- * then delete this.
- */
-private fun healthConnectStatus(context: android.content.Context): String =
-    "HC: " + HealthConnectManager(context).availability().name
-
 @Composable
 fun WearHomeScreen(
     onStartWorkout: () -> Unit,
     onStartWeighIn: () -> Unit
 ) {
-    val probe = healthConnectStatus(LocalContext.current)
     Scaffold(
         timeText = { TimeText() },
         modifier = Modifier
@@ -69,15 +56,6 @@ fun WearHomeScreen(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp
-            )
-
-            // Probe, not a feature: remove once the answer is written down.
-            Text(
-                text = probe,
-                color = NeonLime,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Black,
-                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(8.dp))
