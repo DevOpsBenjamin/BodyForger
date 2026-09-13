@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.ble.DiscoveredScale
 import app.bodyforger.core.ble.SessionFailure
 import app.bodyforger.core.model.BiaProfile
+import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.scale.ScaleUiState
 import app.bodyforger.mobile.ui.theme.ElectricCyan
@@ -40,6 +41,8 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
  */
 @Composable
 fun ScaleSettingsSection(
+    /** What the athlete reads a body mass in; the reading itself is kilograms. */
+    unit: WeightUnit,
     state: ScaleUiState,
     measurementProfile: BiaProfile?,
     onStartScan: () -> Unit,
@@ -72,7 +75,7 @@ fun ScaleSettingsSection(
         state.massOnlyReadingKg?.let { massKg ->
             Card {
                 Text(stringResource(R.string.scale_mass_only_title), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text("%.2f kg".format(massKg), color = ElectricCyan, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text(unit.formatWithSymbol(massKg), color = ElectricCyan, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 Text(
                     stringResource(R.string.scale_mass_only_body),
                     color = TextSecondary,
@@ -86,8 +89,8 @@ fun ScaleSettingsSection(
                 Text(stringResource(R.string.scale_last_weigh_in), color = TextSecondary, fontSize = 11.sp)
                 Text(
                     log.bodyFatPercentage
-                        ?.let { stringResource(R.string.scale_mass_and_fat, log.massKg, it) }
-                        ?: stringResource(R.string.scale_mass_only_line, log.massKg),
+                        ?.let { stringResource(R.string.scale_mass_and_fat, unit.formatWithSymbol(log.massKg), it) }
+                        ?: stringResource(R.string.scale_mass_only_line, unit.formatWithSymbol(log.massKg)),
                     color = TextPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold

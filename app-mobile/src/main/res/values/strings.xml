@@ -207,7 +207,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="profile_stat_sessions">Sessions</string>
     <string name="profile_stat_tonnage">Total tonnage</string>
     <string name="profile_stat_hours">Hours trained</string>
-    <string name="unit_tonnes">%1$.1f T</string>
     <string name="unit_hours">%1$.0f h</string>
     <string name="profile_history_empty">No session yet. Your finished workouts appear here.</string>
     <string name="stats_weekly_tonnage">Weekly tonnage</string>
@@ -287,7 +286,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="bio_composition_title">BODY COMPOSITION</string>
     <string name="bio_total_mass">TOTAL MASS</string>
     <string name="bio_body_fat">BODY FAT (BF)</string>
-    <string name="bio_lean_fat_summary">Lean Mass: %1$s kg (%2$d%%) | Fat Mass: %3$s kg</string>
+    <string name="bio_lean_fat_summary">Lean Mass: %1$s (%2$d%%) | Fat Mass: %3$s</string>
     <string name="bio_segmental_title">5-ZONE SEGMENTAL ANALYSIS</string>
     <string name="bio_segment_trunk">Trunk (Torso &amp; Abdomen)</string>
     <string name="bio_segment_right_arm">Right Arm</string>
@@ -320,14 +319,14 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="summary_segment">Segment %1$d: %2$s</string>
     <string name="share_routine_name">Routine: %1$s</string>
     <!-- Scale -->
-    <string name="scale_pairing_hint">Pairing engraves your profile into the scale\'s memory and requires one calibration weigh-in.</string>
+    <string name="scale_pairing_hint">Pairing writes your profile into the scale and takes one calibration weigh-in.</string>
     <string name="scale_search">Search for a scale</string>
     <string name="scale_searching">Searching…</string>
     <string name="scale_none_found">No device yet. Make sure the scale is within range.</string>
     <string name="scale_other_devices">Other devices detected</string>
     <string name="scale_stop">Stop</string>
     <string name="scale_pairing_in_progress">Pairing in progress</string>
-    <string name="scale_calibration_note">A single calibration weigh-in completes the pairing: without it, the association is not saved.</string>
+    <string name="scale_calibration_note">Without the calibration weigh-in, the pairing is not saved.</string>
     <string name="scale_weigh_in_interrupted">Weigh-in interrupted</string>
     <string name="scale_search_failed">Search unavailable</string>
     <string name="scale_mass_only_title">Weigh-in recorded, without composition</string>
@@ -352,7 +351,6 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="bio_empty_no_profile">Fill in your measurement profile first, then weigh yourself.</string>
 
     <!-- Placeholder copy: still hardcoded demo data, not yet wired to real values -->
-    <string name="home_median_placeholder">7-day median: 78.6 kg</string>
 
     <!-- Built-in exercise catalogue: one key per seeded exercise -->
     <string name="ex_hanging_leg_raise">Hanging Leg Raise</string>
@@ -485,13 +483,11 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="scale_search_then_pick">Start the search, then pick your scale from the list. </string>
     <string name="routine_exercise_count">%1$d exercises</string>
     <string name="routine_summary">%1$d exercises • ~%2$d min</string>
-    <string name="scale_mass_and_fat">%1$.2f kg · %2$.1f %% body fat</string>
+    <string name="scale_mass_and_fat">%1$s · %2$.1f %% body fat</string>
     <string name="scale_step_of">Step %1$d of %2$d</string>
-    <string name="home_month_delta_placeholder">-0.4 kg this month</string>
-    <string name="scale_mass_only_line">%1$.2f kg · body fat not measured</string>
+    <string name="scale_mass_only_line">%1$s · body fat not measured</string>
     <string name="bio_body_fat_absent">—</string>
     <string name="settings_default_unit">DEFAULT WEIGHT UNIT</string>
-    <string name="settings_default_unit_hint">Applies to exercises you add from now on. An exercise keeps its own unit, so a machine labelled in pounds can stay in pounds. Nothing already logged is rewritten.</string>
     <string name="home_rest_day">REST</string>
     <string name="home_rest_day_detail">No routine planned today</string>
     <string name="home_session_exercises">%1$d exercises</string>
@@ -502,4 +498,78 @@ The date of birth is stored rather than the age, so that it never silently goes 
         <item quantity="other">🔥 %1$d consecutive weeks</item>
     </plurals>
     <string name="profile_streak_none">No streak yet — train this week to start one</string>
+    <!-- Goals -->
+    <string name="settings_goals">GOALS</string>
+    <string name="settings_goals_none">No goal set</string>
+    <string name="goals_empty">No milestone yet. A goal is a direction, not a deadline — nothing fails when its horizon passes.</string>
+    <string name="goals_add">+ Add a milestone</string>
+    <string name="goals_remove">Remove this milestone</string>
+    <string name="goals_target_mass">%1$s</string>
+    <string name="goals_target_mass_and_fat">%1$s · %2$.1f %%</string>
+    <string name="goals_validated_on">Reached on %1$s</string>
+    <string name="goals_validated_but_drifted">Reached on %1$s — median back above since</string>
+    <string name="goals_awaiting_first_weigh_in">Weigh in once to give this goal a direction</string>
+    <string name="goals_week_incomplete">%1$d of %2$d weigh-ins this week</string>
+    <string name="goals_projection">At this rate: %1$s</string>
+    <string name="goals_projection_against_horizon">At this rate: %1$s — horizon %2$s</string>
+    <string name="goals_no_trend_yet">Not enough weeks yet to read a trend</string>
+    <string name="goals_dialog_title">New milestone</string>
+    <string name="goals_dialog_mass">Target mass (%1$s)</string>
+    <string name="goals_dialog_fat" formatted="false">Target body fat (%, optional)</string>
+    <string name="goals_dialog_horizon">Horizon (optional)</string>
+    <string name="goals_dialog_horizon_none">No horizon</string>
+    <string name="goals_dialog_horizon_months">In %1$d months</string>
+    <string name="goals_dialog_hint">A milestone is reached when the weekly median crosses it two weeks running. A week counts from %1$d weigh-ins; %2$d reads it far better.</string>
+    <string name="home_month_delta">%1$s this month</string>
+    <string name="home_month_delta_unavailable">No monthly trend yet</string>
+    <string name="home_median">7-day median: %1$s</string>
+    <string name="home_median_unavailable">Weigh in to start a trend</string>
+    <string name="home_goal_line">Goal: %1$s</string>
+    <string name="settings_default_units">DEFAULT UNITS</string>
+    <string name="settings_units_weight">WEIGHT</string>
+    <string name="settings_units_height">HEIGHT</string>
+    <string name="settings_units_summary">%1$s · %2$s</string>
+    <string name="settings_units_hint">Each exercise keeps its own unit. Height is stored in centimetres either way.</string>
+    <string name="height_unit_cm">Centimetres</string>
+    <string name="height_unit_inches">Inches</string>
+    <string name="goals_dialog_horizon_on_a_date">On a date</string>
+    <string name="goals_dialog_horizon_must_be_future">A horizon lies ahead — pick a date still to come</string>
+    <string name="analytics_volume_no_plan">No routine assigned this week — the planner decides what this measures against.</string>
+    <string name="bio_segmental_unavailable">This reading did not measure the limbs — eight electrodes are needed, which means gripping the handle.</string>
+    <!-- Screen tour -->
+    <string name="tour_home_title">Home</string>
+    <string name="tour_home_body">Your body at a glance: the last weigh-in, where the composition is heading, and the button to weigh yourself.</string>
+    <string name="tour_planner_title">Planner</string>
+    <string name="tour_planner_body">Your week, day by day. Drop a routine on a day and it is planned — the detail of the sets can wait until you are lifting.</string>
+    <string name="tour_analytics_title">Stats</string>
+    <string name="tour_analytics_body">What the sessions add up to: tonnage, volume, and how the body follows. It fills up as you log.</string>
+    <string name="tour_profile_title">Profile</string>
+    <string name="tour_profile_body">Who you are for the app, and what you have lifted so far. Records and history live here.</string>
+    <string name="tour_settings_title">Settings</string>
+    <string name="tour_settings_body">Everything is configured here: units, measurement profile, scale pairing. You come back to it by the gear, on Home and on your profile — and you can replay this tour from here.</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_finish">Got it</string>
+    <string name="tour_skip">Skip the tour</string>
+    <string name="settings_onboarding">Getting started</string>
+    <string name="settings_onboarding_summary">Replay the guidance</string>
+    <string name="settings_onboarding_tour_why">Offered once, on a fresh install. Replay them here.</string>
+    <string name="settings_onboarding_replay_tour">Replay the screen tour</string>
+    <!-- Setup flow -->
+    <string name="setup_units_title">Units</string>
+    <string name="setup_units_why">Choose what you read and write in. Kilograms and centimetres unless you say otherwise.</string>
+    <string name="setup_name_title">Your name</string>
+    <string name="setup_name_why">A first name is enough. It stays on this phone.</string>
+    <string name="setup_profile_title">Measurement profile</string>
+    <string name="setup_profile_why">Sex, birth date, height. The body composition maths is computed from them — nothing can be weighed without.</string>
+    <string name="setup_scale_title">Bluetooth scale</string>
+    <string name="setup_scale_why">Only if you own one. Pairing takes a calibration weigh-in, and can wait — Settings has it too.</string>
+    <string name="setup_goals_title">Goals</string>
+    <string name="setup_goals_why">Optional, but it gives the first weeks a direction. Several milestones read better than one far-off number.</string>
+    <string name="setup_continue">Continue</string>
+    <string name="setup_finish">Done</string>
+    <string name="setup_skip_step">Skip this step</string>
+    <string name="setup_skip_all">Skip the whole setup</string>
+    <string name="settings_onboarding_replay_setup">Go through the setup again</string>
+    <string name="setup_previous">Back</string>
+    <string name="tour_previous">Back</string>
 </resources>

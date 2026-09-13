@@ -20,6 +20,33 @@ fun NavHostController.switchTab(tab: Tab) {
     }
 }
 
+/**
+ * Moves to a screen the way the tour needs to, which is not the way the bar does.
+ *
+ * [switchTab] saves the stack it unwinds and restores it on the way back, so that a tab
+ * remembers where it was. That is right for a tab and wrong for the tour: the tour ends on
+ * Settings, reached from whichever tab it was standing on, and saving that stack teaches the
+ * bar that the tab in question leads to Settings — tapping Profile afterwards would land on
+ * Settings instead of the profile.
+ *
+ * So the tour unwinds to the start destination and stacks nothing on a tab, saving and
+ * restoring nothing.
+ */
+fun NavHostController.showForTour(destination: Destination) {
+    navigate(destination) {
+        popUpTo(graph.findStartDestination().id)
+        launchSingleTop = true
+    }
+}
+
+/** Leaves the tour where the app would have opened, with nothing of the tour left behind. */
+fun NavHostController.leaveTour() {
+    navigate(Destination.Home) {
+        popUpTo(graph.findStartDestination().id) { inclusive = true }
+        launchSingleTop = true
+    }
+}
+
 /** The tab currently shown, or null on a destination that is not one. */
 fun NavDestination?.currentTab(): Tab? = this?.let { destination ->
     Tab.entries.firstOrNull { tab ->

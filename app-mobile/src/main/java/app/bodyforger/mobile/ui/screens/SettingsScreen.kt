@@ -34,12 +34,17 @@ import app.bodyforger.core.bia.ModelSelector
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
+import app.bodyforger.mobile.onboarding.OnboardingViewModel
+import app.bodyforger.mobile.profile.GoalsViewModel
 import app.bodyforger.mobile.scale.ScaleViewModel
+import app.bodyforger.mobile.ui.components.AddGoalDialog
 import app.bodyforger.mobile.ui.components.AthleteIdentityForm
 import app.bodyforger.mobile.ui.components.AthleteProfileForm
 import app.bodyforger.mobile.ui.components.BiaEngineSection
 import app.bodyforger.mobile.ui.components.BiaProfileInfoDialog
-import app.bodyforger.mobile.ui.components.DefaultWeightUnitSection
+import app.bodyforger.mobile.ui.components.DefaultUnitsSection
+import app.bodyforger.mobile.ui.components.GoalsSection
+import app.bodyforger.mobile.ui.components.OnboardingSettingsSection
 import app.bodyforger.mobile.ui.components.ScaleSettingsSection
 import app.bodyforger.mobile.ui.components.SectionStatus
 import app.bodyforger.mobile.ui.components.SettingsSection
@@ -63,7 +68,9 @@ fun SettingsScreen(
     expandScale: Boolean = false,
     scaleViewModel: ScaleViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
-    appSettingsViewModel: AppSettingsViewModel = koinViewModel()
+    appSettingsViewModel: AppSettingsViewModel = koinViewModel(),
+    goalsViewModel: GoalsViewModel = koinViewModel(),
+    onboardingViewModel: OnboardingViewModel = koinViewModel()
 ) {
     val state by scaleViewModel.state.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
@@ -71,6 +78,9 @@ fun SettingsScreen(
     val engineIds = appSettingsViewModel.engineIds
     val selectedEngine by appSettingsViewModel.selectedEngineId.collectAsState()
     val defaultUnit by appSettingsViewModel.defaultWeightUnit.collectAsState()
+    val defaultHeightUnit by appSettingsViewModel.defaultHeightUnit.collectAsState()
+    val goalStandings by goalsViewModel.standings.collectAsState()
+    var addingGoal by remember { mutableStateOf(false) }
 
     var openSection by remember {
         mutableStateOf(if (expandScale) Section.SCALE else Section.entries.first { it == Section.ATHLETE })
@@ -133,6 +143,7 @@ fun SettingsScreen(
         ) {
             AthleteProfileForm(
                 profile = profile,
+                heightUnit = defaultHeightUnit,
                 onSave = { sex, birthDateIso, heightCm ->
                     profileViewModel.save(profile.name, sex, birthDateIso, heightCm)
                     openSection = Section.NONE
@@ -150,6 +161,7 @@ fun SettingsScreen(
             onToggle = { openSection = openSection.toggled(Section.SCALE) }
         ) {
             ScaleSettingsSection(
+                unit = defaultUnit,
                 state = state,
                 measurementProfile = measurementProfile,
                 onStartScan = { requestPermissions.launch(permissions) },
@@ -160,15 +172,46 @@ fun SettingsScreen(
         }
 
         SettingsSection(
-            title = stringResource(R.string.settings_default_unit),
+            title = stringResource(R.string.settings_goals),
+            status = if (goalStandings.any { !it.goal.isValidated }) SectionStatus.DONE else SectionStatus.INCOMPLETE,
+            summary = goalStandings.firstOrNull { !it.goal.isValidated }?.let { standing ->
+                standing.goal.targetBodyFatPercentage
+                    ?.let { fat ->
+                        stringResource(
+                            R.string.goals_target_mass_and_fat,
+                            defaultUnit.formatWithSymbol(standing.goal.targetMassKg),
+                            fat
+                        )
+                    }
+                    ?: stringResource(
+                        R.string.goals_target_mass,
+                        defaultUnit.formatWithSymbol(standing.goal.targetMassKg)
+                    )
+            } ?: stringResource(R.string.settings_goals_none),
+            isExpanded = openSection == Section.GOALS,
+            onToggle = { openSection = openSection.toggled(Section.GOALS) }
+        ) {
+            GoalsSection(
+                standings = goalStandings,
+                unit = defaultUnit,
+                onAdd = { addingGoal = true },
+                onRemove = goalsViewModel::remove,
+                onToggleValidated = goalsViewModel::setValidated
+            )
+        }
+
+        SettingsSection(
+            title = stringResource(R.string.settings_default_units),
             status = SectionStatus.NEUTRAL,
-            summary = defaultUnit.label(),
+            summary = stringResource(R.string.settings_units_summary, defaultUnit.label(), defaultHeightUnit.label()),
             isExpanded = openSection == Section.UNIT,
             onToggle = { openSection = openSection.toggled(Section.UNIT) }
         ) {
-            DefaultWeightUnitSection(
-                selected = defaultUnit,
-                onSelect = appSettingsViewModel::selectDefaultWeightUnit
+            DefaultUnitsSection(
+                weightUnit = defaultUnit,
+                heightUnit = defaultHeightUnit,
+                onSelectWeight = appSettingsViewModel::selectDefaultWeightUnit,
+                onSelectHeight = appSettingsViewModel::selectDefaultHeightUnit
             )
         }
 
@@ -188,6 +231,32 @@ fun SettingsScreen(
                 )
             }
         }
+
+        SettingsSection(
+            title = stringResource(R.string.settings_onboarding),
+            status = SectionStatus.NEUTRAL,
+            summary = stringResource(R.string.settings_onboarding_summary),
+            isExpanded = openSection == Section.ONBOARDING,
+            onToggle = { openSection = openSection.toggled(Section.ONBOARDING) }
+        ) {
+            // Replaying leaves the screen: the tour starts on Home and drives its own way
+            // through the tabs.
+            OnboardingSettingsSection(
+                onReplayTour = onboardingViewModel::replayTour,
+                onReplaySetup = onboardingViewModel::replaySetup
+            )
+        }
+    }
+
+    if (addingGoal) {
+        AddGoalDialog(
+            unit = defaultUnit,
+            onDismiss = { addingGoal = false },
+            onConfirm = { massKg, bodyFat, horizon ->
+                goalsViewModel.add(massKg, bodyFat, horizon)
+                addingGoal = false
+            }
+        )
     }
 }
 
@@ -225,8 +294,10 @@ private enum class Section {
     ATHLETE,
     BIA,
     SCALE,
+    GOALS,
     UNIT,
-    ENGINE;
+    ENGINE,
+    ONBOARDING;
 
     fun toggled(tapped: Section): Section = if (this == tapped) NONE else tapped
 }

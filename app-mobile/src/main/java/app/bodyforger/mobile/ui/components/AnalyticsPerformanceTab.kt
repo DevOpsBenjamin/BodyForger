@@ -20,26 +20,27 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
-import org.koin.androidx.compose.koinViewModel
-import app.bodyforger.mobile.stats.TrainingStats
-import app.bodyforger.mobile.library.LibraryViewModel
-import app.bodyforger.mobile.R
-import androidx.compose.ui.res.stringResource
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.profile.AppSettingsViewModel
+import app.bodyforger.mobile.stats.TrainingStats
+import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.NeonLime
@@ -49,18 +50,26 @@ import app.bodyforger.mobile.ui.theme.SurfaceElevated
 import app.bodyforger.mobile.ui.theme.TextMuted
 import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AnalyticsPerformanceTab(
     modifier: Modifier = Modifier,
-    library: LibraryViewModel = koinViewModel()
+    library: LibraryViewModel = koinViewModel(),
+    settings: AppSettingsViewModel = koinViewModel()
 ) {
     val sessions by library.completedSessions.collectAsState()
     val weeklyTonnage = remember(sessions) {
         val now = System.currentTimeMillis()
-        TrainingStats.tonnageBetween(sessions, now - ONE_WEEK_MS, now) / KILOGRAMS_PER_TONNE
+        TrainingStats.tonnageBetween(sessions, now - ONE_WEEK_MS, now)
     }
+    val unit by settings.defaultWeightUnit.collectAsState()
     val records = remember(sessions) { TrainingStats.personalRecords(sessions).take(RECORDS_SHOWN) }
+    val routines by library.routines.collectAsState()
+    val planned = remember(routines) { TrainingStats.plannedThisWeek(routines) }
+    val completedByMuscle = remember(sessions) {
+        TrainingStats.completedSetsByMuscle(sessions, System.currentTimeMillis())
+    }
 
     val scrollState = rememberScrollState()
 
@@ -86,7 +95,7 @@ fun AnalyticsPerformanceTab(
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(text = stringResource(R.string.stats_weekly_tonnage), color = TextMuted, fontSize = 11.sp)
                     Text(
-                        text = stringResource(R.string.unit_tonnes, weeklyTonnage),
+                        text = unit.formatWithSymbol(weeklyTonnage),
                         color = TextPrimary,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Black
@@ -116,11 +125,28 @@ fun AnalyticsPerformanceTab(
             shape = RoundedCornerShape(18.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                MuscleVolumeRow(muscle = "Pectoraux", completed = 14, target = 16, color = NeonLime)
-                MuscleVolumeRow(muscle = "Grand Dorsal / Dos", completed = 16, target = 16, color = NeonLime)
-                MuscleVolumeRow(muscle = "Épaules (Deltoïdes)", completed = 10, target = 12, color = AmberGold)
-                MuscleVolumeRow(muscle = "Quadriceps & Ischios", completed = 12, target = 16, color = AmberGold)
-                MuscleVolumeRow(muscle = "Bras (Biceps / Triceps)", completed = 12, target = 12, color = NeonLime, isLast = true)
+                // Muscles the week's plan asks for, in its own order, with what has been done
+                // against each. A plan with nothing assigned says so rather than listing five
+                // groups nobody chose.
+                if (planned.isEmpty) {
+                    Text(
+                        text = stringResource(R.string.analytics_volume_no_plan),
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
+                } else {
+                    val muscles = planned.setsByMuscle.entries.sortedByDescending { it.value }
+                    muscles.forEachIndexed { index, (muscle, target) ->
+                        val done = completedByMuscle[muscle] ?: 0
+                        MuscleVolumeRow(
+                            muscle = muscle.label(),
+                            completed = done,
+                            target = target,
+                            color = if (done >= target) NeonLime else AmberGold,
+                            isLast = index == muscles.lastIndex
+                        )
+                    }
+                }
             }
         }
 
@@ -230,7 +256,6 @@ private fun PRRow(exercise: String, oneRM: String, repRecord: String, isLast: Bo
 }
 
 private const val ONE_WEEK_MS = 7L * 24 * 60 * 60 * 1000
-private const val KILOGRAMS_PER_TONNE = 1_000.0
 
 /** How many records the card shows before it stops being a summary. */
 private const val RECORDS_SHOWN = 3

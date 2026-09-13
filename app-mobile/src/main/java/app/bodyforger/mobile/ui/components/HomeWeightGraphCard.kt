@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,14 +18,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import app.bodyforger.mobile.R
-import androidx.compose.ui.res.stringResource
-import app.bodyforger.core.model.BodyLog
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,9 +35,16 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.BodyLog
+import app.bodyforger.core.model.WeightUnit
+import app.bodyforger.mobile.R
+import app.bodyforger.mobile.stats.BodyMetrics
+import app.bodyforger.mobile.stats.GoalStanding
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
@@ -49,8 +56,15 @@ import app.bodyforger.mobile.ui.theme.TextSecondary
 @Composable
 fun HomeWeightGraphCard(
     weighIns: List<BodyLog>,
+    /** What the athlete reads a body mass in. Storage and every computation stay in kilograms. */
+    unit: WeightUnit = WeightUnit.KG,
+    /** The milestone being worked towards, drawn as a line and named below the curve. */
+    goal: GoalStanding? = null,
     modifier: Modifier = Modifier
 ) {
+    val now = System.currentTimeMillis()
+    val median = remember(weighIns) { BodyMetrics.medianMassKg(weighIns, now) }
+    val monthDelta = remember(weighIns) { BodyMetrics.massDeltaKg(weighIns, now) }
     // Nothing is drawn without a weigh-in: the curve used to be seven coordinates in the
     // canvas, unmoved by whatever was weighed.
     val latest = weighIns.firstOrNull()
@@ -80,13 +94,13 @@ fun HomeWeightGraphCard(
                         modifier = Modifier.padding(top = 2.dp)
                     ) {
                         Text(
-                            text = latest?.let { "%.1f".format(it.massKg) } ?: NO_WEIGHT,
+                            text = latest?.let { unit.format(it.massKg) } ?: NO_WEIGHT,
                             color = TextPrimary,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Black
                         )
                         Text(
-                            text = " kg",
+                            text = " ${unit.symbol}",
                             color = TextSecondary,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
@@ -95,45 +109,81 @@ fun HomeWeightGraphCard(
                     }
                 }
 
+                // The chip carries a short figure or nothing at all. A sentence in its place
+                // wrapped onto three lines and climbed over the title beside it.
                 Column(horizontalAlignment = Alignment.End) {
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(ElectricCyan.copy(alpha = 0.15f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.TrendingDown,
-                            contentDescription = null,
-                            tint = ElectricCyan,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
+                    if (monthDelta != null) {
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(ElectricCyan.copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (monthDelta <= 0) Icons.AutoMirrored.Filled.TrendingDown
+                                else Icons.AutoMirrored.Filled.TrendingUp,
+                                contentDescription = null,
+                                tint = ElectricCyan,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                // Signed, so a gain reads as a gain: the conversion is
+                                // applied to the difference, not to two masses subtracted after.
+                                text = stringResource(
+                                    R.string.home_month_delta,
+                                    "%+.1f %s".format(unit.fromKilograms(monthDelta), unit.symbol)
+                                ),
+                                color = ElectricCyan,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    if (median != null) {
                         Text(
-                            text = stringResource(R.string.home_month_delta_placeholder),
-                            color = ElectricCyan,
+                            text = stringResource(R.string.home_median, unit.formatWithSymbol(median)),
+                            color = TextMuted,
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    } else if (goal != null) {
+                        Text(
+                            text = stringResource(
+                                R.string.home_goal_line,
+                                unit.formatWithSymbol(goal.goal.targetMassKg)
+                            ),
+                            color = AmberGold,
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
-                    Text(
-                        text = stringResource(R.string.home_median_placeholder),
-                        color = TextMuted,
-                        fontSize = 11.sp,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            SimpleBodyGraphCanvas(
-                weighIns = weighIns,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(110.dp)
-            )
+                    .height(110.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                SimpleBodyGraphCanvas(weighIns = weighIns, modifier = Modifier.fillMaxSize())
+
+                // Said where the curve would be, rather than squeezed into the header.
+                if (median == null) {
+                    Text(
+                        text = stringResource(R.string.home_median_unavailable),
+                        color = TextMuted,
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 

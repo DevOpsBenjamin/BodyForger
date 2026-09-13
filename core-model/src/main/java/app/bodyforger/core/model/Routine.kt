@@ -1,5 +1,7 @@
 package app.bodyforger.core.model
 
+import java.text.NumberFormat
+import java.util.Locale
 import java.util.UUID
 
 enum class RoutineSetType {
@@ -10,10 +12,58 @@ enum class RoutineSetType {
     REST_PAUSE
 }
 
-/** [symbol] is written the same in every language; the full name is not. */
+/**
+ * How a mass is written down, never how it is stored.
+ *
+ * Every mass in the database is kilograms — a loaded bar, a body, a goal. The composition
+ * equations are written in kilograms, the scale reports them, and the profile engraved into it
+ * carries them. More decisive still: a stored value whose unit depended on a setting would stop
+ * meaning the same thing the day the setting changed, and every past row would silently say
+ * something else.
+ *
+ * So pounds are a way of reading and typing, converted at the edge.
+ *
+ * [symbol] is written the same in every language; the full name is not.
+ */
 enum class WeightUnit(val symbol: String) {
     KG("kg"),
-    LBS("lbs")
+    LBS("lbs");
+
+    /** Kilograms as this unit reads them. */
+    fun fromKilograms(kilograms: Double): Double = when (this) {
+        KG -> kilograms
+        LBS -> kilograms / KILOGRAMS_PER_POUND
+    }
+
+    /** A value written in this unit, back to the kilograms everything else works in. */
+    fun toKilograms(value: Double): Double = when (this) {
+        KG -> value
+        LBS -> value * KILOGRAMS_PER_POUND
+    }
+
+    /**
+     * Trailing zeroes dropped, thousands grouped: a bar reads 100, a season's tonnage 7,894.
+     *
+     * Grouped because a total is where the digits pile up — 7894 is a figure to decipher,
+     * 7,894 is one to read. The locale decides which separator, as it does the decimal one.
+     */
+    fun format(kilograms: Double, locale: Locale = Locale.getDefault()): String {
+        val shown = fromKilograms(kilograms)
+        val format = NumberFormat.getNumberInstance(locale).apply {
+            maximumFractionDigits = 1
+            minimumFractionDigits = 0
+            isGroupingUsed = true
+        }
+        return format.format(shown)
+    }
+
+    /** The value with its symbol, as a load, a body mass or a tonnage is labelled on screen. */
+    fun formatWithSymbol(kilograms: Double, locale: Locale = Locale.getDefault()): String =
+        "${format(kilograms, locale)} $symbol"
+
+    private companion object {
+        const val KILOGRAMS_PER_POUND = 0.45359237
+    }
 }
 
 data class RoutineSet(

@@ -35,4 +35,13 @@ interface AppSettingsDao {
 
     /** Records the weight unit new exercises start from. */
     suspend fun setDefaultWeightUnit(unit: String?) = edit { it.copy(defaultWeightUnit = unit) }
+
+    /** Records the unit a height is written in. Storage stays in centimetres regardless. */
+    suspend fun setDefaultHeightUnit(unit: String?) = edit { it.copy(defaultHeightUnit = unit) }
+
+    /** Records that the screen tour was seen through to the end, or skipped, at [version]. */
+    suspend fun setTourVersionSeen(version: Int) = edit { it.copy(tourVersionSeen = version) }
+
+    /** Records that the setup flow was gone through, or skipped, at [version]. */
+    suspend fun setSetupVersionDone(version: Int) = edit { it.copy(setupVersionDone = version) }
 }

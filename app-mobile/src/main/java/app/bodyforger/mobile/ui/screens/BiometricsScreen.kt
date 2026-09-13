@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.profile.BiometricsViewModel
 import app.bodyforger.mobile.ui.components.BiometricsEmptyState
@@ -55,6 +56,7 @@ import app.bodyforger.mobile.ui.theme.SurfaceElevated
 import app.bodyforger.mobile.ui.theme.TextMuted
 import app.bodyforger.mobile.ui.theme.TextPrimary
 import app.bodyforger.mobile.ui.theme.TextSecondary
+import kotlin.math.roundToInt
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -64,6 +66,7 @@ fun BiometricsScreen(
 ) {
     val scrollState = rememberScrollState()
     val state by viewModel.state.collectAsState()
+    val unit by viewModel.weightUnit.collectAsState()
 
     val lastLog = state.lastLog
     val report = state.report
@@ -113,7 +116,7 @@ fun BiometricsScreen(
                     Column {
                         Text(text = stringResource(R.string.bio_total_mass), color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Text(
-                            text = "$userMassKg kg",
+                            text = unit.formatWithSymbol(userMassKg),
                             color = TextPrimary,
                             fontSize = 34.sp,
                             fontWeight = FontWeight.Black
@@ -143,7 +146,12 @@ fun BiometricsScreen(
                 val leanRatio = (leanMass / userMassKg).toFloat().coerceIn(0f, 1f)
 
                 Text(
-                    text = stringResource(R.string.bio_lean_fat_summary, leanMass, (leanRatio * 100).toInt(), fatMass),
+                    text = stringResource(
+                        R.string.bio_lean_fat_summary,
+                        unit.formatWithSymbol(leanMass),
+                        (leanRatio * 100).toInt(),
+                        unit.formatWithSymbol(fatMass)
+                    ),
                     color = TextSecondary,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 6.dp)
@@ -172,24 +180,42 @@ fun BiometricsScreen(
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        val totalMuscle = report.skeletalMuscleMassKg
-        val trunkMuscle = ((totalMuscle * 0.46) * 10).toInt() / 10.0
-        val armMuscle = ((totalMuscle * 0.09) * 10).toInt() / 10.0
-        val legMuscle = ((totalMuscle * 0.18) * 10).toInt() / 10.0
+        // Read from the engine's own decomposition, not from a share of the total: the six
+        // measured paths give each limb separately, so a left arm and a right arm differ.
+        val segmental = report.segmentalMuscle
+        if (segmental == null) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, SurfaceBorder, RoundedCornerShape(20.dp)),
+                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.bio_segmental_unavailable),
+                    color = TextMuted,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        } else {
+            val total = segmental.totalKg
+            fun share(kg: Double) = if (total > 0.0) "${(kg / total * 100).roundToInt()}%" else ""
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, SurfaceBorder, RoundedCornerShape(20.dp)),
-            colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                SegmentalRow(label = stringResource(R.string.bio_segment_trunk), value = "$trunkMuscle kg", percentage = "46%")
-                SegmentalRow(label = stringResource(R.string.bio_segment_right_arm), value = "$armMuscle kg", percentage = "9%")
-                SegmentalRow(label = stringResource(R.string.bio_segment_left_arm), value = "$armMuscle kg", percentage = "9%")
-                SegmentalRow(label = stringResource(R.string.bio_segment_right_leg), value = "$legMuscle kg", percentage = "18%")
-                SegmentalRow(label = stringResource(R.string.bio_segment_left_leg), value = "$legMuscle kg", percentage = "18%", isLast = true)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, SurfaceBorder, RoundedCornerShape(20.dp)),
+                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    SegmentalRow(label = stringResource(R.string.bio_segment_trunk), value = unit.formatWithSymbol(segmental.trunkKg), percentage = share(segmental.trunkKg))
+                    SegmentalRow(label = stringResource(R.string.bio_segment_right_arm), value = unit.formatWithSymbol(segmental.rightArmKg), percentage = share(segmental.rightArmKg))
+                    SegmentalRow(label = stringResource(R.string.bio_segment_left_arm), value = unit.formatWithSymbol(segmental.leftArmKg), percentage = share(segmental.leftArmKg))
+                    SegmentalRow(label = stringResource(R.string.bio_segment_right_leg), value = unit.formatWithSymbol(segmental.rightLegKg), percentage = share(segmental.rightLegKg))
+                    SegmentalRow(label = stringResource(R.string.bio_segment_left_leg), value = unit.formatWithSymbol(segmental.leftLegKg), percentage = share(segmental.leftLegKg), isLast = true)
+                }
             }
         }
 
@@ -235,7 +261,7 @@ fun BiometricsScreen(
                     Icon(imageVector = Icons.Default.ElectricBolt, contentDescription = null, tint = NeonLime, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = stringResource(R.string.bio_skeletal_muscle), color = TextMuted, fontSize = 11.sp)
-                    Text(text = "${report.skeletalMuscleMassKg} kg", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(text = unit.formatWithSymbol(report.skeletalMuscleMassKg), color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

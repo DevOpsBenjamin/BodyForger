@@ -25,6 +25,7 @@ import app.bodyforger.mobile.ui.screens.PlannerScreen
 import app.bodyforger.mobile.ui.screens.ProfileScreen
 import app.bodyforger.mobile.ui.screens.RoutineEditorScreen
 import app.bodyforger.mobile.ui.screens.SettingsScreen
+import app.bodyforger.mobile.ui.screens.SetupFlowScreen
 import app.bodyforger.mobile.ui.screens.WorkoutScreen
 import app.bodyforger.mobile.ui.screens.toRoutineExercise
 import app.bodyforger.mobile.ui.text.displayName
@@ -40,6 +41,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun BodyForgerNavHost(
     navController: NavHostController,
+    /** Called when the setup flow is gone through or dropped; both record the same thing. */
+    onSetupFinished: () -> Unit,
     modifier: Modifier = Modifier,
     library: LibraryViewModel = koinViewModel(),
     workout: LiveWorkoutViewModel = koinViewModel(),
@@ -64,8 +67,8 @@ fun BodyForgerNavHost(
                     navController.navigate(Destination.LiveWorkout)
                 },
                 onNavigateToBiometrics = { navController.switchTab(Tab.ANALYTICS) },
-                onConfigureScale = { navController.navigate(Destination.Settings(expandScale = true)) },
-                onOpenSettings = { navController.navigate(Destination.Settings()) }
+                onConfigureScale = { navController.navigate(Destination.Settings(expandScale = true)) { launchSingleTop = true } },
+                onOpenSettings = { navController.navigate(Destination.Settings()) { launchSingleTop = true } }
             )
         }
 
@@ -95,11 +98,11 @@ fun BodyForgerNavHost(
         }
 
         composable<Destination.Analytics> {
-            AnalyticsScreen(onOpenScale = { navController.navigate(Destination.Settings(expandScale = true)) })
+            AnalyticsScreen(onOpenScale = { navController.navigate(Destination.Settings(expandScale = true)) { launchSingleTop = true } })
         }
 
         composable<Destination.Profile> {
-            ProfileScreen(onOpenSettings = { navController.navigate(Destination.Settings()) })
+            ProfileScreen(onOpenSettings = { navController.navigate(Destination.Settings()) { launchSingleTop = true } })
         }
 
         composable<Destination.Settings> { entry ->
@@ -107,6 +110,10 @@ fun BodyForgerNavHost(
                 onBack = navController::navigateUp,
                 expandScale = entry.toRoute<Destination.Settings>().expandScale
             )
+        }
+
+        composable<Destination.Setup> {
+            SetupFlowScreen(onFinish = onSetupFinished)
         }
 
         composable<Destination.RoutineEditor> {

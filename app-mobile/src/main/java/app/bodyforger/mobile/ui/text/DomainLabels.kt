@@ -3,6 +3,7 @@ package app.bodyforger.mobile.ui.text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import app.bodyforger.core.model.EquipmentType
+import app.bodyforger.core.model.HeightUnit
 import app.bodyforger.core.model.MuscleGroup
 import app.bodyforger.core.model.RoutineSetType
 import app.bodyforger.core.model.UnilateralSide
@@ -63,6 +64,14 @@ fun WeightUnit.label(): String = stringResource(
     when (this) {
         WeightUnit.KG -> R.string.weight_unit_kg
         WeightUnit.LBS -> R.string.weight_unit_lbs
+    }
+)
+
+@Composable
+fun HeightUnit.label(): String = stringResource(
+    when (this) {
+        HeightUnit.CM -> R.string.height_unit_cm
+        HeightUnit.INCHES -> R.string.height_unit_inches
     }
 )
 

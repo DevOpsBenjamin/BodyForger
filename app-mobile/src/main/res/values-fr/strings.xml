@@ -207,7 +207,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="profile_stat_sessions">Séances</string>
     <string name="profile_stat_tonnage">Tonnage total</string>
     <string name="profile_stat_hours">Heures gym</string>
-    <string name="unit_tonnes">%1$.1f T</string>
     <string name="unit_hours">%1$.0f h</string>
     <string name="profile_history_empty">Aucune séance pour l\'instant. Vos séances terminées apparaîtront ici.</string>
     <string name="stats_weekly_tonnage">Tonnage hebdo</string>
@@ -287,7 +286,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="bio_composition_title">COMPOSITION CORPORELLE</string>
     <string name="bio_total_mass">MASSE TOTALE</string>
     <string name="bio_body_fat">TAUX DE GRAS (BF)</string>
-    <string name="bio_lean_fat_summary">Masse Maigre : %1$s kg (%2$d%%) | Masse Grasse : %3$s kg</string>
+    <string name="bio_lean_fat_summary">Masse Maigre : %1$s (%2$d%%) | Masse Grasse : %3$s</string>
     <string name="bio_segmental_title">ANALYSE SEGMENTAIRE 5 ZONES</string>
     <string name="bio_segment_trunk">Tronc (Torse &amp; Abdomen)</string>
     <string name="bio_segment_right_arm">Bras Droit</string>
@@ -320,14 +319,14 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="summary_segment">Segment %1$d : %2$s</string>
     <string name="share_routine_name">Routine : %1$s</string>
     <!-- Scale -->
-    <string name="scale_pairing_hint">L\'appairage grave votre profil dans sa mémoire et demande une pesée de calibration.</string>
+    <string name="scale_pairing_hint">L\'appairage écrit votre profil dans la balance et demande une pesée de calibration.</string>
     <string name="scale_search">Rechercher une balance</string>
     <string name="scale_searching">Recherche en cours…</string>
     <string name="scale_none_found">Aucun appareil pour l\'instant. Assurez-vous que la balance est à portée.</string>
     <string name="scale_other_devices">Autres appareils détectés</string>
     <string name="scale_stop">Arrêter</string>
     <string name="scale_pairing_in_progress">Appairage en cours</string>
-    <string name="scale_calibration_note">Une simple pesée de calibration termine l\'appairage : sans elle, l\'association ne sera pas enregistrée.</string>
+    <string name="scale_calibration_note">Sans la pesée de calibration, l\'appairage n\'est pas enregistré.</string>
     <string name="scale_weigh_in_interrupted">Pesée interrompue</string>
     <string name="scale_search_failed">Recherche impossible</string>
     <string name="scale_mass_only_title">Pesée relevée, sans composition</string>
@@ -352,7 +351,6 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="bio_empty_no_profile">Renseignez d\'abord votre profil de mesure, puis pesez-vous.</string>
 
     <!-- Placeholder copy: still hardcoded demo data, not yet wired to real values -->
-    <string name="home_median_placeholder">Médiane 7j : 78.6 kg</string>
 
     <!-- Built-in exercise catalogue: one key per seeded exercise -->
     <string name="ex_hanging_leg_raise">Relevés de Jambes Suspendu</string>
@@ -485,13 +483,11 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="scale_search_then_pick">Lancez la recherche, puis choisissez votre balance dans la liste. </string>
     <string name="routine_exercise_count">%1$d exercices</string>
     <string name="routine_summary">%1$d exercices • ~%2$d min</string>
-    <string name="scale_mass_and_fat">%1$.2f kg · %2$.1f %% de masse grasse</string>
+    <string name="scale_mass_and_fat">%1$s · %2$.1f %% de masse grasse</string>
     <string name="scale_step_of">Étape %1$d sur %2$d</string>
-    <string name="home_month_delta_placeholder">-0.4 kg ce mois</string>
-    <string name="scale_mass_only_line">%1$.2f kg · masse grasse non mesurée</string>
+    <string name="scale_mass_only_line">%1$s · masse grasse non mesurée</string>
     <string name="bio_body_fat_absent">—</string>
     <string name="settings_default_unit">UNITÉ DE POIDS PAR DÉFAUT</string>
-    <string name="settings_default_unit_hint">S\'applique aux exercices ajoutés à partir de maintenant. Un exercice garde sa propre unité : une machine graduée en livres peut rester en livres. Rien de déjà enregistré n\'est réécrit.</string>
     <string name="home_rest_day">REPOS</string>
     <string name="home_rest_day_detail">Aucune routine prévue aujourd\'hui</string>
     <string name="home_session_exercises">%1$d exercices</string>
@@ -502,4 +498,78 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
         <item quantity="other">🔥 %1$d semaines consécutives</item>
     </plurals>
     <string name="profile_streak_none">Aucune série en cours — entraînez-vous cette semaine</string>
+    <!-- Goals -->
+    <string name="settings_goals">OBJECTIFS</string>
+    <string name="settings_goals_none">Aucun objectif</string>
+    <string name="goals_empty">Aucun palier. Un objectif est une direction, pas une échéance — rien n\'échoue quand son horizon passe.</string>
+    <string name="goals_add">+ Ajouter un palier</string>
+    <string name="goals_remove">Supprimer ce palier</string>
+    <string name="goals_target_mass">%1$s</string>
+    <string name="goals_target_mass_and_fat">%1$s · %2$.1f %%</string>
+    <string name="goals_validated_on">Franchi le %1$s</string>
+    <string name="goals_validated_but_drifted">Franchi le %1$s — médiane repassée au-dessus depuis</string>
+    <string name="goals_awaiting_first_weigh_in">Pesez-vous une fois pour donner une direction à cet objectif</string>
+    <string name="goals_week_incomplete">%1$d pesée(s) sur %2$d cette semaine</string>
+    <string name="goals_projection">À ce rythme : %1$s</string>
+    <string name="goals_projection_against_horizon">À ce rythme : %1$s — horizon %2$s</string>
+    <string name="goals_no_trend_yet">Pas encore assez de semaines pour lire une tendance</string>
+    <string name="goals_dialog_title">Nouveau palier</string>
+    <string name="goals_dialog_mass">Masse visée (%1$s)</string>
+    <string name="goals_dialog_fat" formatted="false">Masse grasse visée (%, facultatif)</string>
+    <string name="goals_dialog_horizon">Horizon (facultatif)</string>
+    <string name="goals_dialog_horizon_none">Sans horizon</string>
+    <string name="goals_dialog_horizon_months">Dans %1$d mois</string>
+    <string name="goals_dialog_hint">Un palier est franchi quand la médiane hebdomadaire le dépasse deux semaines de suite. Une semaine compte à partir de %1$d pesées ; %2$d la lisent bien mieux.</string>
+    <string name="home_month_delta">%1$s ce mois</string>
+    <string name="home_month_delta_unavailable">Pas encore de tendance mensuelle</string>
+    <string name="home_median">Médiane 7j : %1$s</string>
+    <string name="home_median_unavailable">Pesez-vous pour amorcer une tendance</string>
+    <string name="home_goal_line">Objectif : %1$s</string>
+    <string name="settings_default_units">UNITÉS PAR DÉFAUT</string>
+    <string name="settings_units_weight">POIDS</string>
+    <string name="settings_units_height">TAILLE</string>
+    <string name="settings_units_summary">%1$s · %2$s</string>
+    <string name="settings_units_hint">Chaque exercice garde son unité. La taille reste stockée en centimètres.</string>
+    <string name="height_unit_cm">Centimètres</string>
+    <string name="height_unit_inches">Pouces</string>
+    <string name="goals_dialog_horizon_on_a_date">À une date</string>
+    <string name="goals_dialog_horizon_must_be_future">Un horizon est devant — choisissez une date à venir</string>
+    <string name="analytics_volume_no_plan">Aucune routine assignée cette semaine — c\'est le planning qui donne la référence.</string>
+    <string name="bio_segmental_unavailable">Ce relevé n\'a pas mesuré les membres — il faut huit électrodes, donc saisir la poignée.</string>
+    <!-- Tour des écrans -->
+    <string name="tour_home_title">Accueil</string>
+    <string name="tour_home_body">Votre corps d\'un coup d\'œil : la dernière pesée, où va la composition, et le bouton pour vous peser.</string>
+    <string name="tour_planner_title">Planner</string>
+    <string name="tour_planner_body">Votre semaine, jour par jour. Vous posez une routine sur un jour et c\'est planifié — le détail des séries attendra la salle.</string>
+    <string name="tour_analytics_title">Stats</string>
+    <string name="tour_analytics_body">Ce que les séances totalisent : tonnage, volume, et comment le corps suit. Ça se remplit à mesure que vous enregistrez.</string>
+    <string name="tour_profile_title">Profil</string>
+    <string name="tour_profile_body">Qui vous êtes pour l\'application, et ce que vous avez soulevé jusqu\'ici. Records et historique sont là.</string>
+    <string name="tour_settings_title">Réglages</string>
+    <string name="tour_settings_body">Tout se configure ici : unités, profil de mesure, appairage de la balance. On y revient par l\'engrenage, sur l\'accueil et sur votre profil — et vous pourrez rejouer ce tour d\'ici.</string>
+    <string name="tour_next">Suivant</string>
+    <string name="tour_finish">C\'est parti</string>
+    <string name="tour_skip">Passer le tour</string>
+    <string name="settings_onboarding">Mise en route</string>
+    <string name="settings_onboarding_summary">Rejouer la présentation</string>
+    <string name="settings_onboarding_tour_why">Proposés une fois, sur une installation neuve. Rejouez-les ici.</string>
+    <string name="settings_onboarding_replay_tour">Revoir le tour des écrans</string>
+    <!-- Parcours de mise en route -->
+    <string name="setup_units_title">Unités</string>
+    <string name="setup_units_why">Choisissez ce dans quoi vous lisez et écrivez. Kilogrammes et centimètres sauf indication contraire.</string>
+    <string name="setup_name_title">Votre nom</string>
+    <string name="setup_name_why">Un prénom suffit. Ça reste sur ce téléphone.</string>
+    <string name="setup_profile_title">Profil de mesure</string>
+    <string name="setup_profile_why">Sexe, date de naissance, taille. Les calculs de composition corporelle en sortent — sans eux, rien ne peut être pesé.</string>
+    <string name="setup_scale_title">Balance Bluetooth</string>
+    <string name="setup_scale_why">Seulement si vous en avez une. L\'appairage demande une pesée de calibration, et peut attendre — c\'est aussi dans les Réglages.</string>
+    <string name="setup_goals_title">Objectifs</string>
+    <string name="setup_goals_why">Facultatif, mais ça donne une direction aux premières semaines. Plusieurs paliers se lisent mieux qu\'un seul chiffre lointain.</string>
+    <string name="setup_continue">Continuer</string>
+    <string name="setup_finish">Terminé</string>
+    <string name="setup_skip_step">Passer cette étape</string>
+    <string name="setup_skip_all">Passer toute la mise en route</string>
+    <string name="settings_onboarding_replay_setup">Refaire la mise en route</string>
+    <string name="setup_previous">Précédent</string>
+    <string name="tour_previous">Précédent</string>
 </resources>

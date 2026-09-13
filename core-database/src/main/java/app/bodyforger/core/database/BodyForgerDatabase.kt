@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.bodyforger.core.database.dao.AppSettingsDao
+import app.bodyforger.core.database.dao.BodyGoalDao
 import app.bodyforger.core.database.dao.AthleteIdentityDao
 import app.bodyforger.core.database.dao.BodyLogDao
 import app.bodyforger.core.database.dao.ScaleAssociationDao
@@ -12,6 +13,7 @@ import app.bodyforger.core.database.dao.RoutineDao
 import app.bodyforger.core.database.dao.WorkoutDao
 import app.bodyforger.core.database.data.DefaultExercises
 import app.bodyforger.core.database.entity.AppSettingsEntity
+import app.bodyforger.core.database.entity.BodyGoalEntity
 import app.bodyforger.core.database.entity.AthleteIdentityEntity
 import app.bodyforger.core.database.entity.BodyLogEntity
 import app.bodyforger.core.database.entity.BodyLogImpedanceEntity
@@ -38,9 +40,10 @@ import kotlinx.coroutines.launch
         RoutineEntity::class,
         RoutineExerciseEntity::class,
         RoutineSetEntity::class,
-        AppSettingsEntity::class
+        AppSettingsEntity::class,
+        BodyGoalEntity::class
     ],
-    version = 9,
+    version = 12,
     exportSchema = true
 )
 abstract class BodyForgerDatabase : RoomDatabase() {
@@ -51,6 +54,7 @@ abstract class BodyForgerDatabase : RoomDatabase() {
     abstract fun scaleAssociationDao(): ScaleAssociationDao
     abstract fun routineDao(): RoutineDao
     abstract fun appSettingsDao(): AppSettingsDao
+    abstract fun bodyGoalDao(): BodyGoalDao
 
     companion object {
         fun createPrepopulateCallback(
