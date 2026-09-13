@@ -68,7 +68,8 @@ class HuaweiScaleModelTest {
 
     @Test
     fun `the resistance scale factor is carried by the model`() {
-        // l'ajuste sans toucher au protocole.
+        // The divisor belongs to the hardware, not to the frame: a family that counts in
+        // other units is adjusted here, without touching the protocol.
         for (model in HuaweiScaleModel.entries) {
             assertEquals(HuaweiScaleModel.HAIGE_OHM_DIVISOR, model.impedanceOhmDivisor, 1e-9)
         }

@@ -114,7 +114,7 @@ fun AnalyticsScreen(onOpenScale: () -> Unit = {}) {
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // HorizontalPager permettant le SWIPE GESTURE fluide
+        // HorizontalPager, for a fluid swipe between tabs
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()

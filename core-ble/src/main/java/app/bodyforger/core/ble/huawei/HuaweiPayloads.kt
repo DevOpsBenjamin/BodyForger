@@ -61,8 +61,8 @@ object HuaweiPayloads {
         payload[5] = now.minute.toByte()
         payload[6] = now.second.toByte()
         payload[7] = now.dayOfWeek.value.toByte()
-        payload[8] = 0 // fraction de seconde en 256e, sans objet ici
-        payload[9] = 0 // raison de l'ajustement : aucune
+        payload[8] = 0 // fractions of a second in 256ths, irrelevant here
+        payload[9] = 0 // adjustment reason: none
         return payload
     }
 

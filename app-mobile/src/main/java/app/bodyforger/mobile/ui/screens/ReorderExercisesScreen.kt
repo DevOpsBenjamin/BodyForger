@@ -116,13 +116,13 @@ fun ReorderExercisesScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            // Espaceur invisible pour centrer le titre
+            // Invisible spacer, so the title stays centred
             Spacer(modifier = Modifier.size(38.dp))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- 2. LISTE DRAG & DROP DES EXERCICES ---
+        // --- 2. DRAG & DROP EXERCISE LIST ---
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
@@ -247,7 +247,7 @@ fun ReorderExercisesScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // --- 3. BOUTON TERMINÉ AU BAS DE L'ÉCRAN (STYLE HEVY) ---
+        // --- 3. DONE BUTTON, PINNED TO THE BOTTOM ---
         Button(
             onClick = {
                 onConfirm(workingList.toList())

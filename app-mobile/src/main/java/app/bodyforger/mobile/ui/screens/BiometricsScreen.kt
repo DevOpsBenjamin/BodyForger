@@ -96,7 +96,7 @@ fun BiometricsScreen(
             modifier = Modifier.padding(top = 2.dp, bottom = 16.dp)
         )
 
-        // Carte Principale : Poids & Masse Grasse
+        // Main card: mass & body fat
         Card(
             modifier = Modifier
                 .fillMaxWidth()

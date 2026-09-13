@@ -89,7 +89,7 @@ fun LiveWorkoutExerciseCard(
         shape = RoundedCornerShape(18.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            // --- EN-TÊTE DE L'EXERCICE ---
+            // --- EXERCISE HEADER ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -188,7 +188,7 @@ fun LiveWorkoutExerciseCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- TABLEAU DES SÉRIES ---
+            // --- SET TABLE ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -269,7 +269,7 @@ fun LiveWorkoutExerciseCard(
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
-            // Bouton + AJOUTER UNE SÉRIE
+            // + ADD A SET button
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

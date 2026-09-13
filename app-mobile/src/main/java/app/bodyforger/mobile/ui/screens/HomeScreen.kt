@@ -90,7 +90,7 @@ fun HomeScreen(
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
-        // --- 1. TOP BAR : Nom de l'app + Date + Bouton Cog Settings ---
+        // --- 1. TOP BAR: app name + date + settings button ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -133,7 +133,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        // --- 2. GRAPHIQUE ÉVOLUTION DU POIDS ---
+        // --- 2. WEIGHT TREND GRAPH ---
         HomeWeightGraphCard(weighIns = weighIns)
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -143,7 +143,7 @@ fun HomeScreen(
             onNavigateToBiometrics = onNavigateToBiometrics,
             isScaleReady = scaleState.isAssociated && measurementProfile != null,
             onWeighIn = {
-                // Une seule balance ne se choisit pas : on monte dessus.
+                // A single paired scale is not chosen, it is stepped on.
                 val only = scaleState.onlyAssociation
                 if (only != null) measurementProfile?.let { scaleViewModel.weighIn(only.deviceAddress, it) }
                 else pickingScale = true
@@ -153,7 +153,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- 4. RÉSUMÉ DU VOLUME HEBDOMADAIRE ---
+        // --- 4. WEEKLY VOLUME SUMMARY ---
         HomeVolumeProgressCard()
     }
 }

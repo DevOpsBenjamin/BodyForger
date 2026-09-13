@@ -98,7 +98,7 @@ fun AnalyticsPerformanceTab(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        // 2. Heatmap & Volume par Muscle
+        // 2. Heatmap & volume by muscle
         Text(
             text = stringResource(R.string.analytics_volume_title),
             color = TextSecondary,

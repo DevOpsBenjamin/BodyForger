@@ -88,7 +88,7 @@ fun PlannerScreen(
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
-        // --- 1. EN-TÊTE : Titre + Bouton Catalogue d'Exercices ---
+        // --- 1. HEADER: title + exercise catalogue button ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -110,7 +110,7 @@ fun PlannerScreen(
                 )
             }
 
-            // Bouton CATALOGUE D'EXERCICES
+            // EXERCISE CATALOGUE button
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
@@ -146,7 +146,7 @@ fun PlannerScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- 3. CARTE DU JOUR SÉLECTIONNÉ ---
+        // --- 3. SELECTED DAY CARD ---
         PlannerDayCard(
             dayName = selectedDayPair.second,
             dayIndex = selectedDayIndex,
@@ -157,7 +157,7 @@ fun PlannerScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- 4. LISTE DES ROUTINES ENREGISTRÉES ---
+        // --- 4. SAVED ROUTINES LIST ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

@@ -53,7 +53,7 @@ class ScaleDriverRegistry(private val drivers: List<ScaleDriver>) {
             driver.identify(advertisedName)?.let { Match(driver, it) }
         }
 
-    /** Le pilote capable de piloter cette Association. */
+    /** The driver able to run this Association. */
     fun driverFor(association: ScaleAssociation): ScaleDriver? =
         identify(association.advertisedName)?.driver
 

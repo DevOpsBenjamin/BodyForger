@@ -39,9 +39,8 @@ Connect directly to smart scales via Bluetooth Low Energy (BLE):
 • Progress tracked against median trends rather than noisy single weigh-ins
 
 3. BUILT-IN EXERCISE CATALOGUE
-Built on the openGym exercise database:
-• A curated exercise catalogue, searchable by muscle group and equipment
-• Full support for advanced set types: Drop sets, Rest-Pause, Myo-reps, Warm-up, and RPE
+• A curated exercise catalogue, searchable by muscle group and equipment, extendable with your own movements
+• Advanced set types: warm-up, drop set, rest-pause, to failure, and RPE
 • Automatic 1RM estimation (Epley / Brzycki models)
 • Muscle heatmap and weekly working volume balance
 

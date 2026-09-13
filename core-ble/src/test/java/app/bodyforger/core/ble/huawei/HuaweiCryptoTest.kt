@@ -122,7 +122,7 @@ class HuaweiCryptoTest {
         val sealed = HuaweiCrypto.encrypt(key, iv, clear)
         assertEquals(HuaweiCrypto.IV_BYTES + clear.size, sealed.size)
         assertArrayEquals(iv, sealed.copyOfRange(0, HuaweiCrypto.IV_BYTES))
-        // Le corps, lui, ne doit rien laisser voir du clair.
+        // The body itself must show nothing of the plaintext.
         assertFalse(sealed.copyOfRange(HuaweiCrypto.IV_BYTES, sealed.size).contentEquals(clear))
     }
 
@@ -145,7 +145,7 @@ class HuaweiCryptoTest {
 
     @Test
     fun `counter mode adds no padding`() {
-        // CTR chiffre flot : une charge de taille quelconque garde sa taille.
+        // CTR is a stream cipher: a payload of any size keeps its size.
         val key = ByteArray(16)
         val iv = ByteArray(16)
         for (size in listOf(1, 15, 16, 17, 69)) {

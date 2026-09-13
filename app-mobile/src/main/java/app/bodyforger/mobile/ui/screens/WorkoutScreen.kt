@@ -90,8 +90,8 @@ fun WorkoutScreen(
     var setOptionsTarget by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var showingDeleteDialog by remember { mutableStateOf(false) }
 
-    // Compte depuis l'heure de depart plutot qu'en incrementant: reduire la seance
-    // detruit ce composable, et un compteur repartirait de zero au retour.
+    // Counted from the start time rather than incremented: minimising the session destroys
+    // this composable, and a counter would restart from zero on the way back.
     LaunchedEffect(workout.session.startedAtEpochMs) {
         while (true) {
             sessionSeconds = ((System.currentTimeMillis() - workout.session.startedAtEpochMs) / MILLIS_PER_SECOND).toInt()
@@ -115,7 +115,7 @@ fun WorkoutScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // 2. Liste des exercices scrollable
+        // 2. Scrollable exercise list
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier
@@ -156,7 +156,7 @@ fun WorkoutScreen(
                 )
             }
 
-            // Bouton + AJOUTER UN EXERCICE PENDANT LA SÉANCE
+            // + ADD AN EXERCISE MID-SESSION button
             item {
                 Button(
                     onClick = onOpenCatalogForAdd,
@@ -190,7 +190,7 @@ fun WorkoutScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 4. Bouton TERMINER LA SÉANCE
+        // 4. FINISH SESSION button
         Button(
             onClick = { showingSummaryDialog = true },
             colors = ButtonDefaults.buttonColors(

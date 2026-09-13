@@ -74,8 +74,8 @@ fun SettingsScreen(
     }
     var showingBiaInfo by remember { mutableStateOf(false) }
 
-    // Depuis Android 12, le scan et la connexion ont leurs propres permissions ; avant, le
-    // scan passait par la localisation faute de mieux.
+    // Since Android 12, scanning and connecting have their own permissions; before that, a
+    // scan went through location for want of anything better.
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
     } else {
@@ -84,7 +84,7 @@ fun SettingsScreen(
     val requestPermissions = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { granted ->
-        // Sans permission, inutile de lancer un scan qui ne verrait rien.
+        // Without the permission, starting a scan that would see nothing is pointless.
         if (granted.values.all { it }) scaleViewModel.startScan()
     }
 

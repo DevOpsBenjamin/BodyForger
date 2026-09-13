@@ -54,7 +54,8 @@ class HuaweiPayloadsTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun `a HUID that is too long is refused rather than truncated`() {
-        // Tronquer produirait un identifiant valide mais different : un second emplacement
+        // Truncating would produce a valid but different identifier, and the scale would
+        // engrave it into a second slot.
         HuaweiPayloads.userProfile("3".repeat(31), athlete)
     }
 

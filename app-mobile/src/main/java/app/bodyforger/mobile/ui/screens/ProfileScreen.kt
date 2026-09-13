@@ -82,7 +82,7 @@ fun ProfileScreen(
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
-        // --- 1. EN-TÊTE PROFIL ATHLÈTE ---
+        // --- 1. ATHLETE PROFILE HEADER ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -180,7 +180,7 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- 4. HISTORIQUE DES SÉANCES ---
+        // --- 4. SESSION HISTORY ---
         Text(
             text = stringResource(R.string.profile_history_title),
             color = TextSecondary,

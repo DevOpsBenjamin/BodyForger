@@ -157,7 +157,7 @@ fun CatalogScreen(
                 }
             }
 
-            // Bouton + CRÉER
+            // + CREATE button
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
@@ -212,7 +212,7 @@ fun CatalogScreen(
             onOpenEquipmentDialog = { showingEquipmentDialog = true }
         )
 
-        // --- 4. LISTE DES EXERCICES FILTRÉS ---
+        // --- 4. FILTERED EXERCISE LIST ---
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxSize()

@@ -14,7 +14,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * la correspondance qui se trompe, pas SQLite.
+ * A reading's round trip through the entities, without opening a database.
+ *
+ * What these hold is the mapping, which is where the mistakes are: SQLite is not the part
+ * that gets a column wrong.
  */
 class BodyLogPersistenceTest {
 
@@ -79,7 +82,8 @@ class BodyLogPersistenceTest {
 
     @Test
     fun `a path is stored by its name, never by its rank`() {
-        // historique sur une convention qui bouge.
+        // Stored by name, never by ordinal: reordering the enum would otherwise rewrite the
+        // history against a convention that moved.
         val rows = log.impedanceRows()
         assertTrue(rows.all { row -> ImpedancePath.entries.any { it.name == row.path } })
     }
@@ -100,7 +104,7 @@ class BodyLogPersistenceTest {
     fun `the scale that produced the reading is kept`() {
         val entity = log.toEntity(sourceDeviceAddress = "AA:BB:CC:DD:EE:FF")
         assertEquals("AA:BB:CC:DD:EE:FF", entity.sourceDeviceAddress)
-        // Une saisie manuelle n'a pas de source, et c'est une information en soi.
+        // A manual entry has no source device, and that absence is itself information.
         assertEquals(null, log.toEntity().sourceDeviceAddress)
     }
 }
