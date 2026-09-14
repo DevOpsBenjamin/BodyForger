@@ -28,7 +28,8 @@ data class McpUiState(
 class McpViewModel(
     private val application: Application,
     private val mcpServer: McpHttpServer,
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
+    private val mcpPreferences: McpPreferences
 ) : ViewModel() {
 
     private val healthConnectReader get() = healthConnectManager.getReaderOrNull()
@@ -50,13 +51,18 @@ class McpViewModel(
         refreshHealthStatus()
     }
 
-    fun toggleServer() {
-        if (_uiState.value.isServerRunning) {
+    fun setServerEnabled(enabled: Boolean) {
+        mcpPreferences.isEnabled = enabled
+        if (enabled) {
+            McpService.start(application)
+        } else {
             McpService.stop(application)
             mcpServer.stop()
-        } else {
-            McpService.start(application)
         }
+    }
+
+    fun toggleServer() {
+        setServerEnabled(!_uiState.value.isServerRunning)
     }
 
     fun refreshHealthStatus() {

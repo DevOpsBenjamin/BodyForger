@@ -78,8 +78,11 @@ fun BodyForgerApp(
     val intent = (context as? android.app.Activity)?.intent
     LaunchedEffect(intent?.data) {
         val uri = intent?.data
-        if (uri?.scheme == "bodyforger" && (uri.host == "mcp" || uri.host == "healthconnect")) {
-            navController.navigate(Destination.HealthConnectMcp) { launchSingleTop = true }
+        if (uri?.scheme == "bodyforger") {
+            when (uri.host) {
+                "mcp" -> navController.navigate(Destination.Mcp) { launchSingleTop = true }
+                "healthconnect" -> navController.navigate(Destination.HealthConnect) { launchSingleTop = true }
+            }
         }
     }
 

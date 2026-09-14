@@ -573,14 +573,21 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="setup_previous">Précédent</string>
     <string name="tour_previous">Précédent</string>
 
-    <!-- Health Connect et MCP -->
-    <string name="settings_health_connect_mcp_title">Health Connect &amp; MCP</string>
-    <string name="settings_health_connect_mcp_desc">Inspecter l\'historique étendu et exécuter le serveur MCP local</string>
+    <!-- Health Connect -->
+    <string name="settings_health_connect_title">Google Health Connect</string>
+    <string name="settings_health_connect_desc">Gérer les autorisations de santé, l\'historique et la synchronisation</string>
+
+    <!-- MCP Server -->
+    <string name="settings_mcp_title">Model Context Protocol (MCP)</string>
+    <string name="settings_mcp_desc">Connecter des assistants IA (Claude, Gemini) à vos données d\'entraînement et corporelles</string>
+    <string name="settings_mcp_status_enabled">Actif · Port %1$d</string>
+    <string name="settings_mcp_status_disabled">Désactivé</string>
     <string name="mcp_server_title">Serveur MCP local</string>
+    <string name="mcp_server_explanation_1">Le serveur Model Context Protocol (MCP) permet à des assistants IA externes (comme Claude ou Gemini) de consulter vos exercices, vos programmes et vos mesures corporelles.</string>
+    <string name="mcp_server_explanation_2">Activez-le pour connecter vos outils IA depuis votre ordinateur via ADB ou votre réseau local.</string>
+    <string name="mcp_server_toggle_label">Activer le serveur MCP</string>
     <string name="mcp_server_status_running">En cours d\'exécution sur le port %1$d</string>
     <string name="mcp_server_status_stopped">Arrêté</string>
-    <string name="mcp_server_start">Démarrer le serveur</string>
-    <string name="mcp_server_stop">Arrêter le serveur</string>
     <string name="mcp_server_adb_hint">Transférer le port sur l\'ordinateur : adb forward tcp:%1$d tcp:%1$d</string>
     <string name="mcp_server_endpoints_hint">SSE : http://localhost:%1$d/sse · Direct : http://localhost:%1$d/mcp</string>
     <string name="mcp_health_permissions_title">Autorisations Health Connect</string>

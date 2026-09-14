@@ -9,11 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +27,7 @@ import app.bodyforger.mobile.R
 fun McpServerCard(
     isRunning: Boolean,
     port: Int,
-    onToggleServer: () -> Unit,
+    onToggleServer: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -75,28 +74,40 @@ fun McpServerCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Button(
-                onClick = onToggleServer,
+            Text(
+                text = stringResource(R.string.mcp_server_explanation_1),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = stringResource(R.string.mcp_server_explanation_2),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isRunning) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
-                )
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (isRunning) {
-                        stringResource(R.string.mcp_server_stop)
-                    } else {
-                        stringResource(R.string.mcp_server_start)
-                    }
+                    text = stringResource(R.string.mcp_server_toggle_label),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Switch(
+                    checked = isRunning,
+                    onCheckedChange = onToggleServer
                 )
             }
 
             if (isRunning) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),

@@ -16,6 +16,7 @@ import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStream
+import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.UUID
@@ -39,29 +40,25 @@ class McpHttpServer(
 
     fun start(scope: CoroutineScope, port: Int = DEFAULT_PORT) {
         if (_isRunning.value) return
-        _serverPort.value = port
-
         val customScope = CoroutineScope(Dispatchers.IO + SupervisorJob(scope.coroutineContext[Job]) + handler)
         serverScope = customScope
+        val socket = try {
+            ServerSocket().apply { reuseAddress = true; bind(InetSocketAddress(port)) }
+        } catch (_: Throwable) { return }
+        serverSocket = socket
+        _serverPort.value = socket.localPort
+        _isRunning.value = true
 
         serverJob = customScope.launch {
             try {
-                val socket = ServerSocket(port)
-                serverSocket = socket
-                _isRunning.value = true
-
                 while (isActive && !socket.isClosed) {
                     try {
                         val client = socket.accept()
-                        launch(SupervisorJob() + handler) {
-                            handleClient(client)
-                        }
-                    } catch (_: Throwable) {
-                        break
-                    }
+                        launch(SupervisorJob() + handler) { handleClient(client) }
+                    } catch (_: Throwable) { break }
                 }
-            } catch (_: Throwable) {
             } finally {
+                try { socket.close() } catch (_: Throwable) {}
                 _isRunning.value = false
             }
         }
@@ -214,13 +211,9 @@ class McpHttpServer(
 
     private suspend fun handleDirectMcp(out: OutputStream, body: String) {
         try {
-            val requestJson = JSONObject(body)
-            val responseJson = dispatcher.dispatch(requestJson)
-            if (responseJson != null) {
-                sendResponse(out, 200, "OK", "application/json", responseJson.toString())
-            } else {
-                sendResponse(out, 204, "No Content", "application/json", "")
-            }
+            val response = dispatcher.dispatch(JSONObject(body))
+            if (response != null) sendResponse(out, 200, "OK", "application/json", response.toString())
+            else sendResponse(out, 204, "No Content", "application/json", "")
         } catch (t: Throwable) {
             val err = McpProtocol.buildError(null, -32700, "Error: ${t.message}")
             sendResponse(out, 400, "Bad Request", "application/json", err.toString())
@@ -242,6 +235,6 @@ class McpHttpServer(
         }?.toMap() ?: emptyMap()
 
     companion object {
-        const val DEFAULT_PORT = 8080
+        const val DEFAULT_PORT = 8049
     }
 }

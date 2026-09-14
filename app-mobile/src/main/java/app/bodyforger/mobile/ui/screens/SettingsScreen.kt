@@ -39,6 +39,7 @@ import app.bodyforger.mobile.ui.components.BiaProfileInfoDialog
 import app.bodyforger.mobile.ui.components.DefaultUnitsSection
 import app.bodyforger.mobile.ui.components.GoalsSection
 import app.bodyforger.mobile.ui.components.HealthConnectSettingsSection
+import app.bodyforger.mobile.ui.components.McpSettingsSection
 import app.bodyforger.mobile.ui.components.OnboardingSettingsSection
 import app.bodyforger.mobile.ui.components.ScaleSettingsSection
 import app.bodyforger.mobile.ui.components.SectionStatus
@@ -64,7 +65,8 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingsScreen(
     onBack: () -> Unit,
     expandScale: Boolean = false,
-    onOpenHealthConnectMcp: () -> Unit = {},
+    onOpenHealthConnect: () -> Unit = {},
+    onOpenMcp: () -> Unit = {},
     scaleViewModel: ScaleViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     appSettingsViewModel: AppSettingsViewModel = koinViewModel(),
@@ -84,26 +86,21 @@ fun SettingsScreen(
     var addingGoal by remember { mutableStateOf(false) }
 
     var openSection by remember {
-        mutableStateOf(if (expandScale) SettingsSectionType.SCALE else SettingsSectionType.entries.first { it == SettingsSectionType.ATHLETE })
+        mutableStateOf(if (expandScale) SettingsSectionType.SCALE else SettingsSectionType.ATHLETE)
     }
     var showingBiaInfo by remember { mutableStateOf(false) }
 
     val permissions = remember { app.bodyforger.mobile.ui.components.bluetoothPermissions() }
     val requestPermissions = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { granted ->
-        if (granted.values.all { it }) scaleViewModel.startScan()
-    }
+    ) { granted -> if (granted.values.all { it }) scaleViewModel.startScan() }
 
     if (showingBiaInfo) {
         BiaProfileInfoDialog(onDismiss = { showingBiaInfo = false })
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Obsidian)
-            .statusBarsPadding()
+        modifier = Modifier.fillMaxSize().background(Obsidian).statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)
     ) {
@@ -230,7 +227,12 @@ fun SettingsScreen(
 
         HealthConnectSettingsSection(
             uiState = mcpUiState,
-            onClick = onOpenHealthConnectMcp
+            onClick = onOpenHealthConnect
+        )
+
+        McpSettingsSection(
+            uiState = mcpUiState,
+            onClick = onOpenMcp
         )
     }
 

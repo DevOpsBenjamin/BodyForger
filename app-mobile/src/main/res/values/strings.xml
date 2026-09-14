@@ -573,14 +573,21 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="setup_previous">Back</string>
     <string name="tour_previous">Back</string>
 
-    <!-- Health Connect and MCP -->
-    <string name="settings_health_connect_mcp_title">Health Connect &amp; MCP</string>
-    <string name="settings_health_connect_mcp_desc">Inspect multi-month health history and run the local MCP server</string>
+    <!-- Health Connect -->
+    <string name="settings_health_connect_title">Google Health Connect</string>
+    <string name="settings_health_connect_desc">Manage health permissions, history access, and data synchronization</string>
+
+    <!-- MCP Server -->
+    <string name="settings_mcp_title">Model Context Protocol (MCP)</string>
+    <string name="settings_mcp_desc">Connect AI assistants (Claude, Gemini) to your workout and body data</string>
+    <string name="settings_mcp_status_enabled">Active · Port %1$d</string>
+    <string name="settings_mcp_status_disabled">Disabled</string>
     <string name="mcp_server_title">Local MCP Server</string>
+    <string name="mcp_server_explanation_1">The Model Context Protocol (MCP) server allows external AI assistants (like Claude or Gemini) to query your exercises, routines, and body stats.</string>
+    <string name="mcp_server_explanation_2">Enable it to connect AI tools from your computer over ADB or your local network.</string>
+    <string name="mcp_server_toggle_label">Enable MCP Server</string>
     <string name="mcp_server_status_running">Running on port %1$d</string>
     <string name="mcp_server_status_stopped">Stopped</string>
-    <string name="mcp_server_start">Start Server</string>
-    <string name="mcp_server_stop">Stop Server</string>
     <string name="mcp_server_adb_hint">Connect from computer: adb forward tcp:%1$d tcp:%1$d</string>
     <string name="mcp_server_endpoints_hint">SSE: http://localhost:%1$d/sse · Direct: http://localhost:%1$d/mcp</string>
     <string name="mcp_health_permissions_title">Health Connect Permissions</string>

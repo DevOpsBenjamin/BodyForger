@@ -22,7 +22,8 @@ import app.bodyforger.mobile.ui.screens.CatalogScreen
 import app.bodyforger.mobile.ui.screens.CreateExerciseScreen
 import app.bodyforger.mobile.ui.screens.HomeScreen
 import app.bodyforger.mobile.ui.screens.PlannerScreen
-import app.bodyforger.mobile.ui.screens.HealthConnectMcpScreen
+import app.bodyforger.mobile.ui.screens.HealthConnectScreen
+import app.bodyforger.mobile.ui.screens.McpScreen
 import app.bodyforger.mobile.ui.screens.ProfileScreen
 import app.bodyforger.mobile.ui.screens.RoutineEditorScreen
 import app.bodyforger.mobile.ui.screens.SettingsScreen
@@ -110,12 +111,17 @@ fun BodyForgerNavHost(
             SettingsScreen(
                 onBack = navController::navigateUp,
                 expandScale = entry.toRoute<Destination.Settings>().expandScale,
-                onOpenHealthConnectMcp = { navController.navigate(Destination.HealthConnectMcp) }
+                onOpenHealthConnect = { navController.navigate(Destination.HealthConnect) },
+                onOpenMcp = { navController.navigate(Destination.Mcp) }
             )
         }
 
-        composable<Destination.HealthConnectMcp> {
-            HealthConnectMcpScreen(onNavigateBack = navController::navigateUp)
+        composable<Destination.HealthConnect> {
+            HealthConnectScreen(onNavigateBack = navController::navigateUp)
+        }
+
+        composable<Destination.Mcp> {
+            McpScreen(onNavigateBack = navController::navigateUp)
         }
 
         composable<Destination.Setup> {
@@ -197,25 +203,16 @@ fun BodyForgerNavHost(
             }
         }
 
-        // An exercise added mid-session joins no routine.
         composable<Destination.AddToWorkout> {
             ExercisePicker(navController, exercises) { chosen ->
-                workout.addExercise(chosen.toRoutineExercise(
-                        routineId = "",
-                        displayName = chosen.displayName(context),
-                        weightUnit = defaultWeightUnit
-                    ))
+                workout.addExercise(chosen.toRoutineExercise("", chosen.displayName(context), defaultWeightUnit))
             }
         }
 
         composable<Destination.ReplaceInWorkout> { entry ->
             val index = entry.toRoute<Destination.ReplaceInWorkout>().index
             ExercisePicker(navController, exercises) { chosen ->
-                workout.replaceExercise(index, chosen.toRoutineExercise(
-                        routineId = "",
-                        displayName = chosen.displayName(context),
-                        weightUnit = defaultWeightUnit
-                    ))
+                workout.replaceExercise(index, chosen.toRoutineExercise("", chosen.displayName(context), defaultWeightUnit))
             }
         }
     }
