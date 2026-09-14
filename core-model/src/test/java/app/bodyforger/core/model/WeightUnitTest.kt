@@ -62,4 +62,22 @@ class WeightUnitTest {
         // pounds inflated the tonnage by a factor of two point two.
         assertEquals(45.359237, WeightUnit.LBS.toKilograms(100.0), 1e-9)
     }
+
+    @Test
+    fun `a career total switches to thousands rather than wrapping a stat card`() {
+        assertEquals("233.4 t", WeightUnit.KG.formatCumulative(233_436.5, Locale.UK))
+        assertEquals("1 t", WeightUnit.KG.formatCumulative(1000.0, Locale.UK))
+    }
+
+    @Test
+    fun `a total below a thousand is written out in full`() {
+        assertEquals("840 kg", WeightUnit.KG.formatCumulative(840.0, Locale.UK))
+        assertEquals("999.5 kg", WeightUnit.KG.formatCumulative(999.5, Locale.UK))
+    }
+
+    @Test
+    fun `pounds count in thousands, never in tonnes`() {
+        // 233,436.5 kg is 514,637 lbs.
+        assertEquals("514.6 k lbs", WeightUnit.LBS.formatCumulative(233_436.5, Locale.UK))
+    }
 }

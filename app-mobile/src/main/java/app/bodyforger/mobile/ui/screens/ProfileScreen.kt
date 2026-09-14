@@ -185,7 +185,7 @@ fun ProfileScreen(
             ProfileTotalStatCard(
                 modifier = Modifier.weight(1f),
                 label = stringResource(R.string.profile_stat_tonnage),
-                value = unit.formatWithSymbol(TrainingStats.totalTonnageKg(sessions)),
+                value = unit.formatCumulative(TrainingStats.totalTonnageKg(sessions)),
                 color = ElectricCyan
             )
             ProfileTotalStatCard(

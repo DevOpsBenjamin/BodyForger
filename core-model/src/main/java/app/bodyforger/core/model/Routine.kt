@@ -61,8 +61,32 @@ enum class WeightUnit(val symbol: String) {
     fun formatWithSymbol(kilograms: Double, locale: Locale = Locale.getDefault()): String =
         "${format(kilograms, locale)} $symbol"
 
+    /**
+     * A career total, short enough to sit in a stat card.
+     *
+     * Every set of every session adds up fast: a season reads 233,436.5 kg, which wraps onto two
+     * lines and is no more informative than 233.4 t. Past a thousand units the figure switches to
+     * thousands — tonnes in kilograms, thousands of pounds otherwise — and keeps one decimal.
+     * Below that it is written out in full, because 840 kg is a number to read, not to round.
+     */
+    fun formatCumulative(kilograms: Double, locale: Locale = Locale.getDefault()): String {
+        val shown = fromKilograms(kilograms)
+        if (shown < THOUSAND) return formatWithSymbol(kilograms, locale)
+        val format = NumberFormat.getNumberInstance(locale).apply {
+            maximumFractionDigits = 1
+            minimumFractionDigits = 0
+            isGroupingUsed = true
+        }
+        val suffix = when (this) {
+            KG -> "t"
+            LBS -> "k $symbol"
+        }
+        return "${format.format(shown / THOUSAND)} $suffix"
+    }
+
     private companion object {
         const val KILOGRAMS_PER_POUND = 0.45359237
+        const val THOUSAND = 1000.0
     }
 }
 
