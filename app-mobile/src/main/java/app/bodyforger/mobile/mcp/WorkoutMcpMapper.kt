@@ -42,6 +42,10 @@ internal object WorkoutMcpMapper {
 
             val rpe = if (sObj.has("rpe") && !sObj.isNull("rpe")) sObj.optDouble("rpe") else null
             val completedAt = if (sObj.has("completedAtEpochMs")) sObj.optLong("completedAtEpochMs") else null
+            // An imported session carries its own timing; without these an import would land
+            // with the set timing the live workout engine fills in, which is nothing at all.
+            val startedAt = if (sObj.has("startedAtEpochMs")) sObj.optLong("startedAtEpochMs") else null
+            val actualRest = if (sObj.has("actualRestSeconds")) sObj.optInt("actualRestSeconds") else null
 
             list.add(
                 WorkoutSetEntity(
@@ -62,7 +66,9 @@ internal object WorkoutMcpMapper {
                     isCompleted = isCompleted,
                     side = sObj.optString("side", UnilateralSide.NONE.name).uppercase(Locale.ROOT),
                     restTimeSeconds = sObj.optInt("restTimeSeconds", 90),
-                    completedAtEpochMs = completedAt
+                    completedAtEpochMs = completedAt,
+                    startedAtEpochMs = startedAt,
+                    actualRestSeconds = actualRest
                 )
             )
         }
