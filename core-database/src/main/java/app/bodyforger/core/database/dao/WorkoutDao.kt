@@ -8,6 +8,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import app.bodyforger.core.database.entity.WorkoutHeartRateSampleEntity
 import app.bodyforger.core.database.entity.WorkoutSessionEntity
+import app.bodyforger.core.database.entity.WorkoutSessionSummary
 import app.bodyforger.core.database.entity.WorkoutSessionWithSets
 import app.bodyforger.core.database.entity.WorkoutSetEntity
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,34 @@ interface WorkoutDao {
     @Transaction
     @Query("SELECT * FROM workout_sessions WHERE status = 'COMPLETED' ORDER BY startedAtEpochMs DESC")
     fun getCompletedSessions(): Flow<List<WorkoutSessionWithSets>>
+
+    /**
+     * Completed sessions for the history list, without their sets.
+     *
+     * A history card needs the session's own figures — tonnage, heart rate, duration — plus the
+     * exercises it went through. Loading every set to read a handful of names meant carrying the
+     * whole training history into memory to draw a list.
+     *
+     * The exercise names come back as one ordered, comma-separated string per session, built by
+     * SQLite rather than by walking the sets in Kotlin.
+     */
+    @Query(
+        """
+        SELECT s.*, (
+            SELECT GROUP_CONCAT(name, ', ') FROM (
+                SELECT DISTINCT w.exerciseName AS name, MIN(w.orderIndex) AS ord
+                FROM workout_sets w
+                WHERE w.sessionId = s.id
+                GROUP BY w.exerciseName
+                ORDER BY ord
+            )
+        ) AS exerciseNames
+        FROM workout_sessions s
+        WHERE s.status = 'COMPLETED'
+        ORDER BY s.startedAtEpochMs DESC
+        """
+    )
+    fun getCompletedSessionSummaries(): Flow<List<WorkoutSessionSummary>>
 
     @Transaction
     @Query("SELECT * FROM workout_sessions WHERE id = :sessionId")

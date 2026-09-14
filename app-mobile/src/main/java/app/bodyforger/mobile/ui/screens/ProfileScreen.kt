@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.library.WorkoutSessionHistoryEntry
 import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
 import app.bodyforger.mobile.stats.TrainingStats
@@ -77,16 +78,20 @@ fun ProfileScreen(
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     settings: AppSettingsViewModel = koinViewModel()
 ) {
-    val sessions by library.completedSessions.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
     val unit by settings.defaultWeightUnit.collectAsState()
-    val streakWeeks = remember(sessions) {
-        TrainingStats.consecutiveTrainingWeeks(sessions, System.currentTimeMillis())
+    val history by library.completedSessionSummaries.collectAsState()
+    val startedAt = remember(history) { history.map { it.startedAtEpochMs } }
+    val streakWeeks = remember(startedAt) {
+        TrainingStats.consecutiveTrainingWeeksOf(startedAt, System.currentTimeMillis())
     }
-
-    val workoutHistory = remember(sessions) { sessions.map { it.toHistoryItem() } }
-    val totalTonnageKg = remember(sessions) { TrainingStats.totalTonnageKg(sessions) }
-    val totalHours = remember(sessions) { TrainingStats.totalHours(sessions) }
+    val workoutHistory = remember(history) { history.map { it.toHistoryItem() } }
+    val totalTonnageKg = remember(history) { history.sumOf { it.totalVolumeKg } }
+    val totalHours = remember(history) {
+        history.mapNotNull { it.endedAtEpochMs?.minus(it.startedAtEpochMs) }
+            .filter { it > 0 }
+            .sumOf { it / 3_600_000.0 }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(Obsidian),
@@ -182,7 +187,7 @@ fun ProfileScreen(
             ProfileTotalStatCard(
                 modifier = Modifier.weight(0.76f),
                 label = stringResource(R.string.profile_stat_sessions),
-                value = sessions.size.toString(),
+                value = history.size.toString(),
                 color = NeonLime
             )
             ProfileTotalStatCard(
@@ -204,7 +209,7 @@ fun ProfileScreen(
         item { Spacer(modifier = Modifier.height(20.dp)) }
 
         // --- 3. HEATMAP D'ACTIVITÉ ---
-        item { ActivityHeatmapCard(sessions = sessions) }
+        item { ActivityHeatmapCard(startedAtEpochMs = startedAt) }
 
         item { Spacer(modifier = Modifier.height(24.dp)) }
 
@@ -243,8 +248,8 @@ fun ProfileScreen(
  * Nothing is filled in that the session does not carry: a workout with no heart rate shows
  * none, rather than a plausible number.
  */
-private fun WorkoutSession.toHistoryItem(): HistoryWorkoutItem {
-    val minutes = TrainingStats.durationMinutes(this)
+private fun WorkoutSessionHistoryEntry.toHistoryItem(): HistoryWorkoutItem {
+    val minutes = endedAtEpochMs?.minus(startedAtEpochMs)?.takeIf { it > 0 }?.div(60_000)
     val startedAt = Instant.ofEpochMilli(startedAtEpochMs).atZone(ZoneId.systemDefault())
     return HistoryWorkoutItem(
         id = id,
@@ -252,8 +257,8 @@ private fun WorkoutSession.toHistoryItem(): HistoryWorkoutItem {
         dateDisplay = startedAt.format(HISTORY_DATE_FORMAT),
         durationDisplay = minutes?.let { "$it min" }.orEmpty(),
         avgBpm = averageHeartRateBpm ?: 0,
-        totalTonnageKg = TrainingStats.sessionTonnageKg(this),
-        exerciseSummary = TrainingStats.exerciseNames(this).joinToString(", "),
+        totalTonnageKg = totalVolumeKg,
+        exerciseSummary = exerciseNames.joinToString(", "),
         personalRecordHighlight = null
     )
 }

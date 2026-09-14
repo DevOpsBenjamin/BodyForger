@@ -62,6 +62,17 @@ class LibraryViewModel(
         .map { rows -> rows.map { it.toDomain() } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), emptyList())
 
+    /**
+     * Completed sessions without their sets, for the history list.
+     *
+     * The list draws from what a session already stores, so loading every set of every session
+     * to render it meant carrying the whole training history into memory.
+     */
+    val completedSessionSummaries: StateFlow<List<WorkoutSessionHistoryEntry>> =
+        workoutDao.getCompletedSessionSummaries()
+            .map { rows -> rows.map { it.toHistoryEntry() } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), emptyList())
+
     /** Writes a routine with its exercises and sets in one transaction. */
     fun saveRoutine(routine: Routine) {
         viewModelScope.launch {

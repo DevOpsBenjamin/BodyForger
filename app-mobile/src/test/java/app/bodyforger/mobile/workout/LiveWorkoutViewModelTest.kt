@@ -3,6 +3,7 @@ package app.bodyforger.mobile.workout
 import app.bodyforger.core.database.dao.WorkoutDao
 import app.bodyforger.core.database.entity.WorkoutHeartRateSampleEntity
 import app.bodyforger.core.database.entity.WorkoutSessionEntity
+import app.bodyforger.core.database.entity.WorkoutSessionSummary
 import app.bodyforger.core.database.entity.WorkoutSessionWithSets
 import app.bodyforger.core.database.entity.WorkoutSetEntity
 import app.bodyforger.core.model.EquipmentType
@@ -47,6 +48,7 @@ class LiveWorkoutViewModelTest {
 
         override fun getAllSessionsWithSets(): Flow<List<WorkoutSessionWithSets>> = emptyFlow()
         override fun getCompletedSessions(): Flow<List<WorkoutSessionWithSets>> = emptyFlow()
+        override fun getCompletedSessionSummaries(): Flow<List<WorkoutSessionSummary>> = emptyFlow()
         override suspend fun getSessionWithSets(sessionId: String): WorkoutSessionWithSets? = null
         override suspend fun getActiveSession(): WorkoutSessionWithSets? = null
         override fun observeActiveSession(): Flow<WorkoutSessionWithSets?> = emptyFlow()

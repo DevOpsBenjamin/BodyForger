@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.stats.TrainingStats
 import app.bodyforger.mobile.ui.theme.AmberGold
@@ -40,7 +39,7 @@ import app.bodyforger.mobile.ui.theme.SurfaceElevated
 import app.bodyforger.mobile.ui.theme.TextMuted
 
 @Composable
-fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Modifier) {
+fun ActivityHeatmapCard(startedAtEpochMs: List<Long>, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -69,7 +68,7 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
                 Text(
                     text = stringResource(
                         R.string.profile_sessions_this_week,
-                        TrainingStats.sessionsThisWeek(sessions, System.currentTimeMillis())
+                        startedAtEpochMs.count { it >= TrainingStats.weekStartEpochMs(System.currentTimeMillis()) }
                     ),
                     color = NeonLime,
                     fontSize = 11.sp,
@@ -81,7 +80,7 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            ActivityHeatmapGrid(sessions)
+            ActivityHeatmapGrid(startedAtEpochMs)
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -112,9 +111,9 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
 }
 
 @Composable
-fun ActivityHeatmapGrid(sessions: List<WorkoutSession>) {
-    val counts = remember(sessions) {
-        TrainingStats.weeklySessionCounts(sessions, System.currentTimeMillis(), HEATMAP_WEEKS)
+fun ActivityHeatmapGrid(startedAtEpochMs: List<Long>) {
+    val counts = remember(startedAtEpochMs) {
+        TrainingStats.weeklySessionCountsOf(startedAtEpochMs, System.currentTimeMillis(), HEATMAP_WEEKS)
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

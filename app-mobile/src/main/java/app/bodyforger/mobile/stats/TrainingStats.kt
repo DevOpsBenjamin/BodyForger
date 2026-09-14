@@ -126,14 +126,21 @@ object TrainingStats {
         sessions: List<WorkoutSession>,
         todayEpochMs: Long,
         weeks: Int
+    ): List<Int> = weeklySessionCountsOf(sessions.map { it.startedAtEpochMs }, todayEpochMs, weeks)
+
+    /** As [weeklySessionCounts], from session start times alone. */
+    fun weeklySessionCountsOf(
+        startedAtEpochMs: List<Long>,
+        todayEpochMs: Long,
+        weeks: Int
     ): List<Int> {
         val zone = ZoneId.systemDefault()
         val thisMonday = Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
             .with(DayOfWeek.MONDAY)
         val firstMonday = thisMonday.minusWeeks((weeks - 1).toLong())
 
-        val perWeek = sessions
-            .map { Instant.ofEpochMilli(it.startedAtEpochMs).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
+        val perWeek = startedAtEpochMs
+            .map { Instant.ofEpochMilli(it).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
             .groupingBy { it }
             .eachCount()
 
@@ -176,14 +183,18 @@ object TrainingStats {
      *
      * Weeks start on Monday, as ISO has it.
      */
-    fun consecutiveTrainingWeeks(sessions: List<WorkoutSession>, todayEpochMs: Long): Int {
-        if (sessions.isEmpty()) return 0
+    fun consecutiveTrainingWeeks(sessions: List<WorkoutSession>, todayEpochMs: Long): Int =
+        consecutiveTrainingWeeksOf(sessions.map { it.startedAtEpochMs }, todayEpochMs)
+
+    /** As [consecutiveTrainingWeeks], from session start times alone. */
+    fun consecutiveTrainingWeeksOf(startedAtEpochMs: List<Long>, todayEpochMs: Long): Int {
+        if (startedAtEpochMs.isEmpty()) return 0
 
         val zone = ZoneId.systemDefault()
         val thisWeek = Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
             .with(DayOfWeek.MONDAY)
-        val trained = sessions
-            .map { Instant.ofEpochMilli(it.startedAtEpochMs).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
+        val trained = startedAtEpochMs
+            .map { Instant.ofEpochMilli(it).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
             .toSet()
 
         var week = if (thisWeek in trained) thisWeek else thisWeek.minusWeeks(1)
