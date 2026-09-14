@@ -43,6 +43,9 @@ private const val SECONDS_PER_DP = 2
  * glance: a heavy triple reads as a short block under a long gap, an accessory as the reverse.
  * A set that never recorded its timing keeps its row without a bar, rather than being dropped
  * from the chronology or given a plausible length.
+ *
+ * `actualRestSeconds` is the rest that *preceded* a set, so the gap drawn under one set reads
+ * the value of the next: the rest after a heavy press belongs to the set that follows it.
  */
 @Composable
 fun WorkoutTimelineCard(sets: List<WorkoutSet>, modifier: Modifier = Modifier) {
@@ -95,7 +98,7 @@ fun WorkoutTimelineCard(sets: List<WorkoutSet>, modifier: Modifier = Modifier) {
                             .clip(RoundedCornerShape(3.dp))
                             .background(if (set.isCompleted) NeonLime else SurfaceBorder)
                     )
-                    val rest = set.actualRestSeconds
+                    val rest = ordered.getOrNull(index + 1)?.actualRestSeconds
                     if (index < ordered.lastIndex && rest != null) {
                         Box(
                             modifier = Modifier
@@ -134,14 +137,12 @@ fun WorkoutTimelineCard(sets: List<WorkoutSet>, modifier: Modifier = Modifier) {
                             )
                         }
                     }
-                    if (index < ordered.lastIndex) {
-                        set.actualRestSeconds?.let {
-                            Text(
-                                text = stringResource(R.string.workout_detail_rest, it),
-                                color = TextMuted,
-                                fontSize = 11.sp
-                            )
-                        }
+                    ordered.getOrNull(index + 1)?.actualRestSeconds?.let {
+                        Text(
+                            text = stringResource(R.string.workout_detail_rest, it),
+                            color = TextMuted,
+                            fontSize = 11.sp
+                        )
                     }
                 }
             }
