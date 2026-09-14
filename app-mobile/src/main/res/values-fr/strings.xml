@@ -206,7 +206,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="scale_picker_title">Quelle balance ?</string>
     <string name="profile_stat_sessions">Séances</string>
     <string name="profile_stat_tonnage">Tonnage total</string>
-    <string name="profile_stat_hours">Heures gym</string>
+    <string name="profile_stat_hours">Heures</string>
     <string name="unit_hours">%1$.0f h</string>
     <string name="profile_history_empty">Aucune séance pour l\'instant. Vos séances terminées apparaîtront ici.</string>
     <string name="stats_weekly_tonnage">Tonnage hebdo</string>
@@ -659,4 +659,5 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="workout_detail_no_value">—</string>
     <string name="workout_detail_loading">Chargement de la séance…</string>
     <string name="workout_detail_missing">Cette séance n\'est plus dans la base.</string>
+    <string name="heatmap_weekday_initials">L,M,M,J,V,S,D</string>
 </resources>

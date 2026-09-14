@@ -89,6 +89,36 @@ object TrainingStats {
             .toSet()
     }
 
+    /**
+     * The activity grid, one column per week, Monday at the top.
+     *
+     * Weeks rather than runs of days: a column that holds five consecutive days puts Monday on a
+     * different row every week, so no habit can show through. Aligned on weekdays, a fortnight of
+     * Tuesdays reads as a line, and an untouched weekend as a gap.
+     *
+     * The last column is the current week, padded to Sunday so today keeps its weekday position
+     * rather than sliding to the end of the grid.
+     */
+    fun activityWeeks(
+        sessions: List<WorkoutSession>,
+        todayEpochMs: Long,
+        weeks: Int
+    ): List<List<Boolean>> {
+        val zone = ZoneId.systemDefault()
+        val today = Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
+        val thisMonday = today.with(DayOfWeek.MONDAY)
+        val firstMonday = thisMonday.minusWeeks((weeks - 1).toLong())
+
+        val trained = sessions
+            .map { Instant.ofEpochMilli(it.startedAtEpochMs).atZone(zone).toLocalDate() }
+            .toSet()
+
+        return (0 until weeks).map { week ->
+            val monday = firstMonday.plusWeeks(week.toLong())
+            (0 until DAYS_IN_A_WEEK).map { day -> monday.plusDays(day.toLong()) in trained }
+        }
+    }
+
     /** Sessions started in the last seven days, today included. */
     fun sessionsThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Int =
         activeDayOffsets(sessions, todayEpochMs, DAYS_IN_A_WEEK).size

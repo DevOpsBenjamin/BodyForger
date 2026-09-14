@@ -102,25 +102,38 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
 
 @Composable
 fun ActivityHeatmapGrid(sessions: List<WorkoutSession>) {
-    val activeDays = remember(sessions) {
-        TrainingStats.activeDayOffsets(sessions, System.currentTimeMillis(), HEATMAP_DAYS)
+    val weeks = remember(sessions) {
+        TrainingStats.activityWeeks(sessions, System.currentTimeMillis(), HEATMAP_WEEKS)
     }
+    val initials = stringResource(R.string.heatmap_weekday_initials).split(",")
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        for (col in 0 until HEATMAP_COLUMNS) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                for (row in 0 until HEATMAP_ROWS) {
-                    val dayIndex = col * HEATMAP_ROWS + row
-                    val boxColor = if (activeDays.contains(dayIndex)) NeonLime else SurfaceElevated
+        // The weekday initials are what turn the grid into a calendar: without them a gap is
+        // just a gap, and with them it is a weekend.
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            initials.take(TrainingStats.DAYS_IN_A_WEEK).forEach { initial ->
+                Box(modifier = Modifier.size(width = 10.dp, height = 14.dp)) {
+                    Text(
+                        text = initial,
+                        color = TextMuted,
+                        fontSize = 8.sp,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            }
+        }
 
+        weeks.forEach { week ->
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                week.forEach { trained ->
                     Box(
                         modifier = Modifier
                             .size(14.dp)
                             .clip(RoundedCornerShape(3.dp))
-                            .background(boxColor)
+                            .background(if (trained) NeonLime else SurfaceElevated)
                     )
                 }
             }
@@ -128,7 +141,5 @@ fun ActivityHeatmapGrid(sessions: List<WorkoutSession>) {
     }
 }
 
-/** The grid covers the last ten weeks, read column by column. */
-private const val HEATMAP_COLUMNS = 14
-private const val HEATMAP_ROWS = 5
-private const val HEATMAP_DAYS = HEATMAP_COLUMNS * HEATMAP_ROWS
+/** Fourteen weeks, one column each, Monday at the top — the shape GitHub made legible. */
+private const val HEATMAP_WEEKS = 14
