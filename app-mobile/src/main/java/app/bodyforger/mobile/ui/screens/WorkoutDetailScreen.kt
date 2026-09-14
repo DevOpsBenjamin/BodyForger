@@ -99,7 +99,7 @@ fun WorkoutDetailScreen(
             else -> {
                 SessionHeader(session, unit)
                 Spacer(modifier = Modifier.height(16.dp))
-                WorkoutHeartRateCard(samples = state.heartRates)
+                WorkoutHeartRateCard(samples = state.heartRates, sets = session.sets)
                 Spacer(modifier = Modifier.height(16.dp))
                 WorkoutTimelineCard(sets = session.sets)
 
