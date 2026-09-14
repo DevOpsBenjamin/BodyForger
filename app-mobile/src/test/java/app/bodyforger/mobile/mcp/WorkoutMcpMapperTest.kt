@@ -105,7 +105,7 @@ class WorkoutMcpMapperTest {
     }
 
     @Test
-    fun allRegisteredMcpToolsHaveValidSchemas() {
+    fun allRegisteredMcpToolsHaveValidSchemas() = kotlinx.coroutines.runBlocking {
         val registry = McpToolRegistry()
         val tools = registry.listToolsJson()
         assertEquals(15, tools.length())

@@ -603,4 +603,11 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="health_connect_rationale_decline">Ne pas utiliser</string>
     <string name="settings_health_connect_connected">Connecté</string>
     <string name="settings_health_connect_not_connected">Non connecté · Appuyer pour configurer</string>
+
+    <!-- Démon Serveur MCP -->
+    <string name="mcp_service_channel_name">Serveur MCP BodyForger</string>
+    <string name="mcp_service_channel_desc">Démon d\'arrière-plan persistant pour le serveur MCP embarqué</string>
+    <string name="mcp_service_notification_title">Serveur MCP BodyForger</string>
+    <string name="mcp_service_notification_running">En écoute sur le port %1$d · Démon actif</string>
+    <string name="mcp_service_notification_stopped">Démon arrêté</string>
 </resources>

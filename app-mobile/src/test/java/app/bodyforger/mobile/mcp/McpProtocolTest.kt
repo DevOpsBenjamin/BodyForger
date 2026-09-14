@@ -3,6 +3,7 @@ package app.bodyforger.mobile.mcp
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -99,5 +100,69 @@ class McpProtocolTest {
         assertNotNull(response)
         val error = response!!.getJSONObject("error")
         assertEquals(-32601, error.getInt("code"))
+    }
+
+    @Test
+    fun toolsListWithoutConsentReturnsOnlyBodyForgerToolsAndStatus() = runBlocking<Unit> {
+        val registry = McpToolRegistry().apply { consentOverride = false }
+        val noConsentDispatcher = McpDispatcher(registry)
+        val request = JSONObject().apply {
+            put("jsonrpc", "2.0")
+            put("id", 100)
+            put("method", "tools/list")
+        }
+        val response = noConsentDispatcher.dispatch(request)
+        assertNotNull(response)
+        val tools = response!!.getJSONObject("result").getJSONArray("tools")
+        assertEquals(11, tools.length())
+
+        val toolNames = (0 until tools.length()).map { tools.getJSONObject(it).getString("name") }
+        assertTrue(toolNames.contains("health_connect_status"))
+        assertTrue(toolNames.contains("bodyforger_local_summary"))
+        assertTrue(toolNames.contains("bodyforger_search_exercises"))
+        assertFalse(toolNames.contains("health_connect_read_sessions"))
+        assertFalse(toolNames.contains("health_connect_inspect_summary"))
+        assertFalse(toolNames.contains("health_connect_read_weights"))
+        assertFalse(toolNames.contains("health_connect_read_heart_rates"))
+    }
+
+    @Test
+    fun healthToolCallWithoutConsentIsRefused() = runBlocking<Unit> {
+        val registry = McpToolRegistry().apply { consentOverride = false }
+        val noConsentDispatcher = McpDispatcher(registry)
+        val request = JSONObject().apply {
+            put("jsonrpc", "2.0")
+            put("id", 101)
+            put("method", "tools/call")
+            put("params", JSONObject().apply {
+                put("name", "health_connect_read_sessions")
+            })
+        }
+        val response = noConsentDispatcher.dispatch(request)
+        assertNotNull(response)
+        val result = response!!.getJSONObject("result")
+        assertTrue(result.getBoolean("isError"))
+        val text = result.getJSONArray("content").getJSONObject(0).getString("text")
+        assertTrue(text.contains("Google Health Connect consent has not been granted"))
+    }
+
+    @Test
+    fun statusToolWithoutConsentReportsConsentFalse() = runBlocking<Unit> {
+        val registry = McpToolRegistry().apply { consentOverride = false }
+        val noConsentDispatcher = McpDispatcher(registry)
+        val request = JSONObject().apply {
+            put("jsonrpc", "2.0")
+            put("id", 102)
+            put("method", "tools/call")
+            put("params", JSONObject().apply {
+                put("name", "health_connect_status")
+            })
+        }
+        val response = noConsentDispatcher.dispatch(request)
+        assertNotNull(response)
+        val text = response!!.getJSONObject("result").getJSONArray("content").getJSONObject(0).getString("text")
+        val json = JSONObject(text)
+        assertFalse(json.getBoolean("consentGranted"))
+        assertTrue(json.getString("message").contains("Only bodyforger_* tools are active"))
     }
 }

@@ -1,5 +1,6 @@
 package app.bodyforger.mobile.mcp
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.bodyforger.core.healthconnect.HealthConnectManager
@@ -25,6 +26,7 @@ data class McpUiState(
 )
 
 class McpViewModel(
+    private val application: Application,
     private val mcpServer: McpHttpServer,
     private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
@@ -50,9 +52,10 @@ class McpViewModel(
 
     fun toggleServer() {
         if (_uiState.value.isServerRunning) {
+            McpService.stop(application)
             mcpServer.stop()
         } else {
-            mcpServer.start(viewModelScope)
+            McpService.start(application)
         }
     }
 

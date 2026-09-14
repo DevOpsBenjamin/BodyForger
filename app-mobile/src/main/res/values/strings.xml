@@ -603,4 +603,11 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="health_connect_rationale_decline">Not now</string>
     <string name="settings_health_connect_connected">Connected</string>
     <string name="settings_health_connect_not_connected">Not connected · Tap to configure</string>
+
+    <!-- MCP Service Daemon -->
+    <string name="mcp_service_channel_name">BodyForger MCP Server</string>
+    <string name="mcp_service_channel_desc">Persistent background daemon for the embedded MCP server</string>
+    <string name="mcp_service_notification_title">BodyForger MCP Server</string>
+    <string name="mcp_service_notification_running">Running on port %1$d · Daemon active</string>
+    <string name="mcp_service_notification_stopped">Daemon stopped</string>
 </resources>

@@ -9,12 +9,15 @@ class McpToolRegistry(
     healthConnectManager: HealthConnectManager? = null,
     database: BodyForgerDatabase? = null
 ) {
-    private val healthConnectHandler = HealthConnectToolHandler(healthConnectManager)
+    var consentOverride: Boolean? = null
+    private val healthConnectHandler = HealthConnectToolHandler(healthConnectManager) { consentOverride }
     private val exerciseHandler = BodyForgerExerciseToolHandler(database)
     private val routineHandler = BodyForgerRoutineToolHandler(database)
     private val workoutHandler = BodyForgerWorkoutToolHandler(database)
 
-    fun listToolsJson(): JSONArray = JSONArray().apply {
+    suspend fun isHealthConsentGranted(): Boolean = healthConnectHandler.isConsentGranted()
+
+    suspend fun listToolsJson(): JSONArray = JSONArray().apply {
         healthConnectHandler.listToolDescriptors().forEach { put(it) }
         exerciseHandler.listToolDescriptors().forEach { put(it) }
         routineHandler.listToolDescriptors().forEach { put(it) }

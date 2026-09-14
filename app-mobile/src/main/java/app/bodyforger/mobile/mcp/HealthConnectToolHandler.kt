@@ -12,50 +12,91 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 class HealthConnectToolHandler(
-    private val healthConnectManager: HealthConnectManager? = null
+    private val healthConnectManager: HealthConnectManager? = null,
+    private val consentOverrideProvider: (() -> Boolean?)? = null
 ) {
     private val reader get() = healthConnectManager?.getReaderOrNull()
 
-    fun listToolDescriptors(): List<JSONObject> = listOf(
-        toolDescriptor(TOOL_HEALTH_STATUS, "Check Health Connect availability and granted permissions."),
-        toolDescriptor(TOOL_HEALTH_INSPECT_SUMMARY, "Scan Health Connect and return an inventory of records and apps.",
-            JSONObject().apply { put("monthsBack", intProp("Past months to scan (default 12)")) }),
-        toolDescriptor(TOOL_HEALTH_READ_SESSIONS, "Read workout sessions with segment breakdown.",
-            JSONObject().apply { put("monthsBack", intProp("Past months to read (default 6)")) }),
-        toolDescriptor(TOOL_HEALTH_READ_WEIGHTS, "Read weight and body fat measurements.",
-            JSONObject().apply { put("monthsBack", intProp("Past months to read (default 6)")) }),
-        toolDescriptor(TOOL_HEALTH_READ_HEART_RATES, "Read continuous heart rate series with summary statistics.",
-            JSONObject().apply {
-                put("daysBack", intProp("Past days to read (default 1)"))
-                put("limit", intProp("Maximum series (default 50)"))
-                put("includeSamples", boolProp("Include raw samples (default false)"))
-            })
-    )
+    suspend fun isConsentGranted(): Boolean {
+        val override = consentOverrideProvider?.invoke()
+        if (override != null) return override
+        if (healthConnectManager == null) return true
+        if (!healthConnectManager.isAvailable()) return false
+        val client = healthConnectManager.getClientOrNull() ?: return false
+        return try {
+            val granted = HealthConnectPermissions.getGrantedPermissions(client)
+            granted.isNotEmpty() && HealthConnectPermissions.hasExercisePermission(granted)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    suspend fun listToolDescriptors(): List<JSONObject> {
+        val statusTool = toolDescriptor(
+            TOOL_HEALTH_STATUS,
+            "Check Health Connect availability, consent status, and granted permissions."
+        )
+        if (!isConsentGranted()) {
+            return listOf(statusTool)
+        }
+        return listOf(
+            statusTool,
+            toolDescriptor(TOOL_HEALTH_INSPECT_SUMMARY, "Scan Health Connect and return an inventory of records and apps.",
+                JSONObject().apply { put("monthsBack", intProp("Past months to scan (default 12)")) }),
+            toolDescriptor(TOOL_HEALTH_READ_SESSIONS, "Read workout sessions with segment breakdown.",
+                JSONObject().apply { put("monthsBack", intProp("Past months to read (default 6)")) }),
+            toolDescriptor(TOOL_HEALTH_READ_WEIGHTS, "Read weight and body fat measurements.",
+                JSONObject().apply { put("monthsBack", intProp("Past months to read (default 6)")) }),
+            toolDescriptor(TOOL_HEALTH_READ_HEART_RATES, "Read continuous heart rate series with summary statistics.",
+                JSONObject().apply {
+                    put("daysBack", intProp("Past days to read (default 1)"))
+                    put("limit", intProp("Maximum series (default 50)"))
+                    put("includeSamples", boolProp("Include raw samples (default false)"))
+                })
+        )
+    }
 
     fun canHandle(name: String): Boolean = name in SUPPORTED_TOOLS
 
-    suspend fun execute(name: String, arguments: JSONObject): JSONObject = when (name) {
-        TOOL_HEALTH_STATUS -> handleStatus()
-        TOOL_HEALTH_INSPECT_SUMMARY -> handleInspectSummary(arguments)
-        TOOL_HEALTH_READ_SESSIONS -> handleReadSessions(arguments)
-        TOOL_HEALTH_READ_WEIGHTS -> handleReadWeights(arguments)
-        TOOL_HEALTH_READ_HEART_RATES -> handleReadHeartRates(arguments)
-        else -> errorJson("Unsupported Health Connect tool: $name")
+    suspend fun execute(name: String, arguments: JSONObject): JSONObject {
+        if (name != TOOL_HEALTH_STATUS && !isConsentGranted()) {
+            return errorJson(
+                "Google Health Connect consent has not been granted by the athlete. Only bodyforger_* tools are active."
+            )
+        }
+        return when (name) {
+            TOOL_HEALTH_STATUS -> handleStatus()
+            TOOL_HEALTH_INSPECT_SUMMARY -> handleInspectSummary(arguments)
+            TOOL_HEALTH_READ_SESSIONS -> handleReadSessions(arguments)
+            TOOL_HEALTH_READ_WEIGHTS -> handleReadWeights(arguments)
+            TOOL_HEALTH_READ_HEART_RATES -> handleReadHeartRates(arguments)
+            else -> errorJson("Unsupported Health Connect tool: $name")
+        }
     }
 
     private suspend fun handleStatus(): JSONObject {
+        val consent = isConsentGranted()
         val client = healthConnectManager?.getClientOrNull()
             ?: return JSONObject().apply {
                 put("available", false)
-                put("message", "Health Connect is not available or client not initialized.")
+                put("consentGranted", false)
+                put("activeTools", JSONArray(listOf("bodyforger_*", TOOL_HEALTH_STATUS)))
+                put("message", "Health Connect is not available or consent not granted. Only bodyforger_* tools are active.")
             }
         val granted = HealthConnectPermissions.getGrantedPermissions(client)
         val missing = HealthConnectPermissions.CORE_READ_PERMISSIONS.filterNot { granted.contains(it) }
         return JSONObject().apply {
             put("available", true)
+            put("consentGranted", consent)
             put("hasHistoryPermission", HealthConnectPermissions.hasHistoryPermission(granted))
             put("grantedPermissions", JSONArray(granted.toList()))
             put("missingPermissions", JSONArray(missing))
+            if (!consent) {
+                put("activeTools", JSONArray(listOf("bodyforger_*", TOOL_HEALTH_STATUS)))
+                put("message", "Google Health Connect consent not granted. Only bodyforger_* tools are active.")
+            } else {
+                put("activeTools", JSONArray(listOf("all")))
+            }
         }
     }
 

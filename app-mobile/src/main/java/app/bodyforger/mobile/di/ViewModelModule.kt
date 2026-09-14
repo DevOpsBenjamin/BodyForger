@@ -39,6 +39,7 @@ val viewModelModule = module {
     }
     viewModel {
         app.bodyforger.mobile.mcp.McpViewModel(
+            application = androidApplication(),
             mcpServer = get(),
             healthConnectManager = get()
         )
