@@ -1,8 +1,11 @@
 package app.bodyforger.mobile.mcp
 
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +27,8 @@ class McpHttpServer(
 ) {
     private var serverSocket: ServerSocket? = null
     private var serverJob: Job? = null
+    private var serverScope: CoroutineScope? = null
+    private val handler = CoroutineExceptionHandler { _, _ -> }
     private val sseSessions = ConcurrentHashMap<String, OutputStream>()
 
     private val _isRunning = MutableStateFlow(false)
@@ -36,7 +41,10 @@ class McpHttpServer(
         if (_isRunning.value) return
         _serverPort.value = port
 
-        serverJob = scope.launch(Dispatchers.IO) {
+        val customScope = CoroutineScope(Dispatchers.IO + SupervisorJob(scope.coroutineContext[Job]) + handler)
+        serverScope = customScope
+
+        serverJob = customScope.launch {
             try {
                 val socket = ServerSocket(port)
                 serverSocket = socket
@@ -45,14 +53,14 @@ class McpHttpServer(
                 while (isActive && !socket.isClosed) {
                     try {
                         val client = socket.accept()
-                        launch(Dispatchers.IO) {
+                        launch(SupervisorJob() + handler) {
                             handleClient(client)
                         }
-                    } catch (_: Exception) {
+                    } catch (_: Throwable) {
                         break
                     }
                 }
-            } catch (_: Exception) {
+            } catch (_: Throwable) {
             } finally {
                 _isRunning.value = false
             }
@@ -60,12 +68,11 @@ class McpHttpServer(
     }
 
     fun stop() {
-        try {
-            serverSocket?.close()
-        } catch (_: Exception) {
-        }
+        try { serverSocket?.close() } catch (_: Throwable) {}
         serverJob?.cancel()
+        serverScope?.cancel()
         serverSocket = null
+        serverScope = null
         sseSessions.clear()
         _isRunning.value = false
     }
@@ -76,15 +83,9 @@ class McpHttpServer(
                 val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
                 val out = socket.getOutputStream()
 
-                val requestLine = reader.readLine() ?: run {
-                    socket.close()
-                    return@withContext
-                }
+                val requestLine = reader.readLine() ?: run { socket.close(); return@withContext }
                 val parts = requestLine.split(" ")
-                if (parts.size < 2) {
-                    socket.close()
-                    return@withContext
-                }
+                if (parts.size < 2) { socket.close(); return@withContext }
                 val method = parts[0]
                 val uri = parts[1]
 
