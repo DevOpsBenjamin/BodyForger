@@ -85,10 +85,24 @@ fun resolveExerciseSegmentName(segmentType: Int): String {
     }
 }
 
+fun resolveExerciseSessionTypeName(exerciseType: Int): String = when (exerciseType) {
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING -> "STRENGTH_TRAINING"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_WEIGHTLIFTING -> "WEIGHTLIFTING"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING -> "HIIT"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS -> "CALISTHENICS"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_RUNNING -> "RUNNING"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_WALKING -> "WALKING"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_BIKING -> "BIKING"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL,
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_OPEN_WATER -> "SWIMMING"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_YOGA -> "YOGA"
+    androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT -> "OTHER_WORKOUT"
+    else -> "TYPE_$exerciseType"
+}
+
 fun androidx.health.connect.client.records.ExerciseSessionRecord.toSessionDetail(): HealthSessionDetail {
     val durationMin = java.time.Duration.between(startTime, endTime).toMinutes()
-    val typeName = androidx.health.connect.client.records.ExerciseSessionRecord.EXERCISE_TYPE_INT_TO_STRING_MAP[exerciseType]
-        ?: "TYPE_$exerciseType"
+    val typeName = resolveExerciseSessionTypeName(exerciseType)
 
     val segmentDetails = segments.map { seg ->
         HealthSegmentDetail(
