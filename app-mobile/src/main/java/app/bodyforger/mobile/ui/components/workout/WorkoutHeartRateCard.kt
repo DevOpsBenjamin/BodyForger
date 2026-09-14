@@ -47,9 +47,10 @@ private val BandColours = listOf(
     Color(0xFF3FC1C9), Color(0xFFE86A92), Color(0xFF9BC53D), Color(0xFFC9A227)
 )
 
-private const val BAND_ALPHA = 0.22f
+private const val BAND_ALPHA = 0.38f
+private const val MIN_BAND_WIDTH_PX = 3f
 
-/** One exercise's stretch of the session, as the graph shades it. */
+/** One performed set, as the graph shades it. */
 private data class ExerciseBand(
     val exerciseName: String,
     val startEpochMs: Long,
@@ -61,9 +62,10 @@ private data class ExerciseBand(
  * The heart rate curve of a session, banded by exercise.
  *
  * The bands are what make the curve readable: a climb means little on its own, and a lot once
- * it sits under the name of the press that caused it. Sets with no recorded timing produce no
- * band rather than a guessed one, so an imported session that never had timing shows a bare
- * curve instead of an invented structure.
+ * it sits under the name of the press that caused it. One band per set, not per exercise — the
+ * gaps are the rests, and shading through them would hide the alternation the curve is there to
+ * show. Sets with no recorded timing produce no band rather than a guessed one, so an imported
+ * session that never had timing shows a bare curve instead of an invented structure.
  *
  * A session with no heart rate says so and invites pairing a watch: an empty chart would read
  * as a flat zero, which is a measurement rather than an absence.
@@ -138,7 +140,9 @@ fun WorkoutHeartRateCard(
                 val left = size.width * (band.startEpochMs - firstAt).toFloat() / duration
                 val right = size.width * (band.endEpochMs - firstAt).toFloat() / duration
                 val clampedLeft = left.coerceIn(0f, size.width)
-                val clampedRight = right.coerceIn(0f, size.width)
+                // A forty-second set on an hour-long session is a sliver; a floor keeps it
+                // visible rather than letting rounding swallow it.
+                val clampedRight = right.coerceIn(clampedLeft + MIN_BAND_WIDTH_PX, size.width)
                 if (clampedRight > clampedLeft) {
                     drawRect(
                         color = band.colour.copy(alpha = BAND_ALPHA),
@@ -189,35 +193,25 @@ fun WorkoutHeartRateCard(
 }
 
 /**
- * Groups consecutive sets of the same exercise into one band.
+ * One band per performed set, coloured by its exercise.
  *
- * Consecutive rather than by name: an exercise the athlete came back to later in the session is
- * two stretches of time, and shading the gap between them would claim they were one.
+ * Four sets of pull-ups draw four bars with the rests left blank between them, which is the
+ * shape of the session: shading an exercise end to end would paint over the very gaps the
+ * curve is read for.
  */
 private fun bandsOf(sets: List<WorkoutSet>): List<ExerciseBand> {
     val timed = sets
         .filter { it.startedAtEpochMs != null && it.completedAtEpochMs != null }
         .sortedBy { it.startedAtEpochMs }
-    if (timed.isEmpty()) return emptyList()
-
     val colours = mutableMapOf<String, Color>()
-    val bands = mutableListOf<ExerciseBand>()
-    var current = timed.first()
-    var start = current.startedAtEpochMs!!
-    var end = current.completedAtEpochMs!!
-
-    timed.drop(1).forEach { set ->
-        if (set.exerciseId == current.exerciseId) {
-            end = set.completedAtEpochMs!!
-        } else {
-            bands += ExerciseBand(current.exerciseName, start, end, colourFor(current.exerciseId, current.exerciseName, colours))
-            current = set
-            start = set.startedAtEpochMs!!
-            end = set.completedAtEpochMs!!
-        }
+    return timed.map { set ->
+        ExerciseBand(
+            exerciseName = set.exerciseName,
+            startEpochMs = set.startedAtEpochMs!!,
+            endEpochMs = set.completedAtEpochMs!!,
+            colour = colourFor(set.exerciseId, set.exerciseName, colours)
+        )
     }
-    bands += ExerciseBand(current.exerciseName, start, end, colourFor(current.exerciseId, current.exerciseName, colours))
-    return bands
 }
 
 /** One colour per exercise, stable across its stretches within the session. */
