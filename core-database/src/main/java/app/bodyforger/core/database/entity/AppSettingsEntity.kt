@@ -37,7 +37,12 @@ data class AppSettingsEntity(
      * Highest setup-flow version the athlete has been through, 0 meaning never. Skipping the
      * flow counts as going through it: it is an answer, and the flow never insists.
      */
-    val setupVersionDone: Int = 0
+    val setupVersionDone: Int = 0,
+    /**
+     * Whether the Google Health Connect rationale/prompt has been dismissed by the athlete
+     * (either granted or declined), so the app never nags on startup.
+     */
+    val healthConnectPromptDismissed: Boolean = false
 ) {
     companion object {
         const val SINGLETON_ID = 1

@@ -37,4 +37,11 @@ val viewModelModule = module {
             scaleAssociationDao = get()
         )
     }
+    viewModel {
+        app.bodyforger.mobile.mcp.McpViewModel(
+            application = androidApplication(),
+            mcpServer = get(),
+            healthConnectManager = get()
+        )
+    }
 }

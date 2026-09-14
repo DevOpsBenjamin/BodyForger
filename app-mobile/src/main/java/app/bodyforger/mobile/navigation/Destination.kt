@@ -45,6 +45,9 @@ sealed interface Destination {
     @Serializable
     data class Settings(val expandScale: Boolean = false) : Destination
 
+    @Serializable
+    data object HealthConnectMcp : Destination
+
     /**
      * The first-run setup flow. A destination rather than an overlay: it asks for a name and
      * a height, and a full screen is what lets the keyboard push the fields up properly.

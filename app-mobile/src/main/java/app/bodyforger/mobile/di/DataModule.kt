@@ -24,4 +24,14 @@ val dataModule = module {
     single { get<BodyForgerDatabase>().appSettingsDao() }
     single { get<BodyForgerDatabase>().bodyGoalDao() }
     single<WorkoutHaptics> { AndroidWorkoutHaptics(androidContext()) }
+
+    single { app.bodyforger.core.healthconnect.HealthConnectManager(androidContext()) }
+    single {
+        app.bodyforger.mobile.mcp.McpToolRegistry(
+            healthConnectManager = get(),
+            database = get()
+        )
+    }
+    single { app.bodyforger.mobile.mcp.McpDispatcher(toolRegistry = get()) }
+    single { app.bodyforger.mobile.mcp.McpHttpServer(dispatcher = get(), toolRegistry = get()) }
 }

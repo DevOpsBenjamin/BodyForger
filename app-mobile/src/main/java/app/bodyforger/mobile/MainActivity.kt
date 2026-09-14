@@ -18,6 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.health.connect.client.PermissionController
+import app.bodyforger.core.healthconnect.HealthConnectManager
+import app.bodyforger.core.healthconnect.HealthConnectPermissions
 import app.bodyforger.mobile.navigation.BodyForgerNavHost
 import app.bodyforger.mobile.navigation.Destination
 import app.bodyforger.mobile.navigation.Tab
@@ -28,20 +32,25 @@ import app.bodyforger.mobile.navigation.switchTab
 import app.bodyforger.mobile.onboarding.OnboardingViewModel
 import app.bodyforger.mobile.onboarding.ScreenTourOverlay
 import app.bodyforger.mobile.onboarding.TourStop
+import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.ui.components.ActiveWorkoutMiniBar
 import app.bodyforger.mobile.ui.components.BodyForgerBottomNav
+import app.bodyforger.mobile.ui.components.HealthConnectRationaleDialog
 import app.bodyforger.mobile.ui.components.ResumeWorkoutDialog
 import app.bodyforger.mobile.ui.theme.BodyForgerTheme
 import app.bodyforger.mobile.ui.theme.Obsidian
 import app.bodyforger.mobile.workout.LiveWorkoutViewModel
+import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {
+    private val healthConnectManager: HealthConnectManager by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             BodyForgerTheme {
-                BodyForgerApp()
+                BodyForgerApp(healthConnectManager = healthConnectManager)
             }
         }
     }
@@ -56,12 +65,23 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun BodyForgerApp(
     workout: LiveWorkoutViewModel = koinViewModel(),
-    onboarding: OnboardingViewModel = koinViewModel()
+    onboarding: OnboardingViewModel = koinViewModel(),
+    appSettings: AppSettingsViewModel = koinViewModel(),
+    healthConnectManager: HealthConnectManager
 ) {
     val navController = rememberNavController()
     val currentDestination by navController.currentBackStackEntryAsState()
     val currentTab = currentDestination?.destination.currentTab()
     val onSetupScreen = currentDestination?.destination?.hasRoute<Destination.Setup>() == true
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val intent = (context as? android.app.Activity)?.intent
+    LaunchedEffect(intent?.data) {
+        val uri = intent?.data
+        if (uri?.scheme == "bodyforger" && (uri.host == "mcp" || uri.host == "healthconnect")) {
+            navController.navigate(Destination.HealthConnectMcp) { launchSingleTop = true }
+        }
+    }
 
     val tourDue by onboarding.tourDue.collectAsState()
     val setupDue by onboarding.setupDue.collectAsState()
@@ -122,6 +142,31 @@ fun BodyForgerApp(
         )
     }
 
+    val healthConnectDismissed by appSettings.healthConnectPromptDismissed.collectAsState()
+    val isHealthConnectAvailable = remember { healthConnectManager.isAvailable() }
+
+    val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
+        contract = PermissionController.createRequestPermissionResultContract()
+    ) {
+        appSettings.setHealthConnectPromptDismissed(true)
+    }
+
+    LaunchedEffect(healthConnectDismissed, isHealthConnectAvailable) {
+        if (isHealthConnectAvailable && healthConnectDismissed == false) {
+            val client = healthConnectManager.getClientOrNull()
+            if (client != null) {
+                val granted = try {
+                    client.permissionController.getGrantedPermissions()
+                } catch (_: Exception) {
+                    emptySet()
+                }
+                if (HealthConnectPermissions.CORE_READ_PERMISSIONS.all { it in granted }) {
+                    appSettings.setHealthConnectPromptDismissed(true)
+                }
+            }
+        }
+    }
+
     // A session left open is settled before anything else: the athlete must not discover it
     // in the middle of the next one.
     interruptedSession?.let { session ->
@@ -133,6 +178,23 @@ fun BodyForgerApp(
             },
             onFinishAsIs = { workout.finishInterrupted(session) },
             onDelete = { workout.deleteInterrupted(session) }
+        )
+    }
+
+    val showHealthConnectRationale = isHealthConnectAvailable &&
+        tourDue == false &&
+        healthConnectDismissed == false &&
+        interruptedSession == null
+
+    if (showHealthConnectRationale) {
+        HealthConnectRationaleDialog(
+            onAccept = {
+                appSettings.setHealthConnectPromptDismissed(true)
+                healthConnectPermissionLauncher.launch(HealthConnectPermissions.CORE_READ_PERMISSIONS)
+            },
+            onDecline = {
+                appSettings.setHealthConnectPromptDismissed(true)
+            }
         )
     }
 

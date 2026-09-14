@@ -77,6 +77,23 @@ fun GoalsSection(
 }
 
 @Composable
+fun formatGoalsSummary(standings: List<GoalStanding>, unit: WeightUnit): String =
+    standings.firstOrNull { !it.goal.isValidated }?.let { standing ->
+        standing.goal.targetBodyFatPercentage
+            ?.let { fat ->
+                stringResource(
+                    R.string.goals_target_mass_and_fat,
+                    unit.formatWithSymbol(standing.goal.targetMassKg),
+                    fat
+                )
+            }
+            ?: stringResource(
+                R.string.goals_target_mass,
+                unit.formatWithSymbol(standing.goal.targetMassKg)
+            )
+    } ?: stringResource(R.string.settings_goals_none)
+
+@Composable
 private fun GoalRow(
     standing: GoalStanding,
     unit: WeightUnit,

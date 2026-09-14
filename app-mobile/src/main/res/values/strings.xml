@@ -572,4 +572,42 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="settings_onboarding_replay_setup">Go through the setup again</string>
     <string name="setup_previous">Back</string>
     <string name="tour_previous">Back</string>
+
+    <!-- Health Connect and MCP -->
+    <string name="settings_health_connect_mcp_title">Health Connect &amp; MCP</string>
+    <string name="settings_health_connect_mcp_desc">Inspect multi-month health history and run the local MCP server</string>
+    <string name="mcp_server_title">Local MCP Server</string>
+    <string name="mcp_server_status_running">Running on port %1$d</string>
+    <string name="mcp_server_status_stopped">Stopped</string>
+    <string name="mcp_server_start">Start Server</string>
+    <string name="mcp_server_stop">Stop Server</string>
+    <string name="mcp_server_adb_hint">Connect from computer: adb forward tcp:%1$d tcp:%1$d</string>
+    <string name="mcp_server_endpoints_hint">SSE: http://localhost:%1$d/sse · Direct: http://localhost:%1$d/mcp</string>
+    <string name="mcp_health_permissions_title">Health Connect Permissions</string>
+    <string name="mcp_health_available">Health Connect is available</string>
+    <string name="mcp_health_unavailable">Health Connect is not available on this device</string>
+    <string name="mcp_health_history_granted">Extended history (30+ days): Granted</string>
+    <string name="mcp_health_history_missing">Extended history (30+ days): Missing</string>
+    <string name="mcp_health_request_permissions">Request Health Permissions</string>
+    <string name="mcp_health_inspect_title">Health Connect Inspector</string>
+    <string name="mcp_health_inspect_button">Scan History (12 months)</string>
+    <string name="mcp_health_inspect_scanning">Scanning Health Connect records…</string>
+    <string name="mcp_health_inspect_sessions_count">%1$d workout sessions</string>
+    <string name="mcp_health_inspect_weights_count">%1$d weights · %2$d body fats</string>
+    <string name="mcp_health_inspect_sources">Source apps: %1$s</string>
+    <string name="mcp_health_inspect_bounds">From %1$s to %2$s</string>
+    <string name="mcp_health_inspect_empty">No records found over the scanned period.</string>
+    <string name="health_connect_rationale_title">Google Health Connect</string>
+    <string name="health_connect_rationale_desc">BodyForger is designed to integrate with Google Health Connect to seamlessly synchronize your workouts, continuous heart rate (Pixel Watch), and body composition measurements.</string>
+    <string name="health_connect_rationale_accept">Connect Google Health</string>
+    <string name="health_connect_rationale_decline">Not now</string>
+    <string name="settings_health_connect_connected">Connected</string>
+    <string name="settings_health_connect_not_connected">Not connected · Tap to configure</string>
+
+    <!-- MCP Service Daemon -->
+    <string name="mcp_service_channel_name">BodyForger MCP Server</string>
+    <string name="mcp_service_channel_desc">Persistent background daemon for the embedded MCP server</string>
+    <string name="mcp_service_notification_title">BodyForger MCP Server</string>
+    <string name="mcp_service_notification_running">Running on port %1$d · Daemon active</string>
+    <string name="mcp_service_notification_stopped">Daemon stopped</string>
 </resources>

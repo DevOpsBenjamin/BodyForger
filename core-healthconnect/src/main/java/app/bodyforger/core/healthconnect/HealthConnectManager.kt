@@ -28,4 +28,15 @@ class HealthConnectManager(private val context: Context) {
         }
 
     fun isAvailable(): Boolean = availability() == HealthConnectAvailability.AVAILABLE
+
+    fun getClientOrNull(): HealthConnectClient? {
+        if (!isAvailable()) return null
+        return try {
+            HealthConnectClient.getOrCreate(context)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun getReaderOrNull(): HealthConnectReader? = getClientOrNull()?.let { HealthConnectReader(it) }
 }

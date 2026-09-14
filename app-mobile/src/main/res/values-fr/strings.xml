@@ -572,4 +572,42 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="settings_onboarding_replay_setup">Refaire la mise en route</string>
     <string name="setup_previous">Précédent</string>
     <string name="tour_previous">Précédent</string>
+
+    <!-- Health Connect et MCP -->
+    <string name="settings_health_connect_mcp_title">Health Connect &amp; MCP</string>
+    <string name="settings_health_connect_mcp_desc">Inspecter l\'historique étendu et exécuter le serveur MCP local</string>
+    <string name="mcp_server_title">Serveur MCP local</string>
+    <string name="mcp_server_status_running">En cours d\'exécution sur le port %1$d</string>
+    <string name="mcp_server_status_stopped">Arrêté</string>
+    <string name="mcp_server_start">Démarrer le serveur</string>
+    <string name="mcp_server_stop">Arrêter le serveur</string>
+    <string name="mcp_server_adb_hint">Transférer le port sur l\'ordinateur : adb forward tcp:%1$d tcp:%1$d</string>
+    <string name="mcp_server_endpoints_hint">SSE : http://localhost:%1$d/sse · Direct : http://localhost:%1$d/mcp</string>
+    <string name="mcp_health_permissions_title">Autorisations Health Connect</string>
+    <string name="mcp_health_available">Health Connect est disponible sur cet appareil</string>
+    <string name="mcp_health_unavailable">Health Connect est indisponible sur cet appareil</string>
+    <string name="mcp_health_history_granted">Historique étendu (30+ jours) : Accordé</string>
+    <string name="mcp_health_history_missing">Historique étendu (30+ jours) : Non accordé</string>
+    <string name="mcp_health_request_permissions">Demander les autorisations</string>
+    <string name="mcp_health_inspect_title">Inspecteur Health Connect</string>
+    <string name="mcp_health_inspect_button">Scanner l\'historique (12 mois)</string>
+    <string name="mcp_health_inspect_scanning">Analyse des données Health Connect…</string>
+    <string name="mcp_health_inspect_sessions_count">%1$d séances d\'entraînement</string>
+    <string name="mcp_health_inspect_weights_count">%1$d pesées · %2$d masses grasses</string>
+    <string name="mcp_health_inspect_sources">Applications sources : %1$s</string>
+    <string name="mcp_health_inspect_bounds">Du %1$s au %2$s</string>
+    <string name="mcp_health_inspect_empty">Aucune donnée trouvée sur la période analysée.</string>
+    <string name="health_connect_rationale_title">Google Health Connect</string>
+    <string name="health_connect_rationale_desc">BodyForger est conçu pour fonctionner avec Google Health Connect afin de synchroniser automatiquement vos séances, votre fréquence cardiaque en continu (Pixel Watch) et vos données biométriques.</string>
+    <string name="health_connect_rationale_accept">Connecter Google Health</string>
+    <string name="health_connect_rationale_decline">Ne pas utiliser</string>
+    <string name="settings_health_connect_connected">Connecté</string>
+    <string name="settings_health_connect_not_connected">Non connecté · Appuyer pour configurer</string>
+
+    <!-- Démon Serveur MCP -->
+    <string name="mcp_service_channel_name">Serveur MCP BodyForger</string>
+    <string name="mcp_service_channel_desc">Démon d\'arrière-plan persistant pour le serveur MCP embarqué</string>
+    <string name="mcp_service_notification_title">Serveur MCP BodyForger</string>
+    <string name="mcp_service_notification_running">En écoute sur le port %1$d · Démon actif</string>
+    <string name="mcp_service_notification_stopped">Démon arrêté</string>
 </resources>

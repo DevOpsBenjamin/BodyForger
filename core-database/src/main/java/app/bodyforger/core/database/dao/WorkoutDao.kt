@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import app.bodyforger.core.database.entity.WorkoutHeartRateSampleEntity
 import app.bodyforger.core.database.entity.WorkoutSessionEntity
 import app.bodyforger.core.database.entity.WorkoutSessionWithSets
 import app.bodyforger.core.database.entity.WorkoutSetEntity
@@ -60,6 +61,22 @@ interface WorkoutDao {
 
     @Query("SELECT * FROM workout_sets WHERE sessionId = :sessionId")
     suspend fun getSetsForSession(sessionId: String): List<WorkoutSetEntity>
+
+    @Transaction
+    @Query("SELECT * FROM workout_sessions ORDER BY startedAtEpochMs DESC LIMIT :limit OFFSET :offset")
+    suspend fun getSessionsPaged(limit: Int, offset: Int): List<WorkoutSessionWithSets>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHeartRateSamples(samples: List<WorkoutHeartRateSampleEntity>)
+
+    @Query("SELECT * FROM workout_heart_rate_samples WHERE sessionId = :sessionId ORDER BY timestampEpochMs ASC")
+    suspend fun getHeartRateSamplesForSession(sessionId: String): List<WorkoutHeartRateSampleEntity>
+
+    @Query("DELETE FROM workout_heart_rate_samples WHERE sessionId = :sessionId")
+    suspend fun deleteHeartRateSamplesForSession(sessionId: String)
+
+    @Query("SELECT COUNT(*) FROM workout_heart_rate_samples WHERE sessionId = :sessionId")
+    suspend fun getHeartRateSampleCountForSession(sessionId: String): Int
 
     /**
      * The sets performed the last time this exercise was trained, before the current session.
