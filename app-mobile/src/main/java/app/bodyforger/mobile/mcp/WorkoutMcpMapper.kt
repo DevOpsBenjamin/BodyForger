@@ -172,6 +172,8 @@ internal object WorkoutMcpMapper {
             put("startedAtEpochMs", s.startedAtEpochMs)
             s.endedAtEpochMs?.let { put("endedAtEpochMs", it) }
             put("totalVolumeKg", s.totalVolumeKg)
+            if (s.averageHeartRateBpm != null) put("averageHeartRateBpm", s.averageHeartRateBpm)
+            if (s.activeCaloriesKcal != null) put("activeCaloriesKcal", s.activeCaloriesKcal)
             put("sets", setsArr)
             put("cardio", cardio)
         }
