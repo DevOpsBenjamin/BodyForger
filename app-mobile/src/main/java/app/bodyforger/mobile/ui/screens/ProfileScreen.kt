@@ -5,17 +5,18 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -76,7 +77,6 @@ fun ProfileScreen(
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     settings: AppSettingsViewModel = koinViewModel()
 ) {
-    val scrollState = rememberScrollState()
     val sessions by library.completedSessions.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
     val unit by settings.defaultWeightUnit.collectAsState()
@@ -85,15 +85,15 @@ fun ProfileScreen(
     }
 
     val workoutHistory = remember(sessions) { sessions.map { it.toHistoryItem() } }
+    val totalTonnageKg = remember(sessions) { TrainingStats.totalTonnageKg(sessions) }
+    val totalHours = remember(sessions) { TrainingStats.totalHours(sessions) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Obsidian)
-            .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 20.dp)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().background(Obsidian),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp)
     ) {
         // --- 1. ATHLETE PROFILE HEADER ---
+        item {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -169,9 +169,12 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(18.dp))
+        }
+
+        item { Spacer(modifier = Modifier.height(18.dp)) }
 
         // --- 2. CHIFFRES CLÉS ---
+        item {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -185,43 +188,49 @@ fun ProfileScreen(
             ProfileTotalStatCard(
                 modifier = Modifier.weight(1.48f),
                 label = stringResource(R.string.profile_stat_tonnage),
-                value = unit.formatWhole(TrainingStats.totalTonnageKg(sessions)),
+                value = unit.formatWhole(totalTonnageKg),
                 color = ElectricCyan
             )
             ProfileTotalStatCard(
                 modifier = Modifier.weight(0.76f),
                 label = stringResource(R.string.profile_stat_hours),
-                value = stringResource(R.string.unit_hours, TrainingStats.totalHours(sessions)),
+                value = stringResource(R.string.unit_hours, totalHours),
                 color = AmberGold
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        item { Spacer(modifier = Modifier.height(20.dp)) }
 
         // --- 3. HEATMAP D'ACTIVITÉ ---
-        ActivityHeatmapCard(sessions = sessions)
+        item { ActivityHeatmapCard(sessions = sessions) }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        item { Spacer(modifier = Modifier.height(24.dp)) }
 
         // --- 4. SESSION HISTORY ---
-        Text(
-            text = stringResource(R.string.profile_history_title),
-            color = TextSecondary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
+        item {
+            Text(
+                text = stringResource(R.string.profile_history_title),
+                color = TextSecondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+        }
 
         if (workoutHistory.isEmpty()) {
-            Text(
-                text = stringResource(R.string.profile_history_empty),
-                color = TextMuted,
-                fontSize = 13.sp,
-                lineHeight = 19.sp
-            )
+            item {
+                Text(
+                    text = stringResource(R.string.profile_history_empty),
+                    color = TextMuted,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp
+                )
+            }
         } else {
-            workoutHistory.forEach { item ->
+            items(workoutHistory, key = { it.id }) { item ->
                 HistoryWorkoutCard(item = item, unit = unit, onOpen = onOpenWorkout)
             }
         }

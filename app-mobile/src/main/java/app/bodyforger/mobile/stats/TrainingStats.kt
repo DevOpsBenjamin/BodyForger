@@ -39,6 +39,10 @@ object TrainingStats {
         .filter { it > 0 }
         .sumOf { it / MILLIS_PER_HOUR }
 
+    /** Tonnage lifted since Monday, on the same boundary as every other weekly figure. */
+    fun tonnageThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Double =
+        totalTonnageKg(sessions.filter { it.startedAtEpochMs >= weekStartEpochMs(todayEpochMs) })
+
     /** Tonnage of the sessions started within the given window. */
     fun tonnageBetween(sessions: List<WorkoutSession>, fromEpochMs: Long, toEpochMs: Long): Double =
         totalTonnageKg(sessions.filter { it.startedAtEpochMs in fromEpochMs..toEpochMs })
