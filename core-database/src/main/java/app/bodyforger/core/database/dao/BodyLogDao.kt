@@ -29,6 +29,10 @@ interface BodyLogDao {
     @Query("SELECT * FROM body_logs WHERE dateIso = :dateIso LIMIT 1")
     suspend fun findByDate(dateIso: String): BodyLogWithImpedances?
 
+    @Transaction
+    @Query("SELECT * FROM body_logs ORDER BY measuredAtEpochMs DESC LIMIT :limit OFFSET :offset")
+    suspend fun getLogsPaged(limit: Int, offset: Int): List<BodyLogWithImpedances>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLog(log: BodyLogEntity)
 
