@@ -54,11 +54,22 @@ class McpProtocolTest {
         assertTrue(tools.length() >= 5)
 
         val toolNames = (0 until tools.length()).map { tools.getJSONObject(it).getString("name") }
+        assertEquals(15, toolNames.size)
         assertTrue(toolNames.contains("health_connect_status"))
         assertTrue(toolNames.contains("health_connect_inspect_summary"))
         assertTrue(toolNames.contains("health_connect_read_sessions"))
         assertTrue(toolNames.contains("health_connect_read_weights"))
+        assertTrue(toolNames.contains("health_connect_read_heart_rates"))
         assertTrue(toolNames.contains("bodyforger_local_summary"))
+        assertTrue(toolNames.contains("bodyforger_search_exercises"))
+        assertTrue(toolNames.contains("bodyforger_list_exercises"))
+        assertTrue(toolNames.contains("bodyforger_create_exercise"))
+        assertTrue(toolNames.contains("bodyforger_create_routine"))
+        assertTrue(toolNames.contains("bodyforger_list_routines"))
+        assertTrue(toolNames.contains("bodyforger_get_routine"))
+        assertTrue(toolNames.contains("bodyforger_insert_workout"))
+        assertTrue(toolNames.contains("bodyforger_list_workouts"))
+        assertTrue(toolNames.contains("bodyforger_get_workout"))
     }
 
     @Test

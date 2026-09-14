@@ -28,6 +28,10 @@ interface RoutineDao {
     suspend fun getRoutineWithExercisesById(id: String): RoutineWithExercises?
 
     @Transaction
+    @Query("SELECT * FROM routines WHERE LOWER(name) = LOWER(:name) LIMIT 1")
+    suspend fun findRoutineByName(name: String): RoutineWithExercises?
+
+    @Transaction
     @Query("SELECT * FROM routines WHERE id = :id LIMIT 1")
     fun getRoutineWithExercisesByIdFlow(id: String): Flow<RoutineWithExercises?>
 

@@ -135,10 +135,8 @@ class McpHttpServer(
                             "/health/weights" -> McpToolRegistry.TOOL_HEALTH_READ_WEIGHTS
                             else -> McpToolRegistry.TOOL_HEALTH_INSPECT_SUMMARY
                         }
-                        val defMonths = if (path == "/health/summary") 12 else 6
-                        val months = queryParams["months"]?.toIntOrNull() ?: defMonths
-                        val args = JSONObject().apply { put("monthsBack", months) }
-                        val result = toolRegistry.executeTool(tool, args)
+                        val months = queryParams["months"]?.toIntOrNull() ?: if (path == "/health/summary") 12 else 6
+                        val result = toolRegistry.executeTool(tool, JSONObject().apply { put("monthsBack", months) })
                         sendResponse(out, 200, "OK", "application/json", result.toString())
                     }
                     method.equals("GET", ignoreCase = true) && path == "/health/heart-rates" -> {
@@ -149,6 +147,21 @@ class McpHttpServer(
                         }
                         val result = toolRegistry.executeTool(McpToolRegistry.TOOL_HEALTH_READ_HEART_RATES, args)
                         sendResponse(out, 200, "OK", "application/json", result.toString())
+                    }
+                    method.equals("GET", ignoreCase = true) && path.startsWith("/bodyforger/") -> {
+                        val tool = when (path) {
+                            "/bodyforger/summary" -> McpToolRegistry.TOOL_BODYFORGER_LOCAL_SUMMARY
+                            "/bodyforger/exercises" -> McpToolRegistry.TOOL_LIST_EXERCISES
+                            "/bodyforger/routines" -> McpToolRegistry.TOOL_LIST_ROUTINES
+                            "/bodyforger/workouts" -> McpToolRegistry.TOOL_LIST_WORKOUTS
+                            else -> null
+                        }
+                        if (tool != null) {
+                            val result = toolRegistry.executeTool(tool, JSONObject())
+                            sendResponse(out, 200, "OK", "application/json", result.toString())
+                        } else {
+                            sendResponse(out, 404, "Not Found", "application/json", """{"error":"Not Found"}""")
+                        }
                     }
                     method.equals("GET", ignoreCase = true) && path == "/sse" -> {
                         handleSseConnection(out)
@@ -185,22 +198,17 @@ class McpHttpServer(
         sendResponse(out, 202, "Accepted", "text/plain", "Accepted")
         val sseOut = sseSessions[sessionId] ?: return
         try {
-            val requestJson = JSONObject(body)
-            val responseJson = dispatcher.dispatch(requestJson)
-            if (responseJson != null) {
-                val messageEvent = "event: message\r\ndata: ${responseJson}\r\n\r\n"
-                synchronized(sseOut) {
-                    sseOut.write(messageEvent.toByteArray())
-                    sseOut.flush()
-                }
-            }
+            val responseJson = dispatcher.dispatch(JSONObject(body))
+            if (responseJson != null) sendSseEvent(sseOut, responseJson)
         } catch (t: Throwable) {
-            val errorJson = McpProtocol.buildError(null, -32700, "Parse error: ${t.message}")
-            val messageEvent = "event: message\r\ndata: $errorJson\r\n\r\n"
-            synchronized(sseOut) {
-                sseOut.write(messageEvent.toByteArray())
-                sseOut.flush()
-            }
+            sendSseEvent(sseOut, McpProtocol.buildError(null, -32700, "Parse error: ${t.message}"))
+        }
+    }
+
+    private fun sendSseEvent(sseOut: OutputStream, data: JSONObject) {
+        synchronized(sseOut) {
+            sseOut.write("event: message\r\ndata: $data\r\n\r\n".toByteArray())
+            sseOut.flush()
         }
     }
 
@@ -221,25 +229,17 @@ class McpHttpServer(
 
     private fun sendResponse(out: OutputStream, code: Int, reason: String, contentType: String, body: String) {
         val bytes = body.toByteArray(Charsets.UTF_8)
-        val headers = "HTTP/1.1 $code $reason\r\n" +
-            "Content-Type: $contentType\r\n" +
-            "Content-Length: ${bytes.size}\r\n" +
-            "Access-Control-Allow-Origin: *\r\n" +
-            "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n" +
-            "Access-Control-Allow-Headers: Content-Type\r\n\r\n"
+        val headers = "HTTP/1.1 $code $reason\r\nContent-Type: $contentType\r\nContent-Length: ${bytes.size}\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type\r\n\r\n"
         out.write(headers.toByteArray())
         out.write(bytes)
         out.flush()
     }
 
-    private fun parseQueryParams(uri: String): Map<String, String> {
-        val query = uri.substringAfter("?", "")
-        if (query.isEmpty()) return emptyMap()
-        return query.split("&").mapNotNull { pair ->
+    private fun parseQueryParams(uri: String): Map<String, String> =
+        uri.substringAfter("?", "").takeIf { it.isNotEmpty() }?.split("&")?.mapNotNull { pair ->
             val eq = pair.indexOf('=')
             if (eq > 0) pair.substring(0, eq) to pair.substring(eq + 1) else null
-        }.toMap()
-    }
+        }?.toMap() ?: emptyMap()
 
     companion object {
         const val DEFAULT_PORT = 8080

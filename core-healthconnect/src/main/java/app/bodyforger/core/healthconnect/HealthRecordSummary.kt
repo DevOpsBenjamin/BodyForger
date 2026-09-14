@@ -50,6 +50,8 @@ data class HealthHeartRateSeries(
     val minBpm: Long,
     val maxBpm: Long,
     val avgBpm: Double,
+    val deviceManufacturer: String? = null,
+    val deviceModel: String? = null,
     val samples: List<HealthHeartRateSample> = emptyList()
 )
 
@@ -141,6 +143,8 @@ fun androidx.health.connect.client.records.HeartRateRecord.toSeries(includeSampl
         minBpm = if (count > 0) minBpm else 0L,
         maxBpm = maxBpm,
         avgBpm = if (count > 0) sumBpm.toDouble() / count else 0.0,
+        deviceManufacturer = metadata.device?.manufacturer,
+        deviceModel = metadata.device?.model,
         samples = rawSamples
     )
 }

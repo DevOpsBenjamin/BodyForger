@@ -1,6 +1,7 @@
 package app.bodyforger.mobile.workout
 
 import app.bodyforger.core.database.dao.WorkoutDao
+import app.bodyforger.core.database.entity.WorkoutHeartRateSampleEntity
 import app.bodyforger.core.database.entity.WorkoutSessionEntity
 import app.bodyforger.core.database.entity.WorkoutSessionWithSets
 import app.bodyforger.core.database.entity.WorkoutSetEntity
@@ -58,6 +59,11 @@ class LiveWorkoutViewModelTest {
         override suspend fun deleteSession(sessionId: String) { sessions.removeAll { it.id == sessionId } }
         override suspend fun getSetById(setId: String): WorkoutSetEntity? = sets.firstOrNull { it.id == setId }
         override suspend fun getSetsForSession(sessionId: String): List<WorkoutSetEntity> = sets.filter { it.sessionId == sessionId }
+        override suspend fun getSessionsPaged(limit: Int, offset: Int): List<WorkoutSessionWithSets> = emptyList()
+        override suspend fun insertHeartRateSamples(samples: List<WorkoutHeartRateSampleEntity>) {}
+        override suspend fun getHeartRateSamplesForSession(sessionId: String): List<WorkoutHeartRateSampleEntity> = emptyList()
+        override suspend fun deleteHeartRateSamplesForSession(sessionId: String) {}
+        override suspend fun getHeartRateSampleCountForSession(sessionId: String): Int = 0
         override suspend fun getLastPerformance(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity> = emptyList()
     }
 

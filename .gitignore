@@ -36,3 +36,6 @@ CLAUDE.md
 forgefit-private
 # Session handover: working state between Claude Code sessions, never shipped.
 HANDOVER.md
+
+# Local personal health & workout imports (never committed)
+data/

@@ -22,6 +22,7 @@ import app.bodyforger.core.database.entity.RoutineEntity
 import app.bodyforger.core.database.entity.ScaleAssociationEntity
 import app.bodyforger.core.database.entity.RoutineExerciseEntity
 import app.bodyforger.core.database.entity.RoutineSetEntity
+import app.bodyforger.core.database.entity.WorkoutHeartRateSampleEntity
 import app.bodyforger.core.database.entity.WorkoutSessionEntity
 import app.bodyforger.core.database.entity.WorkoutSetEntity
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +35,7 @@ import kotlinx.coroutines.launch
         WorkoutSessionEntity::class,
         AthleteIdentityEntity::class,
         WorkoutSetEntity::class,
+        WorkoutHeartRateSampleEntity::class,
         BodyLogEntity::class,
         BodyLogImpedanceEntity::class,
         ScaleAssociationEntity::class,
@@ -43,7 +45,7 @@ import kotlinx.coroutines.launch
         AppSettingsEntity::class,
         BodyGoalEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = true
 )
 abstract class BodyForgerDatabase : RoomDatabase() {

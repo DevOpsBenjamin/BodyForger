@@ -174,4 +174,25 @@ class WorkoutMappingTest {
         assertEquals("bf_bench", domain.sets[0].exerciseId)
         assertEquals("bf_squat", domain.sets[1].exerciseId)
     }
+
+    @Test
+    fun testWorkoutHeartRateSampleEntityToDomainAndBack() {
+        val domainSample = app.bodyforger.core.model.WorkoutHeartRateSample(
+            timestampEpochMs = 1756400600000L,
+            bpm = 145
+        )
+        val entity = app.bodyforger.core.database.entity.WorkoutHeartRateSampleEntity(
+            sessionId = "sess_hr_1",
+            timestampEpochMs = 1756400600000L,
+            bpm = 145
+        )
+        val convertedDomain = entity.toDomain()
+        assertEquals(domainSample.timestampEpochMs, convertedDomain.timestampEpochMs)
+        assertEquals(domainSample.bpm, convertedDomain.bpm)
+
+        val convertedEntity = domainSample.toEntity("sess_hr_1")
+        assertEquals(entity.sessionId, convertedEntity.sessionId)
+        assertEquals(entity.timestampEpochMs, convertedEntity.timestampEpochMs)
+        assertEquals(entity.bpm, convertedEntity.bpm)
+    }
 }
