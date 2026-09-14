@@ -140,42 +140,43 @@ class McpHttpServer(
                         val result = toolRegistry.executeTool(tool, args)
                         sendResponse(out, 200, "OK", "application/json", result.toString())
                     }
+                    method.equals("GET", ignoreCase = true) && path == "/health/heart-rates" -> {
+                        val args = JSONObject().apply {
+                            put("daysBack", queryParams["days"]?.toIntOrNull() ?: 1)
+                            put("limit", queryParams["limit"]?.toIntOrNull() ?: 50)
+                            put("includeSamples", queryParams["samples"]?.toBoolean() ?: false)
+                        }
+                        val result = toolRegistry.executeTool(McpToolRegistry.TOOL_HEALTH_READ_HEART_RATES, args)
+                        sendResponse(out, 200, "OK", "application/json", result.toString())
+                    }
                     method.equals("GET", ignoreCase = true) && path == "/sse" -> {
                         handleSseConnection(out)
                         return@withContext
                     }
                     method.equals("POST", ignoreCase = true) && path == "/messages" -> {
-                        val sessionId = queryParams["sessionId"] ?: ""
-                        handleSseMessage(out, sessionId, body)
+                        handleSseMessage(out, queryParams["sessionId"] ?: "", body)
                     }
                     method.equals("POST", ignoreCase = true) && (path == "/mcp" || path == "/rpc") -> {
                         handleDirectMcp(out, body)
                     }
-                    else -> {
-                        sendResponse(out, 404, "Not Found", "application/json", """{"error":"Not Found"}""")
-                    }
+                    else -> sendResponse(out, 404, "Not Found", "application/json", """{"error":"Not Found"}""")
                 }
                 socket.close()
-            } catch (_: Exception) {
-                try { socket.close() } catch (_: Exception) {}
+            } catch (t: Throwable) {
+                try {
+                    sendResponse(socket.getOutputStream(), 500, "Server Error", "application/json", """{"error":"${t.message?.replace("\"", "'") ?: "Error"}"}""")
+                } catch (_: Throwable) {}
+                try { socket.close() } catch (_: Throwable) {}
             }
         }
     }
 
     private fun handleSseConnection(out: OutputStream) {
         val sessionId = UUID.randomUUID().toString()
-        val headers = "HTTP/1.1 200 OK\r\n" +
-            "Content-Type: text/event-stream; charset=utf-8\r\n" +
-            "Cache-Control: no-cache\r\n" +
-            "Connection: keep-alive\r\n" +
-            "Access-Control-Allow-Origin: *\r\n\r\n"
+        val headers = "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream; charset=utf-8\r\nCache-Control: no-cache\r\nConnection: keep-alive\r\nAccess-Control-Allow-Origin: *\r\n\r\n"
         out.write(headers.toByteArray())
+        out.write("event: endpoint\r\ndata: /messages?sessionId=$sessionId\r\n\r\n".toByteArray())
         out.flush()
-
-        val endpointEvent = "event: endpoint\r\ndata: /messages?sessionId=$sessionId\r\n\r\n"
-        out.write(endpointEvent.toByteArray())
-        out.flush()
-
         sseSessions[sessionId] = out
     }
 
@@ -192,8 +193,8 @@ class McpHttpServer(
                     sseOut.flush()
                 }
             }
-        } catch (e: Exception) {
-            val errorJson = McpProtocol.buildError(null, -32700, "Parse error: ${e.message}")
+        } catch (t: Throwable) {
+            val errorJson = McpProtocol.buildError(null, -32700, "Parse error: ${t.message}")
             val messageEvent = "event: message\r\ndata: $errorJson\r\n\r\n"
             synchronized(sseOut) {
                 sseOut.write(messageEvent.toByteArray())
@@ -211,8 +212,8 @@ class McpHttpServer(
             } else {
                 sendResponse(out, 204, "No Content", "application/json", "")
             }
-        } catch (e: Exception) {
-            val err = McpProtocol.buildError(null, -32700, "Parse error: ${e.message}")
+        } catch (t: Throwable) {
+            val err = McpProtocol.buildError(null, -32700, "Error: ${t.message}")
             sendResponse(out, 400, "Bad Request", "application/json", err.toString())
         }
     }

@@ -109,39 +109,7 @@ class HealthConnectReader(private val client: HealthConnectClient) {
             recordType = ExerciseSessionRecord::class,
             timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
         )
-
-        return records.map { record ->
-            val durationMin = Duration.between(record.startTime, record.endTime).toMinutes()
-            val typeName = ExerciseSessionRecord.EXERCISE_TYPE_INT_TO_STRING_MAP[record.exerciseType]
-                ?: "TYPE_${record.exerciseType}"
-
-            val segmentDetails = record.segments.map { seg ->
-                HealthSegmentDetail(
-                    startTimeEpochMs = seg.startTime.toEpochMilli(),
-                    endTimeEpochMs = seg.endTime.toEpochMilli(),
-                    startTimeIso = seg.startTime.toString(),
-                    endTimeIso = seg.endTime.toString(),
-                    segmentType = seg.segmentType,
-                    segmentTypeName = resolveExerciseSegmentName(seg.segmentType),
-                    repetitions = seg.repetitions
-                )
-            }
-
-            HealthSessionDetail(
-                id = record.metadata.id,
-                title = record.title,
-                notes = record.notes,
-                startTimeEpochMs = record.startTime.toEpochMilli(),
-                endTimeEpochMs = record.endTime.toEpochMilli(),
-                startTimeIso = record.startTime.toString(),
-                endTimeIso = record.endTime.toString(),
-                durationMinutes = durationMin,
-                exerciseType = record.exerciseType,
-                exerciseTypeName = typeName,
-                sourcePackage = record.metadata.dataOrigin.packageName,
-                segments = segmentDetails
-            )
-        }
+        return records.map { it.toSessionDetail() }
     }
 
     suspend fun readWeights(
@@ -186,48 +154,40 @@ class HealthConnectReader(private val client: HealthConnectClient) {
 
     suspend fun readHeartRates(
         startTime: Instant,
-        endTime: Instant
+        endTime: Instant,
+        limit: Int = DEFAULT_HEART_RATE_LIMIT,
+        includeSamples: Boolean = false
     ): List<HealthHeartRateSeries> {
         val records = readAllPages(
             recordType = HeartRateRecord::class,
-            timeRangeFilter = TimeRangeFilter.between(startTime, endTime)
+            timeRangeFilter = TimeRangeFilter.between(startTime, endTime),
+            maxRecords = limit
         )
-        return records.map { hr ->
-            HealthHeartRateSeries(
-                startTimeEpochMs = hr.startTime.toEpochMilli(),
-                endTimeEpochMs = hr.endTime.toEpochMilli(),
-                startTimeIso = hr.startTime.toString(),
-                endTimeIso = hr.endTime.toString(),
-                sourcePackage = hr.metadata.dataOrigin.packageName,
-                samples = hr.samples.map { sample ->
-                    HealthHeartRateSample(
-                        timeEpochMs = sample.time.toEpochMilli(),
-                        timeIso = sample.time.toString(),
-                        bpm = sample.beatsPerMinute
-                    )
-                }
-            )
-        }
+        return records.map { it.toSeries(includeSamples) }
     }
 
     private suspend fun <T : androidx.health.connect.client.records.Record> readAllPages(
         recordType: kotlin.reflect.KClass<T>,
-        timeRangeFilter: TimeRangeFilter
+        timeRangeFilter: TimeRangeFilter,
+        maxRecords: Int = MAX_FETCH_LIMIT
     ): List<T> {
         val allRecords = mutableListOf<T>()
         var nextToken: String? = null
 
         do {
+            val remaining = maxRecords - allRecords.size
+            if (remaining <= 0) break
+            val fetchSize = minOf(PAGE_SIZE, remaining)
             val request = ReadRecordsRequest(
                 recordType = recordType,
                 timeRangeFilter = timeRangeFilter,
-                pageSize = PAGE_SIZE,
+                pageSize = fetchSize,
                 pageToken = nextToken
             )
             val response = client.readRecords(request)
             allRecords.addAll(response.records)
             nextToken = response.pageToken
-        } while (nextToken != null)
+        } while (nextToken != null && allRecords.size < maxRecords)
 
         return allRecords
     }
@@ -236,5 +196,7 @@ class HealthConnectReader(private val client: HealthConnectClient) {
         const val DEFAULT_MONTHS_BACK = 12
         const val DAYS_PER_MONTH = 30L
         const val PAGE_SIZE = 1000
+        const val MAX_FETCH_LIMIT = 5000
+        const val DEFAULT_HEART_RATE_LIMIT = 100
     }
 }
