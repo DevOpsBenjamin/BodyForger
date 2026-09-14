@@ -46,7 +46,10 @@ sealed interface Destination {
     data class Settings(val expandScale: Boolean = false) : Destination
 
     @Serializable
-    data object HealthConnectMcp : Destination
+    data object HealthConnect : Destination
+
+    @Serializable
+    data object Mcp : Destination
 
     /**
      * The first-run setup flow. A destination rather than an overlay: it asks for a name and

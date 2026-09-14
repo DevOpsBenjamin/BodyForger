@@ -1,9 +1,10 @@
 package app.bodyforger.mobile.ui.screens
 
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,36 +23,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.bodyforger.core.healthconnect.HealthConnectPermissions
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.mcp.McpViewModel
-import app.bodyforger.mobile.ui.components.mcp.HealthInspectionCard
-import app.bodyforger.mobile.ui.components.mcp.HealthPermissionsCard
+import app.bodyforger.mobile.ui.components.mcp.McpCapabilitiesCard
+import app.bodyforger.mobile.ui.components.mcp.McpConnectionCard
+import app.bodyforger.mobile.ui.components.mcp.McpPairedDevicesCard
+import app.bodyforger.mobile.ui.components.mcp.McpPairingCard
 import app.bodyforger.mobile.ui.components.mcp.McpServerCard
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HealthConnectMcpScreen(
+fun McpScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: McpViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = PermissionController.createRequestPermissionResultContract()
-    ) {
-        viewModel.refreshHealthStatus()
-    }
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_health_connect_mcp_title)) },
+                title = { Text(stringResource(R.string.settings_mcp_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -77,24 +72,28 @@ fun HealthConnectMcpScreen(
             McpServerCard(
                 isRunning = uiState.isServerRunning,
                 port = uiState.serverPort,
-                onToggleServer = { viewModel.toggleServer() }
+                onToggleServer = { enabled -> viewModel.setServerEnabled(enabled) }
             )
 
-            HealthPermissionsCard(
-                isAvailable = uiState.isHealthConnectAvailable,
-                hasHistoryPermission = uiState.hasHistoryPermission,
-                missingCount = uiState.missingPermissions.size,
-                onRequestPermissions = {
-                    permissionLauncher.launch(HealthConnectPermissions.CORE_READ_PERMISSIONS)
-                }
-            )
+            if (uiState.isServerRunning) {
+                McpPairingCard(
+                    pairingCode = uiState.pairingCode,
+                    remainingSeconds = uiState.pairingRemainingSeconds,
+                    port = uiState.serverPort,
+                    onRefreshCode = { viewModel.refreshPairingCode() }
+                )
 
-            HealthInspectionCard(
-                isScanning = uiState.isScanning,
-                overview = uiState.inspectionOverview,
-                errorMessage = uiState.scanError,
-                onScan = { viewModel.scanHealthHistory(monthsBack = 12) }
-            )
+                McpPairedDevicesCard(
+                    devices = uiState.pairedDevices,
+                    onRevokeDevice = { deviceId -> viewModel.revokeDevice(deviceId) }
+                )
+
+                McpConnectionCard(port = uiState.serverPort)
+            }
+
+            McpCapabilitiesCard()
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

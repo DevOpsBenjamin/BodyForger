@@ -16,6 +16,9 @@ import kotlinx.coroutines.launch
 data class McpUiState(
     val isServerRunning: Boolean = false,
     val serverPort: Int = McpHttpServer.DEFAULT_PORT,
+    val pairingCode: String = "",
+    val pairingRemainingSeconds: Int = McpAuthManager.CODE_LIFETIME_SECONDS,
+    val pairedDevices: List<McpPairedDevice> = emptyList(),
     val isHealthConnectAvailable: Boolean = false,
     val hasHistoryPermission: Boolean = false,
     val grantedPermissions: Set<String> = emptySet(),
@@ -28,7 +31,9 @@ data class McpUiState(
 class McpViewModel(
     private val application: Application,
     private val mcpServer: McpHttpServer,
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
+    private val mcpPreferences: McpPreferences,
+    private val mcpAuthManager: McpAuthManager? = null
 ) : ViewModel() {
 
     private val healthConnectReader get() = healthConnectManager.getReaderOrNull()
@@ -47,39 +52,71 @@ class McpViewModel(
                 _uiState.update { it.copy(serverPort = port) }
             }
         }
+        if (mcpAuthManager != null) {
+            viewModelScope.launch {
+                mcpAuthManager.pairingCode.collect { code ->
+                    _uiState.update { it.copy(pairingCode = code) }
+                }
+            }
+            viewModelScope.launch {
+                mcpAuthManager.remainingSeconds.collect { secs ->
+                    _uiState.update { it.copy(pairingRemainingSeconds = secs) }
+                }
+            }
+            viewModelScope.launch {
+                mcpAuthManager.pairedDevices.collect { devices ->
+                    _uiState.update { it.copy(pairedDevices = devices) }
+                }
+            }
+        }
         refreshHealthStatus()
     }
 
-    fun toggleServer() {
-        if (_uiState.value.isServerRunning) {
+    fun setServerEnabled(enabled: Boolean) {
+        mcpPreferences.isEnabled = enabled
+        if (enabled) {
+            McpService.start(application)
+        } else {
             McpService.stop(application)
             mcpServer.stop()
-        } else {
-            McpService.start(application)
         }
+    }
+
+    fun toggleServer() {
+        setServerEnabled(!_uiState.value.isServerRunning)
+    }
+
+    fun refreshPairingCode() {
+        mcpAuthManager?.refreshPairingCode()
+    }
+
+    fun revokeDevice(deviceId: String) {
+        mcpAuthManager?.revokeDevice(deviceId)
+    }
+
+    fun revokeAllDevices() {
+        mcpAuthManager?.revokeAll()
     }
 
     fun refreshHealthStatus() {
         val isAvailable = healthConnectManager.isAvailable()
         _uiState.update { it.copy(isHealthConnectAvailable = isAvailable) }
+        if (!isAvailable) return
 
-        val reader = healthConnectReader
-        if (!isAvailable || reader == null) return
-
+        val client = healthConnectManager.getClientOrNull() ?: return
         viewModelScope.launch {
             try {
-                val overview = reader.inspectOverview(monthsBack = 1)
-                val granted = overview.grantedPermissions.toSet()
-                val missing = overview.missingPermissions.toSet()
+                val granted = HealthConnectPermissions.getGrantedPermissions(client)
+                val missing = HealthConnectPermissions.CORE_READ_PERMISSIONS.filterNot { granted.contains(it) }.toSet()
+                val hasHistory = HealthConnectPermissions.hasHistoryPermission(granted)
                 _uiState.update {
                     it.copy(
+                        hasHistoryPermission = hasHistory,
                         grantedPermissions = granted,
-                        missingPermissions = missing,
-                        hasHistoryPermission = overview.hasHistoryPermission
+                        missingPermissions = missing
                     )
                 }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(scanError = e.message) }
+            } catch (_: Exception) {
             }
         }
     }
@@ -87,23 +124,12 @@ class McpViewModel(
     fun scanHealthHistory(monthsBack: Int = 12) {
         val reader = healthConnectReader ?: return
         _uiState.update { it.copy(isScanning = true, scanError = null) }
-
         viewModelScope.launch {
             try {
                 val overview = reader.inspectOverview(monthsBack = monthsBack)
-                _uiState.update {
-                    it.copy(
-                        isScanning = false,
-                        inspectionOverview = overview,
-                        hasHistoryPermission = overview.hasHistoryPermission,
-                        grantedPermissions = overview.grantedPermissions.toSet(),
-                        missingPermissions = overview.missingPermissions.toSet()
-                    )
-                }
+                _uiState.update { it.copy(isScanning = false, inspectionOverview = overview) }
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isScanning = false, scanError = e.message)
-                }
+                _uiState.update { it.copy(isScanning = false, scanError = e.message ?: "Scan failed") }
             }
         }
     }

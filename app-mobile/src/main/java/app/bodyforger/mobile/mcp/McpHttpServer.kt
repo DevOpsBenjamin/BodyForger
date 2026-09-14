@@ -16,6 +16,7 @@ import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStream
+import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.UUID
@@ -23,7 +24,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 class McpHttpServer(
     private val dispatcher: McpDispatcher,
-    private val toolRegistry: McpToolRegistry
+    private val toolRegistry: McpToolRegistry,
+    private val authManager: McpAuthManager? = null
 ) {
     private var serverSocket: ServerSocket? = null
     private var serverJob: Job? = null
@@ -39,29 +41,25 @@ class McpHttpServer(
 
     fun start(scope: CoroutineScope, port: Int = DEFAULT_PORT) {
         if (_isRunning.value) return
-        _serverPort.value = port
-
         val customScope = CoroutineScope(Dispatchers.IO + SupervisorJob(scope.coroutineContext[Job]) + handler)
         serverScope = customScope
+        val socket = try {
+            ServerSocket().apply { reuseAddress = true; bind(InetSocketAddress(port)) }
+        } catch (_: Throwable) { return }
+        serverSocket = socket
+        _serverPort.value = socket.localPort
+        _isRunning.value = true
 
         serverJob = customScope.launch {
             try {
-                val socket = ServerSocket(port)
-                serverSocket = socket
-                _isRunning.value = true
-
                 while (isActive && !socket.isClosed) {
                     try {
                         val client = socket.accept()
-                        launch(SupervisorJob() + handler) {
-                            handleClient(client)
-                        }
-                    } catch (_: Throwable) {
-                        break
-                    }
+                        launch(SupervisorJob() + handler) { handleClient(client) }
+                    } catch (_: Throwable) { break }
                 }
-            } catch (_: Throwable) {
             } finally {
+                try { socket.close() } catch (_: Throwable) {}
                 _isRunning.value = false
             }
         }
@@ -90,11 +88,11 @@ class McpHttpServer(
                 val uri = parts[1]
 
                 var contentLength = 0
+                var authHeader: String? = null
                 var line = reader.readLine()
                 while (!line.isNullOrEmpty()) {
-                    if (line.startsWith("Content-Length:", ignoreCase = true)) {
-                        contentLength = line.substringAfter(":").trim().toIntOrNull() ?: 0
-                    }
+                    if (line.startsWith("Content-Length:", ignoreCase = true)) contentLength = line.substringAfter(":").trim().toIntOrNull() ?: 0
+                    else if (line.startsWith("Authorization:", ignoreCase = true)) authHeader = line.substringAfter(":").trim()
                     line = reader.readLine()
                 }
 
@@ -113,9 +111,7 @@ class McpHttpServer(
                 val queryParams = parseQueryParams(uri)
 
                 when {
-                    method.equals("OPTIONS", ignoreCase = true) -> {
-                        sendResponse(out, 204, "No Content", "text/plain", "")
-                    }
+                    method.equals("OPTIONS", ignoreCase = true) -> sendResponse(out, 204, "No Content", "text/plain", "")
                     method.equals("GET", ignoreCase = true) && (path == "/" || path == "/status") -> {
                         val json = JSONObject().apply {
                             put("status", "running")
@@ -125,54 +121,18 @@ class McpHttpServer(
                         }
                         sendResponse(out, 200, "OK", "application/json", json.toString())
                     }
-                    method.equals("GET", ignoreCase = true) && path == "/health/status" -> {
-                        val result = toolRegistry.executeTool(McpToolRegistry.TOOL_HEALTH_STATUS, JSONObject())
-                        sendResponse(out, 200, "OK", "application/json", result.toString())
+                    method.equals("POST", ignoreCase = true) && path == "/auth/pair" -> handlePair(out, body)
+                    !isAuthorized(authHeader, queryParams["token"]) -> {
+                        sendResponse(out, 401, "Unauthorized", "application/json", """{"error":"unauthorized","message":"Pair via POST /auth/pair with 6-digit code"}""")
                     }
-                    method.equals("GET", ignoreCase = true) && (path == "/health/summary" || path == "/health/sessions" || path == "/health/weights") -> {
-                        val tool = when (path) {
-                            "/health/sessions" -> McpToolRegistry.TOOL_HEALTH_READ_SESSIONS
-                            "/health/weights" -> McpToolRegistry.TOOL_HEALTH_READ_WEIGHTS
-                            else -> McpToolRegistry.TOOL_HEALTH_INSPECT_SUMMARY
-                        }
-                        val months = queryParams["months"]?.toIntOrNull() ?: if (path == "/health/summary") 12 else 6
-                        val result = toolRegistry.executeTool(tool, JSONObject().apply { put("monthsBack", months) })
-                        sendResponse(out, 200, "OK", "application/json", result.toString())
-                    }
-                    method.equals("GET", ignoreCase = true) && path == "/health/heart-rates" -> {
-                        val args = JSONObject().apply {
-                            put("daysBack", queryParams["days"]?.toIntOrNull() ?: 1)
-                            put("limit", queryParams["limit"]?.toIntOrNull() ?: 50)
-                            put("includeSamples", queryParams["samples"]?.toBoolean() ?: false)
-                        }
-                        val result = toolRegistry.executeTool(McpToolRegistry.TOOL_HEALTH_READ_HEART_RATES, args)
-                        sendResponse(out, 200, "OK", "application/json", result.toString())
-                    }
-                    method.equals("GET", ignoreCase = true) && path.startsWith("/bodyforger/") -> {
-                        val tool = when (path) {
-                            "/bodyforger/summary" -> McpToolRegistry.TOOL_BODYFORGER_LOCAL_SUMMARY
-                            "/bodyforger/exercises" -> McpToolRegistry.TOOL_LIST_EXERCISES
-                            "/bodyforger/routines" -> McpToolRegistry.TOOL_LIST_ROUTINES
-                            "/bodyforger/workouts" -> McpToolRegistry.TOOL_LIST_WORKOUTS
-                            else -> null
-                        }
-                        if (tool != null) {
-                            val result = toolRegistry.executeTool(tool, JSONObject())
-                            sendResponse(out, 200, "OK", "application/json", result.toString())
-                        } else {
-                            sendResponse(out, 404, "Not Found", "application/json", """{"error":"Not Found"}""")
-                        }
-                    }
+                    method.equals("GET", ignoreCase = true) && path.startsWith("/health/") -> handleHealthGet(path, queryParams, out)
+                    method.equals("GET", ignoreCase = true) && path.startsWith("/bodyforger/") -> handleBodyForgerGet(path, out)
                     method.equals("GET", ignoreCase = true) && path == "/sse" -> {
                         handleSseConnection(out)
                         return@withContext
                     }
-                    method.equals("POST", ignoreCase = true) && path == "/messages" -> {
-                        handleSseMessage(out, queryParams["sessionId"] ?: "", body)
-                    }
-                    method.equals("POST", ignoreCase = true) && (path == "/mcp" || path == "/rpc") -> {
-                        handleDirectMcp(out, body)
-                    }
+                    method.equals("POST", ignoreCase = true) && path == "/messages" -> handleSseMessage(out, queryParams["sessionId"] ?: "", body)
+                    method.equals("POST", ignoreCase = true) && (path == "/mcp" || path == "/rpc") -> handleDirectMcp(out, body)
                     else -> sendResponse(out, 404, "Not Found", "application/json", """{"error":"Not Found"}""")
                 }
                 socket.close()
@@ -182,6 +142,49 @@ class McpHttpServer(
                 } catch (_: Throwable) {}
                 try { socket.close() } catch (_: Throwable) {}
             }
+        }
+    }
+
+    private fun isAuthorized(authHeader: String?, queryToken: String?): Boolean =
+        authManager?.isAuthorized(authHeader ?: queryToken) ?: true
+
+    private fun handlePair(out: OutputStream, body: String) {
+        val req = try { JSONObject(body) } catch (_: Throwable) { JSONObject() }
+        val device = authManager?.validateAndPair(req.optString("code", ""), req.optString("client", req.optString("name", McpAuthManager.DEFAULT_CLIENT_NAME)))
+        if (device != null) {
+            val resp = JSONObject().apply { put("status", "authorized"); put("token", device.token); put("client", device.name) }
+            sendResponse(out, 200, "OK", "application/json", resp.toString())
+        } else {
+            sendResponse(out, 401, "Unauthorized", "application/json", """{"error":"invalid_code","message":"Invalid or expired pairing code"}""")
+        }
+    }
+
+    private suspend fun handleHealthGet(path: String, q: Map<String, String>, out: OutputStream) {
+        val (tool, args) = when (path) {
+            "/health/status" -> McpToolRegistry.TOOL_HEALTH_STATUS to JSONObject()
+            "/health/sessions" -> McpToolRegistry.TOOL_HEALTH_READ_SESSIONS to JSONObject().apply { put("monthsBack", q["months"]?.toIntOrNull() ?: 6) }
+            "/health/weights" -> McpToolRegistry.TOOL_HEALTH_READ_WEIGHTS to JSONObject().apply { put("monthsBack", q["months"]?.toIntOrNull() ?: 6) }
+            "/health/heart-rates" -> McpToolRegistry.TOOL_HEALTH_READ_HEART_RATES to JSONObject().apply {
+                put("daysBack", q["days"]?.toIntOrNull() ?: 1); put("limit", q["limit"]?.toIntOrNull() ?: 50); put("includeSamples", q["samples"]?.toBoolean() ?: false)
+            }
+            else -> McpToolRegistry.TOOL_HEALTH_INSPECT_SUMMARY to JSONObject().apply { put("monthsBack", q["months"]?.toIntOrNull() ?: 12) }
+        }
+        val result = toolRegistry.executeTool(tool, args)
+        sendResponse(out, 200, "OK", "application/json", result.toString())
+    }
+
+    private suspend fun handleBodyForgerGet(path: String, out: OutputStream) {
+        val tool = when (path) {
+            "/bodyforger/summary" -> McpToolRegistry.TOOL_BODYFORGER_LOCAL_SUMMARY
+            "/bodyforger/exercises" -> McpToolRegistry.TOOL_LIST_EXERCISES
+            "/bodyforger/routines" -> McpToolRegistry.TOOL_LIST_ROUTINES
+            "/bodyforger/workouts" -> McpToolRegistry.TOOL_LIST_WORKOUTS
+            else -> null
+        }
+        if (tool != null) {
+            sendResponse(out, 200, "OK", "application/json", toolRegistry.executeTool(tool, JSONObject()).toString())
+        } else {
+            sendResponse(out, 404, "Not Found", "application/json", """{"error":"Not Found"}""")
         }
     }
 
@@ -214,13 +217,9 @@ class McpHttpServer(
 
     private suspend fun handleDirectMcp(out: OutputStream, body: String) {
         try {
-            val requestJson = JSONObject(body)
-            val responseJson = dispatcher.dispatch(requestJson)
-            if (responseJson != null) {
-                sendResponse(out, 200, "OK", "application/json", responseJson.toString())
-            } else {
-                sendResponse(out, 204, "No Content", "application/json", "")
-            }
+            val response = dispatcher.dispatch(JSONObject(body))
+            if (response != null) sendResponse(out, 200, "OK", "application/json", response.toString())
+            else sendResponse(out, 204, "No Content", "application/json", "")
         } catch (t: Throwable) {
             val err = McpProtocol.buildError(null, -32700, "Error: ${t.message}")
             sendResponse(out, 400, "Bad Request", "application/json", err.toString())
@@ -229,7 +228,7 @@ class McpHttpServer(
 
     private fun sendResponse(out: OutputStream, code: Int, reason: String, contentType: String, body: String) {
         val bytes = body.toByteArray(Charsets.UTF_8)
-        val headers = "HTTP/1.1 $code $reason\r\nContent-Type: $contentType\r\nContent-Length: ${bytes.size}\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type\r\n\r\n"
+        val headers = "HTTP/1.1 $code $reason\r\nContent-Type: $contentType\r\nContent-Length: ${bytes.size}\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type, Authorization\r\n\r\n"
         out.write(headers.toByteArray())
         out.write(bytes)
         out.flush()
@@ -242,6 +241,6 @@ class McpHttpServer(
         }?.toMap() ?: emptyMap()
 
     companion object {
-        const val DEFAULT_PORT = 8080
+        const val DEFAULT_PORT = 8049
     }
 }

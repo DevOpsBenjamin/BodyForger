@@ -6,10 +6,10 @@ import app.bodyforger.mobile.R
 import app.bodyforger.mobile.mcp.McpUiState
 
 /**
- * Settings section item for Google Health Connect and embedded MCP server.
+ * Settings section item for Google Health Connect.
  *
  * Reflects whether Health Connect permissions are granted or need attention.
- * Tapping opens the detailed HealthConnectMcpScreen.
+ * Tapping opens the detailed HealthConnectScreen.
  */
 @Composable
 fun HealthConnectSettingsSection(
@@ -29,7 +29,7 @@ fun HealthConnectSettingsSection(
     }
 
     SettingsSection(
-        title = stringResource(R.string.settings_health_connect_mcp_title),
+        title = stringResource(R.string.settings_health_connect_title),
         status = status,
         summary = summary,
         isExpanded = false,

@@ -2,6 +2,7 @@ package app.bodyforger.mobile
 
 import android.app.Application
 import app.bodyforger.mobile.di.appModule
+import app.bodyforger.mobile.mcp.McpPreferences
 import app.bodyforger.mobile.mcp.McpService
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -20,6 +21,8 @@ class BodyForgerApplication : Application() {
             androidContext(this@BodyForgerApplication)
             modules(appModule)
         }
-        McpService.start(this)
+        if (McpPreferences(this).isEnabled) {
+            McpService.start(this)
+        }
     }
 }

@@ -33,5 +33,10 @@ val dataModule = module {
         )
     }
     single { app.bodyforger.mobile.mcp.McpDispatcher(toolRegistry = get()) }
-    single { app.bodyforger.mobile.mcp.McpHttpServer(dispatcher = get(), toolRegistry = get()) }
+    single { app.bodyforger.mobile.mcp.McpAuthManager(preferences = get()) }
+    single { app.bodyforger.mobile.mcp.McpHttpServer(dispatcher = get(), toolRegistry = get(), authManager = get()) }
+    single<android.content.SharedPreferences> {
+        androidContext().getSharedPreferences(app.bodyforger.mobile.mcp.McpPreferences.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+    }
+    single { app.bodyforger.mobile.mcp.McpPreferences(prefs = get()) }
 }
