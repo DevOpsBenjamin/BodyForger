@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.stats.TrainingStats
+import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.NeonLime
 import app.bodyforger.mobile.ui.theme.SurfaceBorder
 import app.bodyforger.mobile.ui.theme.SurfaceDark
@@ -91,9 +92,10 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
             ) {
                 Text(text = stringResource(R.string.heatmap_less), color = TextMuted, fontSize = 9.sp)
                 Spacer(modifier = Modifier.width(4.dp))
-                // The legend shows every shade the grid can draw: three swatches for five steps
-                // promised a gradation the cells did not have.
-                (0..4).forEach { sessionCount ->
+                // The legend shows the scale itself, zero to six. A week with no rest day sits
+                // outside it, and putting its amber on a "less to more" ramp would read as the
+                // best week rather than the warning it is.
+                (0..MAX_WEEKLY_SESSIONS).forEach { sessionCount ->
                     Box(
                         modifier = Modifier
                             .size(8.dp)
@@ -143,16 +145,24 @@ fun ActivityHeatmapGrid(sessions: List<WorkoutSession>) {
 /**
  * Sessions in a week, as a shade.
  *
- * Four steps, because a training week tops out: nobody reads the difference between six sessions
- * and seven, and everybody reads the difference between one and three.
+ * The scale runs to six, because six is the most a week can hold and still leave a rest day.
+ * A seventh session is not a darker green: training every day of the week is a warning, not an
+ * achievement, so it steps out of the scale into amber rather than being rewarded at the top
+ * of it.
  */
 private fun shadeFor(sessions: Int): Color = when (sessions) {
     0 -> SurfaceElevated
-    1 -> NeonLime.copy(alpha = 0.3f)
-    2 -> NeonLime.copy(alpha = 0.55f)
-    3 -> NeonLime.copy(alpha = 0.78f)
-    else -> NeonLime
+    1 -> NeonLime.copy(alpha = 0.22f)
+    2 -> NeonLime.copy(alpha = 0.35f)
+    3 -> NeonLime.copy(alpha = 0.5f)
+    4 -> NeonLime.copy(alpha = 0.66f)
+    5 -> NeonLime.copy(alpha = 0.82f)
+    MAX_WEEKLY_SESSIONS -> NeonLime
+    else -> AmberGold
 }
+
+/** Six sessions, the most a week holds while keeping a rest day. */
+private const val MAX_WEEKLY_SESSIONS = 6
 
 /** A year, laid out as four rows of thirteen weeks. */
 private const val HEATMAP_WEEKS = 52
