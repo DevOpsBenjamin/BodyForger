@@ -604,6 +604,16 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="mcp_cap_training_desc">Accès en lecture directe à vos exercices, séries et programmes.</string>
     <string name="mcp_cap_health_title">Synchronisation Health Connect</string>
     <string name="mcp_cap_health_desc">Pesées et séances accessibles si le consentement est accordé.</string>
+    <string name="mcp_pairing_title">Appairer un appareil</string>
+    <string name="mcp_pairing_code_label">Code d\'appairage unique</string>
+    <string name="mcp_pairing_code_timer">%1$ds</string>
+    <string name="mcp_pairing_refresh">Renouveler</string>
+    <string name="mcp_pairing_curl_hint">Appairez votre ordinateur une seule fois avec cette commande :</string>
+    <string name="mcp_pairing_copied">Commande d\'appairage copiée !</string>
+    <string name="mcp_devices_title">Appareils autorisés (%1$d)</string>
+    <string name="mcp_devices_empty">Aucun appareil appairé. Autorisez votre ordinateur avec le code d\'appairage ci-dessus.</string>
+    <string name="mcp_devices_revoke">Révoquer</string>
+    <string name="mcp_devices_revoked">Accès révoqué</string>
     <string name="mcp_health_permissions_title">Autorisations Health Connect</string>
     <string name="mcp_health_available">Health Connect est disponible sur cet appareil</string>
     <string name="mcp_health_unavailable">Health Connect est indisponible sur cet appareil</string>

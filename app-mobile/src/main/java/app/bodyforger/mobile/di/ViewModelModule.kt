@@ -42,7 +42,8 @@ val viewModelModule = module {
             application = androidApplication(),
             mcpServer = get(),
             healthConnectManager = get(),
-            mcpPreferences = get()
+            mcpPreferences = get(),
+            mcpAuthManager = get()
         )
     }
 }

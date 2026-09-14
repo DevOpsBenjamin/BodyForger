@@ -28,6 +28,8 @@ import app.bodyforger.mobile.R
 import app.bodyforger.mobile.mcp.McpViewModel
 import app.bodyforger.mobile.ui.components.mcp.McpCapabilitiesCard
 import app.bodyforger.mobile.ui.components.mcp.McpConnectionCard
+import app.bodyforger.mobile.ui.components.mcp.McpPairedDevicesCard
+import app.bodyforger.mobile.ui.components.mcp.McpPairingCard
 import app.bodyforger.mobile.ui.components.mcp.McpServerCard
 import org.koin.androidx.compose.koinViewModel
 
@@ -74,6 +76,18 @@ fun McpScreen(
             )
 
             if (uiState.isServerRunning) {
+                McpPairingCard(
+                    pairingCode = uiState.pairingCode,
+                    remainingSeconds = uiState.pairingRemainingSeconds,
+                    port = uiState.serverPort,
+                    onRefreshCode = { viewModel.refreshPairingCode() }
+                )
+
+                McpPairedDevicesCard(
+                    devices = uiState.pairedDevices,
+                    onRevokeDevice = { deviceId -> viewModel.revokeDevice(deviceId) }
+                )
+
                 McpConnectionCard(port = uiState.serverPort)
             }
 

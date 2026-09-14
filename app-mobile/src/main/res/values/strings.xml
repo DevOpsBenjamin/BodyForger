@@ -604,6 +604,16 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="mcp_cap_training_desc">Direct read access to your exercises, sets, and workout programs.</string>
     <string name="mcp_cap_health_title">Health Connect Sync</string>
     <string name="mcp_cap_health_desc">Weight and sessions accessible when health consent is granted.</string>
+    <string name="mcp_pairing_title">Pair New Device</string>
+    <string name="mcp_pairing_code_label">One-time pairing code</string>
+    <string name="mcp_pairing_code_timer">%1$ds</string>
+    <string name="mcp_pairing_refresh">Refresh</string>
+    <string name="mcp_pairing_curl_hint">Pair your computer once using this command:</string>
+    <string name="mcp_pairing_copied">Pairing command copied!</string>
+    <string name="mcp_devices_title">Authorized Devices (%1$d)</string>
+    <string name="mcp_devices_empty">No device paired yet. Authorize your computer with the pairing code above.</string>
+    <string name="mcp_devices_revoke">Revoke</string>
+    <string name="mcp_devices_revoked">Access revoked</string>
     <string name="mcp_health_permissions_title">Health Connect Permissions</string>
     <string name="mcp_health_available">Health Connect is available</string>
     <string name="mcp_health_unavailable">Health Connect is not available on this device</string>
