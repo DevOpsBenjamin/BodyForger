@@ -5,6 +5,7 @@ import app.bodyforger.core.healthconnect.HealthConnectPermissions
 import app.bodyforger.mobile.mcp.McpToolHelpers.boolProp
 import app.bodyforger.mobile.mcp.McpToolHelpers.errorJson
 import app.bodyforger.mobile.mcp.McpToolHelpers.intProp
+import app.bodyforger.mobile.mcp.McpToolHelpers.stringProp
 import app.bodyforger.mobile.mcp.McpToolHelpers.toolDescriptor
 import org.json.JSONArray
 import org.json.JSONObject
@@ -49,9 +50,12 @@ class HealthConnectToolHandler(
                 JSONObject().apply { put("monthsBack", intProp("Past months to read (default 6)")) }),
             toolDescriptor(TOOL_HEALTH_READ_HEART_RATES, "Read continuous heart rate series with summary statistics.",
                 JSONObject().apply {
-                    put("daysBack", intProp("Past days to read (default 1)"))
-                    put("limit", intProp("Maximum series (default 50)"))
+                    put("startTime", stringProp("Window start, ISO-8601 instant (e.g. 2026-09-08T05:40:00Z). Defaults to daysBack before endTime"))
+                    put("endTime", stringProp("Window end, ISO-8601 instant. Defaults to now"))
+                    put("daysBack", intProp("Past days to read when startTime is absent (default 1, max 31)"))
+                    put("limit", intProp("Maximum series (default 50, max 200)"))
                     put("includeSamples", boolProp("Include raw samples (default false)"))
+                    put("maxSamples", intProp("Budget of raw samples to serialise (default 5000, max 20000)"))
                 })
         )
     }
@@ -180,15 +184,33 @@ class HealthConnectToolHandler(
         }
     }
 
+    /**
+     * Reads a heart rate window.
+     *
+     * The window is explicit — importing one past workout means asking for that hour, not for
+     * "the last N days" truncated at an arbitrary series. [daysBack] stays as the shorthand for
+     * recent data.
+     *
+     * Two budgets keep a wide window from exhausting memory: [limit] caps the series, and
+     * `maxSamples` caps the raw points actually serialised. A single series can hold thousands
+     * of samples, so capping series alone never bounded the response. When the budget runs out
+     * the response says so and names the instant to resume from, rather than silently returning
+     * a partial curve.
+     */
     private suspend fun handleReadHeartRates(arguments: JSONObject): JSONObject {
         val r = reader ?: return errorJson("Health Connect reader is unavailable.")
-        val days = arguments.optInt("daysBack", 1).coerceIn(1, 30)
-        val limit = arguments.optInt("limit", 50).coerceIn(1, 200)
+        val limit = arguments.optInt("limit", 50).coerceIn(1, MAX_SERIES)
         val includeSamples = arguments.optBoolean("includeSamples", false)
-        val now = Instant.now()
-        val start = now.minus(days.toLong(), ChronoUnit.DAYS)
-        val series = r.readHeartRates(start, now, limit, includeSamples)
+        val sampleBudget = arguments.optInt("maxSamples", DEFAULT_MAX_SAMPLES).coerceIn(1, MAX_SAMPLES)
+
+        val window = HeartRateWindow.resolve(arguments, Instant.now())
+            ?: return errorJson("startTime must be before endTime.")
+        val (start, end, days) = window
+
+        val series = r.readHeartRates(start, end, limit, includeSamples)
         val array = JSONArray()
+        var spent = 0
+        var truncatedAt: String? = null
         series.forEach { s ->
             array.put(JSONObject().apply {
                 put("startTime", s.startTimeIso)
@@ -201,18 +223,38 @@ class HealthConnectToolHandler(
                 if (s.deviceManufacturer != null) put("deviceManufacturer", s.deviceManufacturer)
                 if (s.deviceModel != null) put("deviceModel", s.deviceModel)
                 if (includeSamples && s.samples.isNotEmpty()) {
-                    put("samples", JSONArray(s.samples.map {
-                        JSONObject().apply {
-                            put("time", it.timeIso)
-                            put("bpm", it.bpm)
+                    if (spent >= sampleBudget) {
+                        // Summary statistics still stand; only the raw curve stops here.
+                        if (truncatedAt == null) truncatedAt = s.startTimeIso
+                    } else {
+                        val room = sampleBudget - spent
+                        val emitted = s.samples.take(room)
+                        if (emitted.size < s.samples.size && truncatedAt == null) {
+                            truncatedAt = s.startTimeIso
                         }
-                    }))
+                        spent += emitted.size
+                        put("samples", JSONArray(emitted.map {
+                            JSONObject().apply {
+                                put("time", it.timeIso)
+                                put("bpm", it.bpm)
+                            }
+                        }))
+                    }
                 }
             })
         }
         return JSONObject().apply {
             put("seriesCount", series.size)
+            put("startTime", start.toString())
+            put("endTime", end.toString())
             put("daysBack", days)
+            put("seriesTruncated", series.size >= limit)
+            if (includeSamples) {
+                put("sampleCount", spent)
+                put("samplesTruncated", truncatedAt != null)
+                // Resume here to page through a window whose curve did not fit in one response.
+                truncatedAt?.let { put("resumeFromTime", it) }
+            }
             put("series", array)
         }
     }
@@ -223,6 +265,18 @@ class HealthConnectToolHandler(
         const val TOOL_HEALTH_READ_SESSIONS = "health_connect_read_sessions"
         const val TOOL_HEALTH_READ_WEIGHTS = "health_connect_read_weights"
         const val TOOL_HEALTH_READ_HEART_RATES = "health_connect_read_heart_rates"
+
+        /** Series cap, unchanged: Health Connect paging is the expensive part. */
+        const val MAX_SERIES = 200
+
+        /**
+         * Raw sample budget. A Fitbit minute holds ~30 samples, so 5000 covers a ~2.5 hour
+         * workout curve, while the hard cap keeps the largest response well away from the
+         * out-of-memory failures a sample-unbounded read used to cause.
+         */
+        const val DEFAULT_MAX_SAMPLES = 5000
+        const val MAX_SAMPLES = 20000
+        const val MAX_WINDOW_DAYS = 31
 
         private val SUPPORTED_TOOLS = setOf(
             TOOL_HEALTH_STATUS,

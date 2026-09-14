@@ -58,8 +58,9 @@ import org.koin.androidx.compose.koinViewModel
  * Settings, as a list of sections that fold away once dealt with.
  *
  * Only one is open at a time: they are steps, and the athlete is looking for the one still
- * left to do. [expandScale] opens the scale section straight away, for callers arriving from
- * a screen that needed a scale and did not find one.
+ * left to do. Everything starts folded, so the screen opens on the list rather than on a form.
+ * [expandScale] opens the scale section straight away, for callers arriving from a screen that
+ * needed a scale and did not find one.
  */
 @Composable
 fun SettingsScreen(
@@ -86,7 +87,7 @@ fun SettingsScreen(
     var addingGoal by remember { mutableStateOf(false) }
 
     var openSection by remember {
-        mutableStateOf(if (expandScale) SettingsSectionType.SCALE else SettingsSectionType.ATHLETE)
+        mutableStateOf(if (expandScale) SettingsSectionType.SCALE else SettingsSectionType.NONE)
     }
     var showingBiaInfo by remember { mutableStateOf(false) }
 
