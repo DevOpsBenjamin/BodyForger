@@ -90,33 +90,29 @@ object TrainingStats {
     }
 
     /**
-     * The activity grid, one column per week, Monday at the top.
+     * Sessions trained in each of the last [weeks] weeks, oldest first, the current week last.
      *
-     * Weeks rather than runs of days: a column that holds five consecutive days puts Monday on a
-     * different row every week, so no habit can show through. Aligned on weekdays, a fortnight of
-     * Tuesdays reads as a line, and an untouched weekend as a gap.
-     *
-     * The last column is the current week, padded to Sunday so today keeps its weekday position
-     * rather than sliding to the end of the grid.
+     * A week per cell rather than a day: a year of days does not fit on a phone without shrinking
+     * each one to a dot, and the question a training history answers is how often, not which
+     * Tuesday. The count feeds the shade, so a week of four sessions reads darker than a week
+     * of one — which is what the "less / more" legend has always promised.
      */
-    fun activityWeeks(
+    fun weeklySessionCounts(
         sessions: List<WorkoutSession>,
         todayEpochMs: Long,
         weeks: Int
-    ): List<List<Boolean>> {
+    ): List<Int> {
         val zone = ZoneId.systemDefault()
-        val today = Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
-        val thisMonday = today.with(DayOfWeek.MONDAY)
+        val thisMonday = Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
+            .with(DayOfWeek.MONDAY)
         val firstMonday = thisMonday.minusWeeks((weeks - 1).toLong())
 
-        val trained = sessions
-            .map { Instant.ofEpochMilli(it.startedAtEpochMs).atZone(zone).toLocalDate() }
-            .toSet()
+        val perWeek = sessions
+            .map { Instant.ofEpochMilli(it.startedAtEpochMs).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
+            .groupingBy { it }
+            .eachCount()
 
-        return (0 until weeks).map { week ->
-            val monday = firstMonday.plusWeeks(week.toLong())
-            (0 until DAYS_IN_A_WEEK).map { day -> monday.plusDays(day.toLong()) in trained }
-        }
+        return (0 until weeks).map { week -> perWeek[firstMonday.plusWeeks(week.toLong())] ?: 0 }
     }
 
     /** Sessions started in the last seven days, today included. */

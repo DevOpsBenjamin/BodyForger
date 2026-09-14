@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -89,12 +91,18 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
             ) {
                 Text(text = stringResource(R.string.heatmap_less), color = TextMuted, fontSize = 9.sp)
                 Spacer(modifier = Modifier.width(4.dp))
-                Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(SurfaceElevated))
-                Spacer(modifier = Modifier.width(3.dp))
-                Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(NeonLime.copy(alpha = 0.4f)))
-                Spacer(modifier = Modifier.width(3.dp))
-                Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(NeonLime))
-                Spacer(modifier = Modifier.width(4.dp))
+                // The legend shows every shade the grid can draw: three swatches for five steps
+                // promised a gradation the cells did not have.
+                (0..4).forEach { sessionCount ->
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(shadeFor(sessionCount))
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                }
+                Spacer(modifier = Modifier.width(1.dp))
                 Text(text = stringResource(R.string.heatmap_more), color = TextMuted, fontSize = 9.sp)
             }
         }
@@ -103,46 +111,49 @@ fun ActivityHeatmapCard(sessions: List<WorkoutSession>, modifier: Modifier = Mod
 
 @Composable
 fun ActivityHeatmapGrid(sessions: List<WorkoutSession>) {
-    val weeks = remember(sessions) {
-        TrainingStats.activityWeeks(sessions, System.currentTimeMillis(), HEATMAP_WEEKS)
+    val counts = remember(sessions) {
+        TrainingStats.weeklySessionCounts(sessions, System.currentTimeMillis(), HEATMAP_WEEKS)
     }
-    val initials = stringResource(R.string.heatmap_weekday_initials).split(",")
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        // The weekday initials are what turn the grid into a calendar: without them a gap is
-        // just a gap, and with them it is a weekend. Each initial sits in a box the height of a
-        // cell, with its line height pinned to match — left to itself the text box is taller
-        // than the cell, and the column drifts a little further out of step on every row.
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            initials.take(TrainingStats.DAYS_IN_A_WEEK).forEach { initial ->
-                Text(
-                    text = initial,
-                    color = TextMuted,
-                    fontSize = 9.sp,
-                    lineHeight = 14.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.size(14.dp).wrapContentHeight(Alignment.CenterVertically)
-                )
-            }
-        }
-
-        weeks.forEach { week ->
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                week.forEach { trained ->
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        counts.chunked(WEEKS_PER_ROW).forEach { quarter ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                quarter.forEach { sessionCount ->
                     Box(
                         modifier = Modifier
-                            .size(14.dp)
+                            .weight(1f)
+                            .aspectRatio(1f)
                             .clip(RoundedCornerShape(3.dp))
-                            .background(if (trained) NeonLime else SurfaceElevated)
+                            .background(shadeFor(sessionCount))
                     )
+                }
+                // A year is not a whole number of quarters; the last row keeps its cells the
+                // size of every other row rather than stretching to fill the gap.
+                repeat(WEEKS_PER_ROW - quarter.size) {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
     }
 }
 
-/** Fourteen weeks, one column each, Monday at the top — the shape GitHub made legible. */
-private const val HEATMAP_WEEKS = 14
+/**
+ * Sessions in a week, as a shade.
+ *
+ * Four steps, because a training week tops out: nobody reads the difference between six sessions
+ * and seven, and everybody reads the difference between one and three.
+ */
+private fun shadeFor(sessions: Int): Color = when (sessions) {
+    0 -> SurfaceElevated
+    1 -> NeonLime.copy(alpha = 0.3f)
+    2 -> NeonLime.copy(alpha = 0.55f)
+    3 -> NeonLime.copy(alpha = 0.78f)
+    else -> NeonLime
+}
+
+/** A year, laid out as four rows of thirteen weeks. */
+private const val HEATMAP_WEEKS = 52
+private const val WEEKS_PER_ROW = 13

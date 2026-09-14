@@ -278,7 +278,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="home_volume_sets_done">%1$d working sets done</string>
     <string name="home_volume_target">Target: %1$d sets</string>
     <string name="home_composition_title">BODY COMPOSITION</string>
-    <string name="heatmap_title">CONSISTENCY &amp; TRAINING</string>
+    <string name="heatmap_title">CONSISTENCY — LAST 12 MONTHS</string>
     <string name="heatmap_less">Less</string>
     <string name="heatmap_more">More</string>
     <!-- Biometrics -->

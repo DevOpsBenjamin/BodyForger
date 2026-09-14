@@ -2,16 +2,14 @@ package app.bodyforger.mobile.stats
 
 import app.bodyforger.core.model.WorkoutSession
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 
 /**
- * The activity grid has to be a calendar, not a run of days: its whole point is that a column
- * is a week and a row is a weekday.
+ * The activity grid counts sessions per week over a year, so the shade of a cell has to follow
+ * how busy that week was, and the last cell has to be the week in progress.
  */
 class ActivityWeeksTest {
 
@@ -25,49 +23,41 @@ class ActivityWeeksTest {
         WorkoutSession(title = "Session", startedAtEpochMs = epochOf(date))
 
     @Test
-    fun `a column is a week and a row is a weekday`() {
-        val weeks = TrainingStats.activityWeeks(listOf(session(today)), epochOf(today), weeks = 4)
+    fun `the last cell is the week in progress`() {
+        val counts = TrainingStats.weeklySessionCounts(listOf(session(today)), epochOf(today), weeks = 52)
 
-        assertEquals(4, weeks.size)
-        weeks.forEach { assertEquals(TrainingStats.DAYS_IN_A_WEEK, it.size) }
-        // Today is a Monday, so it lands on the first row of the last column.
-        assertTrue(weeks.last()[0])
-        assertFalse(weeks.last()[1])
+        assertEquals(52, counts.size)
+        assertEquals(1, counts.last())
     }
 
     @Test
-    fun `the same weekday stays on the same row across weeks`() {
-        val wednesdays = listOf(
-            LocalDate.of(2026, 9, 2),
-            LocalDate.of(2026, 9, 9),
+    fun `every day of one week counts into the same cell`() {
+        val week = listOf(
+            LocalDate.of(2026, 9, 7),   // Monday
+            LocalDate.of(2026, 9, 9),   // Wednesday
+            LocalDate.of(2026, 9, 11),  // Friday
+            LocalDate.of(2026, 9, 13),  // Sunday
         ).map(::session)
 
-        val weeks = TrainingStats.activityWeeks(wednesdays, epochOf(today), weeks = 3)
+        val counts = TrainingStats.weeklySessionCounts(week, epochOf(today), weeks = 4)
 
-        // Wednesday is the third row, in both of the weeks that hold one.
-        assertTrue(weeks[0][2])
-        assertTrue(weeks[1][2])
-        assertFalse(weeks[2][2])
+        assertEquals(4, counts[2])
+        assertEquals(0, counts[3])
     }
 
     @Test
-    fun `a day outside the window is left out rather than folded in`() {
-        val longAgo = session(today.minusWeeks(10))
+    fun `an untrained week is zero rather than missing`() {
+        val counts = TrainingStats.weeklySessionCounts(emptyList(), epochOf(today), weeks = 6)
 
-        val weeks = TrainingStats.activityWeeks(listOf(longAgo), epochOf(today), weeks = 4)
-
-        assertTrue(weeks.all { week -> week.none { it } })
+        assertEquals(List(6) { 0 }, counts)
     }
 
     @Test
-    fun `the current week is padded to Sunday so today keeps its weekday`() {
-        val friday = LocalDate.of(2026, 9, 11)
+    fun `a session older than the window is left out`() {
+        val longAgo = session(today.minusWeeks(60))
 
-        val weeks = TrainingStats.activityWeeks(listOf(session(friday)), epochOf(friday), weeks = 2)
+        val counts = TrainingStats.weeklySessionCounts(listOf(longAgo), epochOf(today), weeks = 52)
 
-        // Friday is the fifth row, and the two days after it exist but are untrained.
-        assertTrue(weeks.last()[4])
-        assertFalse(weeks.last()[5])
-        assertFalse(weeks.last()[6])
+        assertEquals(0, counts.sum())
     }
 }
