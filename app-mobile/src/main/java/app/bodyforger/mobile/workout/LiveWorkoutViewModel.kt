@@ -167,9 +167,11 @@ class LiveWorkoutViewModel(
         workout.updateSet(setId) { set ->
             val completed = !set.isCompleted
             val now = System.currentTimeMillis()
-            val startedAt = if (completed) {
-                set.startedAtEpochMs ?: (now - DEFAULT_ESTIMATED_SET_DURATION_MS).coerceAtLeast(workout.session.startedAtEpochMs)
-            } else null
+            // The start is kept across an unticking: it is the instant the rest before this set
+            // ended, which is measured, and unticking is how a mistyped load gets corrected. The
+            // end follows the tick, so re-validating moves it and the set reads as longer.
+            val startedAt = set.startedAtEpochMs
+                ?: (now - DEFAULT_ESTIMATED_SET_DURATION_MS).coerceAtLeast(workout.session.startedAtEpochMs)
             set.copy(
                 isCompleted = completed,
                 completedAtEpochMs = if (completed) now else null,

@@ -28,9 +28,30 @@ object TrainingStats {
     fun completedSets(sessions: List<WorkoutSession>): List<WorkoutSet> =
         sessions.flatMap { it.sets }.filter { it.isCompleted }
 
-    /** Tonnage lifted across every session, in kilograms. */
+    /**
+     * Tonnage lifted across every session, in kilograms.
+     *
+     * Read from the total each session already carries rather than re-summed from its sets: the
+     * figure is written when a set is validated, when a session closes and when one is imported,
+     * always by the same rule. Adding up fifty-five stored totals is work a scroll frame can
+     * afford; walking twelve hundred sets is not.
+     */
     fun totalTonnageKg(sessions: List<WorkoutSession>): Double =
-        completedSets(sessions).sumOf { it.weightKg * it.reps }
+        sessions.sumOf(::sessionTonnageKg)
+
+    /**
+     * One session's tonnage, preferring the total it carries.
+     *
+     * A session whose total is zero while it holds performed sets has not been through the write
+     * path that maintains it — a restored backup, or a session built in a test — so its sets are
+     * summed instead. Showing zero for real work would be worse than the walk.
+     */
+    fun sessionTonnageKg(session: WorkoutSession): Double =
+        if (session.totalVolumeKg > 0.0) {
+            session.totalVolumeKg
+        } else {
+            session.sets.filter { it.isCompleted }.sumOf { it.weightKg * it.reps }
+        }
 
 
     /** Hours spent training, counting only sessions that were actually closed. */
@@ -38,6 +59,10 @@ object TrainingStats {
         .mapNotNull { session -> session.endedAtEpochMs?.minus(session.startedAtEpochMs) }
         .filter { it > 0 }
         .sumOf { it / MILLIS_PER_HOUR }
+
+    /** Tonnage lifted since Monday, on the same boundary as every other weekly figure. */
+    fun tonnageThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Double =
+        totalTonnageKg(sessions.filter { it.startedAtEpochMs >= weekStartEpochMs(todayEpochMs) })
 
     /** Tonnage of the sessions started within the given window. */
     fun tonnageBetween(sessions: List<WorkoutSession>, fromEpochMs: Long, toEpochMs: Long): Double =
@@ -89,9 +114,65 @@ object TrainingStats {
             .toSet()
     }
 
-    /** Sessions started in the last seven days, today included. */
+    /**
+     * Sessions trained in each of the last [weeks] weeks, oldest first, the current week last.
+     *
+     * A week per cell rather than a day: a year of days does not fit on a phone without shrinking
+     * each one to a dot, and the question a training history answers is how often, not which
+     * Tuesday. The count feeds the shade, so a week of four sessions reads darker than a week
+     * of one — which is what the "less / more" legend has always promised.
+     */
+    fun weeklySessionCounts(
+        sessions: List<WorkoutSession>,
+        todayEpochMs: Long,
+        weeks: Int
+    ): List<Int> = weeklySessionCountsOf(sessions.map { it.startedAtEpochMs }, todayEpochMs, weeks)
+
+    /** As [weeklySessionCounts], from session start times alone. */
+    fun weeklySessionCountsOf(
+        startedAtEpochMs: List<Long>,
+        todayEpochMs: Long,
+        weeks: Int
+    ): List<Int> {
+        val zone = ZoneId.systemDefault()
+        val thisMonday = Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
+            .with(DayOfWeek.MONDAY)
+        val firstMonday = thisMonday.minusWeeks((weeks - 1).toLong())
+
+        val perWeek = startedAtEpochMs
+            .map { Instant.ofEpochMilli(it).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
+            .groupingBy { it }
+            .eachCount()
+
+        return (0 until weeks).map { week -> perWeek[firstMonday.plusWeeks(week.toLong())] ?: 0 }
+    }
+
+    /**
+     * The instant this week began, Monday at midnight.
+     *
+     * Everything labelled "this week" counts from here rather than from seven days ago: the
+     * figures sit next to a weekly plan and a grid of calendar weeks, and a rolling window would
+     * have disagreed with both — on a Monday it still counts the whole of last week.
+     */
+    fun weekStartEpochMs(todayEpochMs: Long): Long {
+        val zone = ZoneId.systemDefault()
+        return Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
+            .with(DayOfWeek.MONDAY)
+            .atStartOfDay(zone)
+            .toInstant()
+            .toEpochMilli()
+    }
+
+    /**
+     * Sessions started since Monday.
+     *
+     * Sessions, not days trained: two sessions in one day are two sessions, and the plan they
+     * are compared against counts them that way.
+     */
     fun sessionsThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Int =
-        activeDayOffsets(sessions, todayEpochMs, DAYS_IN_A_WEEK).size
+        // Only the start of the week bounds this: capping it at the current instant would drop a
+        // session logged later today, which is a session of this week by any reading.
+        sessions.count { it.startedAtEpochMs >= weekStartEpochMs(todayEpochMs) }
 
     /**
      * Weeks trained in an unbroken run, counting back from the current one.
@@ -102,14 +183,18 @@ object TrainingStats {
      *
      * Weeks start on Monday, as ISO has it.
      */
-    fun consecutiveTrainingWeeks(sessions: List<WorkoutSession>, todayEpochMs: Long): Int {
-        if (sessions.isEmpty()) return 0
+    fun consecutiveTrainingWeeks(sessions: List<WorkoutSession>, todayEpochMs: Long): Int =
+        consecutiveTrainingWeeksOf(sessions.map { it.startedAtEpochMs }, todayEpochMs)
+
+    /** As [consecutiveTrainingWeeks], from session start times alone. */
+    fun consecutiveTrainingWeeksOf(startedAtEpochMs: List<Long>, todayEpochMs: Long): Int {
+        if (startedAtEpochMs.isEmpty()) return 0
 
         val zone = ZoneId.systemDefault()
         val thisWeek = Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
             .with(DayOfWeek.MONDAY)
-        val trained = sessions
-            .map { Instant.ofEpochMilli(it.startedAtEpochMs).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
+        val trained = startedAtEpochMs
+            .map { Instant.ofEpochMilli(it).atZone(zone).toLocalDate().with(DayOfWeek.MONDAY) }
             .toSet()
 
         var week = if (thisWeek in trained) thisWeek else thisWeek.minusWeeks(1)
@@ -171,22 +256,22 @@ object TrainingStats {
         )
     }
 
-    /** Validated sets in the last seven days, counted per muscle the exercise works first. */
+    /** Validated sets since Monday, counted per muscle the exercise works first. */
     fun completedSetsByMuscle(sessions: List<WorkoutSession>, todayEpochMs: Long): Map<MuscleGroup, Int> {
-        val since = todayEpochMs - DAYS_IN_A_WEEK * MILLIS_PER_DAY
+        val since = weekStartEpochMs(todayEpochMs)
         return sessions
-            .filter { it.startedAtEpochMs in since..todayEpochMs }
+            .filter { it.startedAtEpochMs >= since }
             .flatMap { it.sets }
             .filter { it.isCompleted }
             .groupingBy { it.primaryMuscle }
             .eachCount()
     }
 
-    /** Validated sets in the last seven days, all muscles together. */
+    /** Validated sets since Monday, all muscles together. */
     fun completedSetsThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Int {
-        val since = todayEpochMs - DAYS_IN_A_WEEK * MILLIS_PER_DAY
+        val since = weekStartEpochMs(todayEpochMs)
         return sessions
-            .filter { it.startedAtEpochMs in since..todayEpochMs }
+            .filter { it.startedAtEpochMs >= since }
             .flatMap { it.sets }
             .count { it.isCompleted }
     }

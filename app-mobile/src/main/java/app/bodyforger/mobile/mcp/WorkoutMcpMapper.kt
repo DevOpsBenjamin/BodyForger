@@ -18,6 +18,15 @@ import java.util.UUID
 
 internal object WorkoutMcpMapper {
 
+    /**
+     * Reads an enum name, falling back rather than throwing.
+     *
+     * A caller sending a unit this build does not know gets the default and a stored set, not a
+     * failed import of an entire session.
+     */
+    private inline fun <reified T : Enum<T>> enumOrDefault(raw: String?, fallback: T): T =
+        enumValues<T>().firstOrNull { it.name.equals(raw?.trim(), ignoreCase = true) } ?: fallback
+
     suspend fun parseSetEntities(
         sessionId: String,
         setsJson: JSONArray,
@@ -36,12 +45,20 @@ internal object WorkoutMcpMapper {
             val category = dbExercise?.activityCategory ?: WorkoutActivityCategory.STRENGTH_TRAINING.name
 
             val weight = sObj.optDouble("weightKg", 0.0)
+            // Loads are stored in kilograms whatever the athlete reads: the unit says how the
+            // set was measured, not what it weighs. A machine graduated in pounds keeps its own
+            // unit set by set, so 70 lb reads as 70 lb rather than as 31.75 kg.
+            val weightUnit = enumOrDefault(sObj.optString("weightUnit"), WeightUnit.KG)
             val reps = sObj.optInt("reps", 0)
             val isCompleted = sObj.optBoolean("isCompleted", true)
             if (isCompleted) volume += weight * reps
 
             val rpe = if (sObj.has("rpe") && !sObj.isNull("rpe")) sObj.optDouble("rpe") else null
             val completedAt = if (sObj.has("completedAtEpochMs")) sObj.optLong("completedAtEpochMs") else null
+            // An imported session carries its own timing; without these an import would land
+            // with the set timing the live workout engine fills in, which is nothing at all.
+            val startedAt = if (sObj.has("startedAtEpochMs")) sObj.optLong("startedAtEpochMs") else null
+            val actualRest = if (sObj.has("actualRestSeconds")) sObj.optInt("actualRestSeconds") else null
 
             list.add(
                 WorkoutSetEntity(
@@ -56,13 +73,15 @@ internal object WorkoutMcpMapper {
                     setIndex = sObj.optInt("setIndex", 1),
                     type = sObj.optString("type", RoutineSetType.NORMAL.name).uppercase(Locale.ROOT),
                     weightKg = weight,
-                    weightUnit = WeightUnit.KG.name,
+                    weightUnit = weightUnit.name,
                     reps = reps,
                     rpe = rpe,
                     isCompleted = isCompleted,
                     side = sObj.optString("side", UnilateralSide.NONE.name).uppercase(Locale.ROOT),
                     restTimeSeconds = sObj.optInt("restTimeSeconds", 90),
-                    completedAtEpochMs = completedAt
+                    completedAtEpochMs = completedAt,
+                    startedAtEpochMs = startedAt,
+                    actualRestSeconds = actualRest
                 )
             )
         }
@@ -146,11 +165,16 @@ internal object WorkoutMcpMapper {
                 put("orderIndex", setItem.orderIndex)
                 put("type", setItem.type.name)
                 put("weightKg", setItem.weightKg)
+                put("weightUnit", setItem.weightUnit.name)
                 put("reps", setItem.reps)
                 if (setItem.rpe != null) put("rpe", setItem.rpe)
                 put("isCompleted", setItem.isCompleted)
                 put("side", setItem.side.name)
                 if (setItem.completedAtEpochMs != null) put("completedAtEpochMs", setItem.completedAtEpochMs)
+                // Set timing is what makes a session readable as a chronology rather than a list.
+                if (setItem.startedAtEpochMs != null) put("startedAtEpochMs", setItem.startedAtEpochMs)
+                if (setItem.actualRestSeconds != null) put("actualRestSeconds", setItem.actualRestSeconds)
+                put("restTimeSeconds", setItem.restTimeSeconds)
             })
         }
 
@@ -162,6 +186,8 @@ internal object WorkoutMcpMapper {
             put("startedAtEpochMs", s.startedAtEpochMs)
             s.endedAtEpochMs?.let { put("endedAtEpochMs", it) }
             put("totalVolumeKg", s.totalVolumeKg)
+            if (s.averageHeartRateBpm != null) put("averageHeartRateBpm", s.averageHeartRateBpm)
+            if (s.activeCaloriesKcal != null) put("activeCaloriesKcal", s.activeCaloriesKcal)
             put("sets", setsArr)
             put("cardio", cardio)
         }

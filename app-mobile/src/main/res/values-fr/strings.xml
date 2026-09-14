@@ -206,7 +206,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="scale_picker_title">Quelle balance ?</string>
     <string name="profile_stat_sessions">Séances</string>
     <string name="profile_stat_tonnage">Tonnage total</string>
-    <string name="profile_stat_hours">Heures gym</string>
+    <string name="profile_stat_hours">Heures</string>
     <string name="unit_hours">%1$.0f h</string>
     <string name="profile_history_empty">Aucune séance pour l\'instant. Vos séances terminées apparaîtront ici.</string>
     <string name="stats_weekly_tonnage">Tonnage hebdo</string>
@@ -278,7 +278,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="home_volume_sets_done">%1$d séries effectives réalisées</string>
     <string name="home_volume_target">Objectif : %1$d séries</string>
     <string name="home_composition_title">COMPOSITION CORPORELLE</string>
-    <string name="heatmap_title">RÉGULARITÉ &amp; ENTRAÎNEMENT</string>
+    <string name="heatmap_title">RÉGULARITÉ — 52 DERNIÈRES SEMAINES</string>
     <string name="heatmap_less">Moins</string>
     <string name="heatmap_more">Plus</string>
     <!-- Biometrics -->
@@ -641,4 +641,23 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="mcp_service_notification_title">Serveur MCP BodyForger</string>
     <string name="mcp_service_notification_running">En écoute sur le port %1$d · Démon actif</string>
     <string name="mcp_service_notification_stopped">Démon arrêté</string>
+    <string name="workout_detail_timeline">CHRONOLOGIE</string>
+    <string name="workout_detail_heart_rate">FRÉQUENCE CARDIAQUE</string>
+    <string name="workout_detail_heart_rate_empty">Aucune fréquence cardiaque n\'a été enregistrée pour cette séance. Associez une montre via Health Connect pour voir la courbe ici.</string>
+    <string name="workout_detail_bpm_min">MIN</string>
+    <string name="workout_detail_bpm_avg">MOYENNE</string>
+    <string name="workout_detail_bpm_max">MAX</string>
+    <string name="workout_detail_bpm">%1$d bpm</string>
+    <string name="workout_detail_rpe">RPE %1$.1f</string>
+    <string name="workout_detail_rest">%1$d s de repos</string>
+    <string name="workout_detail_seconds">%1$d s</string>
+    <string name="workout_detail_no_time">--:--:--</string>
+    <string name="workout_detail_notes">NOTES</string>
+    <string name="workout_detail_duration">DURÉE</string>
+    <string name="workout_detail_sets">SÉRIES</string>
+    <string name="workout_detail_volume">VOLUME</string>
+    <string name="workout_detail_no_value">—</string>
+    <string name="workout_detail_loading">Chargement de la séance…</string>
+    <string name="workout_detail_missing">Cette séance n\'est plus dans la base.</string>
+    <string name="heatmap_weekday_initials">L,M,M,J,V,S,D</string>
 </resources>

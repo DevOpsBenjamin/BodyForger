@@ -166,6 +166,9 @@ class McpHttpServer(
             "/health/weights" -> McpToolRegistry.TOOL_HEALTH_READ_WEIGHTS to JSONObject().apply { put("monthsBack", q["months"]?.toIntOrNull() ?: 6) }
             "/health/heart-rates" -> McpToolRegistry.TOOL_HEALTH_READ_HEART_RATES to JSONObject().apply {
                 put("daysBack", q["days"]?.toIntOrNull() ?: 1); put("limit", q["limit"]?.toIntOrNull() ?: 50); put("includeSamples", q["samples"]?.toBoolean() ?: false)
+                q["from"]?.let { put("startTime", it) }
+                q["to"]?.let { put("endTime", it) }
+                q["maxSamples"]?.toIntOrNull()?.let { put("maxSamples", it) }
             }
             else -> McpToolRegistry.TOOL_HEALTH_INSPECT_SUMMARY to JSONObject().apply { put("monthsBack", q["months"]?.toIntOrNull() ?: 12) }
         }

@@ -166,3 +166,16 @@ fun WorkoutSet.toEntity(sessionId: String): WorkoutSetEntity = WorkoutSetEntity(
 /** Maps a whole set list onto one session, for the initial write of a workout. */
 fun List<WorkoutSet>.toSetEntities(sessionId: String): List<WorkoutSetEntity> =
     map { it.toEntity(sessionId) }
+
+/**
+ * A completed session as a history list shows it: its own figures, plus the exercises it covered.
+ *
+ * Deliberately without sets — the list draws from the session's stored totals, and reading a set
+ * per row would mean loading a whole training history to render a screen.
+ */
+data class WorkoutSessionSummary(
+    @Embedded
+    val session: WorkoutSessionEntity,
+    /** Exercise names in the order they were performed, comma-separated; null when there are none. */
+    val exerciseNames: String?
+)

@@ -206,7 +206,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="scale_picker_title">Which scale?</string>
     <string name="profile_stat_sessions">Sessions</string>
     <string name="profile_stat_tonnage">Total tonnage</string>
-    <string name="profile_stat_hours">Hours trained</string>
+    <string name="profile_stat_hours">Hours</string>
     <string name="unit_hours">%1$.0f h</string>
     <string name="profile_history_empty">No session yet. Your finished workouts appear here.</string>
     <string name="stats_weekly_tonnage">Weekly tonnage</string>
@@ -278,7 +278,7 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="home_volume_sets_done">%1$d working sets done</string>
     <string name="home_volume_target">Target: %1$d sets</string>
     <string name="home_composition_title">BODY COMPOSITION</string>
-    <string name="heatmap_title">CONSISTENCY &amp; TRAINING</string>
+    <string name="heatmap_title">CONSISTENCY — LAST 52 WEEKS</string>
     <string name="heatmap_less">Less</string>
     <string name="heatmap_more">More</string>
     <!-- Biometrics -->
@@ -641,4 +641,23 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="mcp_service_notification_title">BodyForger MCP Server</string>
     <string name="mcp_service_notification_running">Running on port %1$d · Daemon active</string>
     <string name="mcp_service_notification_stopped">Daemon stopped</string>
+    <string name="workout_detail_timeline">TIMELINE</string>
+    <string name="workout_detail_heart_rate">HEART RATE</string>
+    <string name="workout_detail_heart_rate_empty">No heart rate was recorded for this session. Pair a watch through Health Connect to see the curve here.</string>
+    <string name="workout_detail_bpm_min">LOW</string>
+    <string name="workout_detail_bpm_avg">AVERAGE</string>
+    <string name="workout_detail_bpm_max">PEAK</string>
+    <string name="workout_detail_bpm">%1$d bpm</string>
+    <string name="workout_detail_rpe">RPE %1$.1f</string>
+    <string name="workout_detail_rest">%1$d s rest</string>
+    <string name="workout_detail_seconds">%1$d s</string>
+    <string name="workout_detail_no_time">--:--:--</string>
+    <string name="workout_detail_notes">NOTES</string>
+    <string name="workout_detail_duration">DURATION</string>
+    <string name="workout_detail_sets">SETS</string>
+    <string name="workout_detail_volume">VOLUME</string>
+    <string name="workout_detail_no_value">—</string>
+    <string name="workout_detail_loading">Loading the session…</string>
+    <string name="workout_detail_missing">This session is no longer in the database.</string>
+    <string name="heatmap_weekday_initials">M,T,W,T,F,S,S</string>
 </resources>

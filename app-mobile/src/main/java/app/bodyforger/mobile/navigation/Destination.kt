@@ -64,6 +64,10 @@ sealed interface Destination {
     @Serializable
     data object LiveWorkout : Destination
 
+    /** One past session, opened from the history. */
+    @Serializable
+    data class WorkoutDetail(val sessionId: String) : Destination
+
     @Serializable
     data object CreateExercise : Destination
 

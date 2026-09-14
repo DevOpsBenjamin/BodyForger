@@ -5,17 +5,18 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WorkoutSession
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.library.LibraryViewModel
+import app.bodyforger.mobile.library.WorkoutSessionHistoryEntry
 import app.bodyforger.mobile.profile.AppSettingsViewModel
 import app.bodyforger.mobile.profile.AthleteProfileViewModel
 import app.bodyforger.mobile.stats.TrainingStats
@@ -71,28 +73,32 @@ data class HistoryWorkoutItem(
 @Composable
 fun ProfileScreen(
     onOpenSettings: () -> Unit = {},
+    onOpenWorkout: (String) -> Unit = {},
     library: LibraryViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     settings: AppSettingsViewModel = koinViewModel()
 ) {
-    val scrollState = rememberScrollState()
-    val sessions by library.completedSessions.collectAsState()
     val profile by profileViewModel.profile.collectAsState()
     val unit by settings.defaultWeightUnit.collectAsState()
-    val streakWeeks = remember(sessions) {
-        TrainingStats.consecutiveTrainingWeeks(sessions, System.currentTimeMillis())
+    val history by library.completedSessionSummaries.collectAsState()
+    val startedAt = remember(history) { history.map { it.startedAtEpochMs } }
+    val streakWeeks = remember(startedAt) {
+        TrainingStats.consecutiveTrainingWeeksOf(startedAt, System.currentTimeMillis())
+    }
+    val workoutHistory = remember(history) { history.map { it.toHistoryItem() } }
+    val totalTonnageKg = remember(history) { history.sumOf { it.totalVolumeKg } }
+    val totalHours = remember(history) {
+        history.mapNotNull { it.endedAtEpochMs?.minus(it.startedAtEpochMs) }
+            .filter { it > 0 }
+            .sumOf { it / 3_600_000.0 }
     }
 
-    val workoutHistory = remember(sessions) { sessions.map { it.toHistoryItem() } }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Obsidian)
-            .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 20.dp)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().background(Obsidian),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp)
     ) {
         // --- 1. ATHLETE PROFILE HEADER ---
+        item {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -168,59 +174,70 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(18.dp))
+        }
+
+        item { Spacer(modifier = Modifier.height(18.dp)) }
 
         // --- 2. CHIFFRES CLÉS ---
+        item {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             ProfileTotalStatCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(0.76f),
                 label = stringResource(R.string.profile_stat_sessions),
-                value = sessions.size.toString(),
+                value = history.size.toString(),
                 color = NeonLime
             )
             ProfileTotalStatCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.48f),
                 label = stringResource(R.string.profile_stat_tonnage),
-                value = unit.formatWithSymbol(TrainingStats.totalTonnageKg(sessions)),
+                value = unit.formatWhole(totalTonnageKg),
                 color = ElectricCyan
             )
             ProfileTotalStatCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(0.76f),
                 label = stringResource(R.string.profile_stat_hours),
-                value = stringResource(R.string.unit_hours, TrainingStats.totalHours(sessions)),
+                value = stringResource(R.string.unit_hours, totalHours),
                 color = AmberGold
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        item { Spacer(modifier = Modifier.height(20.dp)) }
 
         // --- 3. HEATMAP D'ACTIVITÉ ---
-        ActivityHeatmapCard(sessions = sessions)
+        item { ActivityHeatmapCard(startedAtEpochMs = startedAt) }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        item { Spacer(modifier = Modifier.height(24.dp)) }
 
         // --- 4. SESSION HISTORY ---
-        Text(
-            text = stringResource(R.string.profile_history_title),
-            color = TextSecondary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
+        item {
+            Text(
+                text = stringResource(R.string.profile_history_title),
+                color = TextSecondary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+        }
 
         if (workoutHistory.isEmpty()) {
-            Text(
-                text = stringResource(R.string.profile_history_empty),
-                color = TextMuted,
-                fontSize = 13.sp,
-                lineHeight = 19.sp
-            )
+            item {
+                Text(
+                    text = stringResource(R.string.profile_history_empty),
+                    color = TextMuted,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp
+                )
+            }
         } else {
-            workoutHistory.forEach { item -> HistoryWorkoutCard(item = item, unit = unit) }
+            items(workoutHistory, key = { it.id }) { item ->
+                HistoryWorkoutCard(item = item, unit = unit, onOpen = onOpenWorkout)
+            }
         }
     }
 }
@@ -231,8 +248,8 @@ fun ProfileScreen(
  * Nothing is filled in that the session does not carry: a workout with no heart rate shows
  * none, rather than a plausible number.
  */
-private fun WorkoutSession.toHistoryItem(): HistoryWorkoutItem {
-    val minutes = TrainingStats.durationMinutes(this)
+private fun WorkoutSessionHistoryEntry.toHistoryItem(): HistoryWorkoutItem {
+    val minutes = endedAtEpochMs?.minus(startedAtEpochMs)?.takeIf { it > 0 }?.div(60_000)
     val startedAt = Instant.ofEpochMilli(startedAtEpochMs).atZone(ZoneId.systemDefault())
     return HistoryWorkoutItem(
         id = id,
@@ -240,8 +257,8 @@ private fun WorkoutSession.toHistoryItem(): HistoryWorkoutItem {
         dateDisplay = startedAt.format(HISTORY_DATE_FORMAT),
         durationDisplay = minutes?.let { "$it min" }.orEmpty(),
         avgBpm = averageHeartRateBpm ?: 0,
-        totalTonnageKg = TrainingStats.totalTonnageKg(listOf(this)),
-        exerciseSummary = TrainingStats.exerciseNames(this).joinToString(", "),
+        totalTonnageKg = totalVolumeKg,
+        exerciseSummary = exerciseNames.joinToString(", "),
         personalRecordHighlight = null
     )
 }

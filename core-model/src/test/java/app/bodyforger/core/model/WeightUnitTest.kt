@@ -62,4 +62,15 @@ class WeightUnitTest {
         // pounds inflated the tonnage by a factor of two point two.
         assertEquals(45.359237, WeightUnit.LBS.toKilograms(100.0), 1e-9)
     }
+
+    @Test
+    fun `a career total rounds to the unit`() {
+        assertEquals("233,437 kg", WeightUnit.KG.formatWhole(233_436.5, Locale.UK))
+        assertEquals("840 kg", WeightUnit.KG.formatWhole(840.4, Locale.UK))
+    }
+
+    @Test
+    fun `a single load keeps its decimal`() {
+        assertEquals("22.7 kg", WeightUnit.KG.formatWithSymbol(22.68, Locale.UK))
+    }
 }

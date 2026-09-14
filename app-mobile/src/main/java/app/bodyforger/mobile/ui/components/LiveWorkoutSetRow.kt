@@ -102,17 +102,16 @@ fun LiveWorkoutSetRow(
         )
 
         // 3. Load entry field (CompactNumberInput, which does not clip)
-        val weightText = if (set.weightKg % 1.0 == 0.0) {
-            set.weightKg.toInt().toString()
-        } else {
-            set.weightKg.toString()
-        }
+        // The athlete types what the machine shows; the set stores kilograms. Without the
+        // conversion the unit was decorative — 70 on a pound-graduated stack was written as
+        // 70 kg and the session tonnage came out more than twice what was lifted.
+        val weightText = formatLoad(weightUnit.fromKilograms(set.weightKg))
 
         CompactNumberInput(
             value = weightText,
             onValueChange = { newVal ->
                 val parsed = newVal.replace(',', '.').toDoubleOrNull()
-                if (parsed != null) onWeightChange(parsed)
+                if (parsed != null) onWeightChange(weightUnit.toKilograms(parsed))
             },
             placeholder = "0",
             modifier = Modifier.width(64.dp)
@@ -164,7 +163,9 @@ private fun PreviousPerformance(
     weightUnit: WeightUnit,
     onRepeat: () -> Unit
 ) {
-    val label = previous?.let { "${formatLoad(it.weightKg)}${weightUnit.symbol} × ${it.reps}" }
+    val label = previous?.let {
+        "${formatLoad(weightUnit.fromKilograms(it.weightKg))}${weightUnit.symbol} × ${it.reps}"
+    }
 
     Box(
         modifier = Modifier
@@ -182,8 +183,11 @@ private fun PreviousPerformance(
     }
 }
 
-private fun formatLoad(weightKg: Double): String =
-    if (weightKg % 1.0 == 0.0) weightKg.toInt().toString() else weightKg.toString()
+/** Trailing zero dropped, and rounded to a tenth: a stack is picked, not measured. */
+private fun formatLoad(value: Double): String {
+    val rounded = kotlin.math.round(value * 10) / 10
+    return if (rounded % 1.0 == 0.0) rounded.toInt().toString() else rounded.toString()
+}
 
 /** Shown when the exercise has never been completed before: there is nothing to repeat. */
 private const val NO_PREVIOUS_PERFORMANCE = "—"

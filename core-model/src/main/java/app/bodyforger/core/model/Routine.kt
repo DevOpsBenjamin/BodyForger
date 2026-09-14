@@ -1,5 +1,6 @@
 package app.bodyforger.core.model
 
+import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Locale
 import java.util.UUID
@@ -60,6 +61,24 @@ enum class WeightUnit(val symbol: String) {
     /** The value with its symbol, as a load, a body mass or a tonnage is labelled on screen. */
     fun formatWithSymbol(kilograms: Double, locale: Locale = Locale.getDefault()): String =
         "${format(kilograms, locale)} $symbol"
+
+    /**
+     * A career total, rounded to the unit.
+     *
+     * A tenth of a kilogram is noise once every set of every session has been added up, and it
+     * costs two characters in a stat card that has none to spare. A single load keeps its
+     * decimal — 22.7 kg is a plate selection; 233,437 kg is a quantity.
+     */
+    fun formatWhole(kilograms: Double, locale: Locale = Locale.getDefault()): String {
+        val format = NumberFormat.getNumberInstance(locale).apply {
+            maximumFractionDigits = 0
+            isGroupingUsed = true
+            // NumberFormat rounds to even by default, which would show a total of 233,436.5 as
+            // 233,436. A half rounds up here, the way a reader expects a total to.
+            roundingMode = RoundingMode.HALF_UP
+        }
+        return "${format.format(fromKilograms(kilograms))} $symbol"
+    }
 
     private companion object {
         const val KILOGRAMS_PER_POUND = 0.45359237

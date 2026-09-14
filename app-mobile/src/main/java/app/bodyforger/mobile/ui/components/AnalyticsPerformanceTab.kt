@@ -60,8 +60,7 @@ fun AnalyticsPerformanceTab(
 ) {
     val sessions by library.completedSessions.collectAsState()
     val weeklyTonnage = remember(sessions) {
-        val now = System.currentTimeMillis()
-        TrainingStats.tonnageBetween(sessions, now - ONE_WEEK_MS, now)
+        TrainingStats.tonnageThisWeek(sessions, System.currentTimeMillis())
     }
     val unit by settings.defaultWeightUnit.collectAsState()
     val records = remember(sessions) { TrainingStats.personalRecords(sessions).take(RECORDS_SHOWN) }
@@ -255,7 +254,6 @@ private fun PRRow(exercise: String, oneRM: String, repRecord: String, isLast: Bo
     }
 }
 
-private const val ONE_WEEK_MS = 7L * 24 * 60 * 60 * 1000
 
 /** How many records the card shows before it stops being a summary. */
 private const val RECORDS_SHOWN = 3

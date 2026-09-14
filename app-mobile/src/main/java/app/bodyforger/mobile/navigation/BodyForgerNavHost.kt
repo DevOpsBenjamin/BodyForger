@@ -27,6 +27,7 @@ import app.bodyforger.mobile.ui.screens.McpScreen
 import app.bodyforger.mobile.ui.screens.ProfileScreen
 import app.bodyforger.mobile.ui.screens.RoutineEditorScreen
 import app.bodyforger.mobile.ui.screens.SettingsScreen
+import app.bodyforger.mobile.ui.screens.WorkoutDetailScreen
 import app.bodyforger.mobile.ui.screens.SetupFlowScreen
 import app.bodyforger.mobile.ui.screens.WorkoutScreen
 import app.bodyforger.mobile.ui.screens.toRoutineExercise
@@ -104,7 +105,17 @@ fun BodyForgerNavHost(
         }
 
         composable<Destination.Profile> {
-            ProfileScreen(onOpenSettings = { navController.navigate(Destination.Settings()) { launchSingleTop = true } })
+            ProfileScreen(
+                onOpenSettings = { navController.navigate(Destination.Settings()) { launchSingleTop = true } },
+                onOpenWorkout = { navController.navigate(Destination.WorkoutDetail(it)) }
+            )
+        }
+
+        composable<Destination.WorkoutDetail> { entry ->
+            WorkoutDetailScreen(
+                sessionId = entry.toRoute<Destination.WorkoutDetail>().sessionId,
+                onBack = navController::navigateUp
+            )
         }
 
         composable<Destination.Settings> { entry ->
