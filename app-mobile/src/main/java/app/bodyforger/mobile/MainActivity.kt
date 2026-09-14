@@ -63,6 +63,15 @@ fun BodyForgerApp(
     val currentTab = currentDestination?.destination.currentTab()
     val onSetupScreen = currentDestination?.destination?.hasRoute<Destination.Setup>() == true
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val intent = (context as? android.app.Activity)?.intent
+    LaunchedEffect(intent?.data) {
+        val uri = intent?.data
+        if (uri?.scheme == "bodyforger" && (uri.host == "mcp" || uri.host == "healthconnect")) {
+            navController.navigate(Destination.HealthConnectMcp) { launchSingleTop = true }
+        }
+    }
+
     val tourDue by onboarding.tourDue.collectAsState()
     val setupDue by onboarding.setupDue.collectAsState()
     var tourStop by remember { mutableStateOf(TourStop.entries.first()) }

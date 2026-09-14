@@ -25,6 +25,6 @@ kotlin {
 dependencies {
     implementation(project(":core-model"))
     implementation(project(":core-database"))
-    implementation(libs.androidx.health.connect)
+    api(libs.androidx.health.connect)
     testImplementation(libs.junit)
 }

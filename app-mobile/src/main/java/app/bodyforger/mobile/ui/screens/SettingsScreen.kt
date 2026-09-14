@@ -47,6 +47,7 @@ import app.bodyforger.mobile.ui.components.GoalsSection
 import app.bodyforger.mobile.ui.components.OnboardingSettingsSection
 import app.bodyforger.mobile.ui.components.ScaleSettingsSection
 import app.bodyforger.mobile.ui.components.SectionStatus
+import app.bodyforger.mobile.ui.components.SettingsHeader
 import app.bodyforger.mobile.ui.components.SettingsSection
 import app.bodyforger.mobile.ui.text.label
 import app.bodyforger.mobile.ui.theme.Obsidian
@@ -66,6 +67,7 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingsScreen(
     onBack: () -> Unit,
     expandScale: Boolean = false,
+    onOpenHealthConnectMcp: () -> Unit = {},
     scaleViewModel: ScaleViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     appSettingsViewModel: AppSettingsViewModel = koinViewModel(),
@@ -113,7 +115,7 @@ fun SettingsScreen(
             .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)
     ) {
-        Header(onBack, huid = state.huid)
+        SettingsHeader(onBack, huid = state.huid)
 
         SettingsSection(
             title = stringResource(R.string.settings_athlete),
@@ -246,6 +248,14 @@ fun SettingsScreen(
                 onReplaySetup = onboardingViewModel::replaySetup
             )
         }
+
+        SettingsSection(
+            title = stringResource(R.string.settings_health_connect_mcp_title),
+            status = SectionStatus.NEUTRAL,
+            summary = stringResource(R.string.settings_health_connect_mcp_desc),
+            isExpanded = false,
+            onToggle = onOpenHealthConnectMcp
+        ) {}
     }
 
     if (addingGoal) {
@@ -263,29 +273,6 @@ fun SettingsScreen(
 private fun engineLabelRes(id: String): Int = when (id) {
     ModelSelector.FORGEFIT_PRIVATE -> R.string.settings_engine_forgefit_private
     else -> R.string.settings_engine_forgefit_mit
-}
-
-@Composable
-private fun Header(onBack: () -> Unit, huid: String?) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)
-        }
-        Text(
-            text = stringResource(R.string.nav_settings),
-            color = TextPrimary,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Black,
-            modifier = Modifier.padding(start = 4.dp)
-        )
-    }
-
-    Text(
-        text = stringResource(R.string.settings_measurement_id, huid ?: "…"),
-        color = TextSecondary,
-        fontSize = 11.sp,
-        modifier = Modifier.padding(start = 12.dp, bottom = 20.dp)
-    )
 }
 
 /** Which section is unfolded. Only one at a time: they are steps, not a list to browse. */

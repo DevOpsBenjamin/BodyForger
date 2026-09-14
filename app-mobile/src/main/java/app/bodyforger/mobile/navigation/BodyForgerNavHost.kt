@@ -22,6 +22,7 @@ import app.bodyforger.mobile.ui.screens.CatalogScreen
 import app.bodyforger.mobile.ui.screens.CreateExerciseScreen
 import app.bodyforger.mobile.ui.screens.HomeScreen
 import app.bodyforger.mobile.ui.screens.PlannerScreen
+import app.bodyforger.mobile.ui.screens.HealthConnectMcpScreen
 import app.bodyforger.mobile.ui.screens.ProfileScreen
 import app.bodyforger.mobile.ui.screens.RoutineEditorScreen
 import app.bodyforger.mobile.ui.screens.SettingsScreen
@@ -108,8 +109,13 @@ fun BodyForgerNavHost(
         composable<Destination.Settings> { entry ->
             SettingsScreen(
                 onBack = navController::navigateUp,
-                expandScale = entry.toRoute<Destination.Settings>().expandScale
+                expandScale = entry.toRoute<Destination.Settings>().expandScale,
+                onOpenHealthConnectMcp = { navController.navigate(Destination.HealthConnectMcp) }
             )
+        }
+
+        composable<Destination.HealthConnectMcp> {
+            HealthConnectMcpScreen(onNavigateBack = navController::navigateUp)
         }
 
         composable<Destination.Setup> {
