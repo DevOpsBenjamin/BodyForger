@@ -60,4 +60,31 @@ class ActivityWeeksTest {
 
         assertEquals(0, counts.sum())
     }
+
+    @Test
+    fun `this week starts on Monday, not seven days ago`() {
+        val lastWeek = listOf(
+            LocalDate.of(2026, 9, 9),   // Wednesday, last week
+            LocalDate.of(2026, 9, 11),  // Friday, last week
+        ).map(::session)
+        val thisWeek = listOf(session(today))  // Monday 14 September
+
+        val counted = TrainingStats.sessionsThisWeek(lastWeek + thisWeek, epochOf(today))
+
+        // A rolling seven-day window would have answered three.
+        assertEquals(1, counted)
+    }
+
+    @Test
+    fun `the weekly count and the last grid cell agree`() {
+        val sessions = listOf(
+            session(LocalDate.of(2026, 9, 11)),
+            session(today),
+        )
+
+        val counted = TrainingStats.sessionsThisWeek(sessions, epochOf(today))
+        val lastCell = TrainingStats.weeklySessionCounts(sessions, epochOf(today), weeks = 4).last()
+
+        assertEquals(lastCell, counted)
+    }
 }

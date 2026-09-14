@@ -131,11 +131,11 @@ class TrainingStatsTest {
     }
 
     @Test
-    fun `two sessions on the same day count as one active day`() {
+    fun `two sessions on the same day count as two sessions`() {
         val day = 86_400_000L
         val today = 100 * day
         val sessions = listOf(session(startedAtEpochMs = today), session(startedAtEpochMs = today + 3600_000))
-        assertEquals(1, TrainingStats.sessionsThisWeek(sessions, today))
+        assertEquals(2, TrainingStats.sessionsThisWeek(sessions, today))
     }
 
     @Test

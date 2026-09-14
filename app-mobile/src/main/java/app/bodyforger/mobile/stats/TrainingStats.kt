@@ -115,9 +115,32 @@ object TrainingStats {
         return (0 until weeks).map { week -> perWeek[firstMonday.plusWeeks(week.toLong())] ?: 0 }
     }
 
-    /** Sessions started in the last seven days, today included. */
+    /**
+     * The instant this week began, Monday at midnight.
+     *
+     * Everything labelled "this week" counts from here rather than from seven days ago: the
+     * figures sit next to a weekly plan and a grid of calendar weeks, and a rolling window would
+     * have disagreed with both — on a Monday it still counts the whole of last week.
+     */
+    fun weekStartEpochMs(todayEpochMs: Long): Long {
+        val zone = ZoneId.systemDefault()
+        return Instant.ofEpochMilli(todayEpochMs).atZone(zone).toLocalDate()
+            .with(DayOfWeek.MONDAY)
+            .atStartOfDay(zone)
+            .toInstant()
+            .toEpochMilli()
+    }
+
+    /**
+     * Sessions started since Monday.
+     *
+     * Sessions, not days trained: two sessions in one day are two sessions, and the plan they
+     * are compared against counts them that way.
+     */
     fun sessionsThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Int =
-        activeDayOffsets(sessions, todayEpochMs, DAYS_IN_A_WEEK).size
+        // Only the start of the week bounds this: capping it at the current instant would drop a
+        // session logged later today, which is a session of this week by any reading.
+        sessions.count { it.startedAtEpochMs >= weekStartEpochMs(todayEpochMs) }
 
     /**
      * Weeks trained in an unbroken run, counting back from the current one.
@@ -197,22 +220,22 @@ object TrainingStats {
         )
     }
 
-    /** Validated sets in the last seven days, counted per muscle the exercise works first. */
+    /** Validated sets since Monday, counted per muscle the exercise works first. */
     fun completedSetsByMuscle(sessions: List<WorkoutSession>, todayEpochMs: Long): Map<MuscleGroup, Int> {
-        val since = todayEpochMs - DAYS_IN_A_WEEK * MILLIS_PER_DAY
+        val since = weekStartEpochMs(todayEpochMs)
         return sessions
-            .filter { it.startedAtEpochMs in since..todayEpochMs }
+            .filter { it.startedAtEpochMs >= since }
             .flatMap { it.sets }
             .filter { it.isCompleted }
             .groupingBy { it.primaryMuscle }
             .eachCount()
     }
 
-    /** Validated sets in the last seven days, all muscles together. */
+    /** Validated sets since Monday, all muscles together. */
     fun completedSetsThisWeek(sessions: List<WorkoutSession>, todayEpochMs: Long): Int {
-        val since = todayEpochMs - DAYS_IN_A_WEEK * MILLIS_PER_DAY
+        val since = weekStartEpochMs(todayEpochMs)
         return sessions
-            .filter { it.startedAtEpochMs in since..todayEpochMs }
+            .filter { it.startedAtEpochMs >= since }
             .flatMap { it.sets }
             .count { it.isCompleted }
     }
