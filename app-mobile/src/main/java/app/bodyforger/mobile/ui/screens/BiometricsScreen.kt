@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import app.bodyforger.core.model.WeightUnit
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.profile.BiometricsViewModel
+import app.bodyforger.mobile.ui.components.formatMeasure
 import app.bodyforger.mobile.ui.components.BiometricsEmptyState
 import app.bodyforger.mobile.ui.theme.AmberGold
 import app.bodyforger.mobile.ui.theme.ElectricCyan
@@ -127,7 +128,7 @@ fun BiometricsScreen(
                         Text(text = stringResource(R.string.bio_body_fat), color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = lastLog.bodyFatPercentage?.let { "$it%" }
+                                text = lastLog.bodyFatPercentage?.let { "${formatMeasure(it)}%" }
                                     ?: stringResource(R.string.bio_body_fat_absent),
                                 color = NeonLime,
                                 fontSize = 28.sp,
@@ -141,7 +142,7 @@ fun BiometricsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                val fatMass = ((userMassKg - report.fatFreeMassKg) * 10).toInt() / 10.0
+                val fatMass = userMassKg - report.fatFreeMassKg
                 val leanMass = report.fatFreeMassKg
                 val leanRatio = (leanMass / userMassKg).toFloat().coerceIn(0f, 1f)
 
@@ -246,7 +247,7 @@ fun BiometricsScreen(
                     Icon(imageVector = Icons.Default.Opacity, contentDescription = null, tint = ElectricCyan, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = stringResource(R.string.bio_total_water), color = TextMuted, fontSize = 11.sp)
-                    Text(text = "${report.totalBodyWaterKg} L", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "${formatMeasure(report.totalBodyWaterKg)} L", color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
