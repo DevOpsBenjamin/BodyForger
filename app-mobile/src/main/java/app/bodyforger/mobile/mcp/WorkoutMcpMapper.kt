@@ -157,6 +157,10 @@ internal object WorkoutMcpMapper {
                 put("isCompleted", setItem.isCompleted)
                 put("side", setItem.side.name)
                 if (setItem.completedAtEpochMs != null) put("completedAtEpochMs", setItem.completedAtEpochMs)
+                // Set timing is what makes a session readable as a chronology rather than a list.
+                if (setItem.startedAtEpochMs != null) put("startedAtEpochMs", setItem.startedAtEpochMs)
+                if (setItem.actualRestSeconds != null) put("actualRestSeconds", setItem.actualRestSeconds)
+                put("restTimeSeconds", setItem.restTimeSeconds)
             })
         }
 
