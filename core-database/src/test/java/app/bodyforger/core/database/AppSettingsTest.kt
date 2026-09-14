@@ -61,4 +61,9 @@ class AppSettingsTest {
         assertEquals(0, AppSettingsEntity().tourVersionSeen)
         assertEquals(0, AppSettingsEntity().setupVersionDone)
     }
+
+    @Test
+    fun `health connect prompt is not dismissed by default`() {
+        assertEquals(false, AppSettingsEntity().healthConnectPromptDismissed)
+    }
 }

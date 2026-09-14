@@ -43,6 +43,11 @@ class AppSettingsViewModel(
         .map { entity -> entity?.defaultHeightUnit.toHeightUnit() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), DEFAULT_HEIGHT_UNIT)
 
+    /** Whether the athlete has dismissed or handled the Google Health Connect prompt. */
+    val healthConnectPromptDismissed: StateFlow<Boolean?> = settings
+        .map { it?.healthConnectPromptDismissed ?: false }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_GRACE_MS), null)
+
     fun selectDefaultHeightUnit(unit: HeightUnit) {
         viewModelScope.launch { appSettingsDao.setDefaultHeightUnit(unit.name) }
     }
@@ -53,6 +58,10 @@ class AppSettingsViewModel(
 
     fun selectDefaultWeightUnit(unit: WeightUnit) {
         viewModelScope.launch { appSettingsDao.setDefaultWeightUnit(unit.name) }
+    }
+
+    fun setHealthConnectPromptDismissed(dismissed: Boolean) {
+        viewModelScope.launch { appSettingsDao.setHealthConnectPromptDismissed(dismissed) }
     }
 
     private companion object {

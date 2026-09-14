@@ -36,6 +36,12 @@ object BodyForgerDatabases {
         }
     }
 
+    val MIGRATION_13_14 = object : Migration(13, 14) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `app_settings` ADD COLUMN `healthConnectPromptDismissed` INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
     @Volatile
     private var instance: BodyForgerDatabase? = null
 
@@ -48,7 +54,7 @@ object BodyForgerDatabases {
         lateinit var database: BodyForgerDatabase
         database = Room.databaseBuilder(context, BodyForgerDatabase::class.java, FILE_NAME)
             .addCallback(BodyForgerDatabase.createPrepopulateCallback { database })
-            .addMigrations(MIGRATION_12_13)
+            .addMigrations(MIGRATION_12_13, MIGRATION_13_14)
             .fallbackToDestructiveMigration()
             .build()
         return database

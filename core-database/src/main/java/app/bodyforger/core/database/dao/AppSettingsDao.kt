@@ -44,4 +44,8 @@ interface AppSettingsDao {
 
     /** Records that the setup flow was gone through, or skipped, at [version]. */
     suspend fun setSetupVersionDone(version: Int) = edit { it.copy(setupVersionDone = version) }
+
+    /** Records that the Google Health Connect prompt was dismissed or resolved. */
+    suspend fun setHealthConnectPromptDismissed(dismissed: Boolean) =
+        edit { it.copy(healthConnectPromptDismissed = dismissed) }
 }

@@ -597,4 +597,10 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="mcp_health_inspect_sources">Source apps: %1$s</string>
     <string name="mcp_health_inspect_bounds">From %1$s to %2$s</string>
     <string name="mcp_health_inspect_empty">No records found over the scanned period.</string>
+    <string name="health_connect_rationale_title">Google Health Connect</string>
+    <string name="health_connect_rationale_desc">BodyForger is designed to integrate with Google Health Connect to seamlessly synchronize your workouts, continuous heart rate (Pixel Watch), and body composition measurements.</string>
+    <string name="health_connect_rationale_accept">Connect Google Health</string>
+    <string name="health_connect_rationale_decline">Not now</string>
+    <string name="settings_health_connect_connected">Connected</string>
+    <string name="settings_health_connect_not_connected">Not connected · Tap to configure</string>
 </resources>
