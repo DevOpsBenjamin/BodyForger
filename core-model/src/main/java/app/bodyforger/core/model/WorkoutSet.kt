@@ -38,5 +38,7 @@ data class WorkoutSet(
     val isCompleted: Boolean = false,
     val side: UnilateralSide = UnilateralSide.NONE,
     val restTimeSeconds: Int = 90,
-    val completedAtEpochMs: Long? = null
+    val completedAtEpochMs: Long? = null,
+    val startedAtEpochMs: Long? = null,
+    val actualRestSeconds: Int? = null
 )

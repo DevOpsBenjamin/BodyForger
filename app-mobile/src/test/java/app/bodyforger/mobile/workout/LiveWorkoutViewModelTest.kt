@@ -65,6 +65,13 @@ class LiveWorkoutViewModelTest {
         override suspend fun deleteHeartRateSamplesForSession(sessionId: String) {}
         override suspend fun getHeartRateSampleCountForSession(sessionId: String): Int = 0
         override suspend fun getLastPerformance(exerciseId: String, currentSessionId: String): List<WorkoutSetEntity> = emptyList()
+        override suspend fun getUnexportedCompletedSessions(): List<WorkoutSessionWithSets> = emptyList()
+        override suspend fun setHealthConnectExported(sessionId: String, isExported: Boolean) {
+            val index = sessions.indexOfFirst { it.id == sessionId }
+            if (index >= 0) {
+                sessions[index] = sessions[index].copy(isHealthConnectExported = isExported)
+            }
+        }
     }
 
     @Before
@@ -163,5 +170,23 @@ class LiveWorkoutViewModelTest {
         viewModel.finish()
         assertNull(viewModel.active.value)
         assertNull(viewModel.restTimer.value)
+    }
+
+    @Test
+    fun `skipRest stamps next pending set with startedAtEpochMs and actualRestSeconds`() = runTest {
+        val haptics = RecordingHaptics()
+        val dao = FakeWorkoutDao()
+        val viewModel = LiveWorkoutViewModel(workoutDao = dao, workoutHaptics = haptics)
+
+        viewModel.begin(routine = routineWithExercise(restTimeSeconds = 60), freeSessionTitle = "Free")
+        val firstSet = viewModel.active.value!!.sets.first()
+        viewModel.toggleSetCompleted(firstSet.id)
+
+        assertNotNull(viewModel.restTimer.value)
+        viewModel.skipRest()
+
+        val nextSet = viewModel.active.value!!.sets[1]
+        assertNotNull(nextSet.startedAtEpochMs)
+        assertNotNull(nextSet.actualRestSeconds)
     }
 }

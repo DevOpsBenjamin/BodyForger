@@ -15,17 +15,28 @@ data class RestCountdown(
     val secondsRemaining: Int
 )
 
+data class CompletedRestEvent(
+    val exerciseIndex: Int,
+    val setIndex: Int,
+    val actualDurationSeconds: Int,
+    val endedAtEpochMs: Long
+)
+
 class RestTimerController(
     private val haptics: WorkoutHaptics = NoOpWorkoutHaptics
 ) {
     private val _countdown = MutableStateFlow<RestCountdown?>(null)
     val countdown: StateFlow<RestCountdown?> = _countdown.asStateFlow()
 
+    var onRestEnded: ((CompletedRestEvent) -> Unit)? = null
+
     private var tickerJob: Job? = null
+    private var restStartedAtEpochMs: Long = 0L
 
     fun start(scope: CoroutineScope, exerciseIndex: Int, setIndex: Int, durationSeconds: Int) {
         if (durationSeconds <= 0) return
         tickerJob?.cancel()
+        restStartedAtEpochMs = System.currentTimeMillis()
         _countdown.value = RestCountdown(
             exerciseIndex = exerciseIndex,
             setIndex = setIndex,
@@ -41,8 +52,11 @@ class RestTimerController(
                     haptics.restWarning()
                 }
                 if (next <= 0) {
+                    val endedAt = System.currentTimeMillis()
+                    val actual = ((endedAt - restStartedAtEpochMs) / MILLIS_PER_SECOND).toInt()
                     haptics.restFinished()
                     _countdown.value = null
+                    onRestEnded?.invoke(CompletedRestEvent(exerciseIndex, setIndex, actual, endedAt))
                     break
                 } else {
                     _countdown.value = current.copy(secondsRemaining = next)
@@ -56,20 +70,36 @@ class RestTimerController(
         val newRemaining = current.secondsRemaining + deltaSeconds
         val newTotal = (current.totalSeconds + deltaSeconds).coerceAtLeast(1)
         if (newRemaining <= 0) {
-            stop()
+            skip()
         } else {
             _countdown.value = current.copy(secondsRemaining = newRemaining, totalSeconds = newTotal)
         }
     }
 
-    fun stop() {
+    fun skip() = stop(notifyEnded = true)
+
+    fun stop(notifyEnded: Boolean = false) {
+        val current = _countdown.value
         tickerJob?.cancel()
         tickerJob = null
         _countdown.value = null
+        if (notifyEnded && current != null) {
+            val endedAt = System.currentTimeMillis()
+            val actual = ((endedAt - restStartedAtEpochMs) / MILLIS_PER_SECOND).toInt()
+            onRestEnded?.invoke(
+                CompletedRestEvent(
+                    exerciseIndex = current.exerciseIndex,
+                    setIndex = current.setIndex,
+                    actualDurationSeconds = actual,
+                    endedAtEpochMs = endedAt
+                )
+            )
+        }
     }
 
     companion object {
         private const val TICK_MS = 1_000L
+        private const val MILLIS_PER_SECOND = 1_000L
         private const val WARNING_THRESHOLD_SECONDS = 3
     }
 }

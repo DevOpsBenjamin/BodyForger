@@ -129,7 +129,9 @@ internal object BackupDeserializer {
                                 isCompleted = setObj.optBoolean(BackupKeys.IS_COMPLETED, false),
                                 side = try { UnilateralSide.valueOf(setObj.optString(BackupKeys.SIDE)) } catch (e: Exception) { UnilateralSide.NONE },
                                 restTimeSeconds = setObj.optInt(BackupKeys.REST_TIME_SECONDS, 90),
-                                completedAtEpochMs = if (setObj.has(BackupKeys.COMPLETED_AT)) setObj.getLong(BackupKeys.COMPLETED_AT) else null
+                                completedAtEpochMs = if (setObj.has(BackupKeys.COMPLETED_AT)) setObj.getLong(BackupKeys.COMPLETED_AT) else null,
+                                startedAtEpochMs = if (setObj.has(BackupKeys.STARTED_AT)) setObj.getLong(BackupKeys.STARTED_AT) else null,
+                                actualRestSeconds = if (setObj.has(BackupKeys.ACTUAL_REST_SECONDS)) setObj.getInt(BackupKeys.ACTUAL_REST_SECONDS) else null
                             )
                         )
                     }
@@ -148,7 +150,8 @@ internal object BackupDeserializer {
                         averageHeartRateBpm = if (sObj.has(BackupKeys.AVERAGE_HEART_RATE_BPM)) sObj.getInt(BackupKeys.AVERAGE_HEART_RATE_BPM) else null,
                         activeCaloriesKcal = if (sObj.has(BackupKeys.ACTIVE_CALORIES_KCAL)) sObj.getInt(BackupKeys.ACTIVE_CALORIES_KCAL) else null,
                         totalVolumeKg = sObj.optDouble(BackupKeys.TOTAL_VOLUME_KG, 0.0),
-                        isFinalized = sObj.optBoolean(BackupKeys.IS_FINALIZED, true)
+                        isFinalized = sObj.optBoolean(BackupKeys.IS_FINALIZED, true),
+                        isHealthConnectExported = sObj.optBoolean(BackupKeys.IS_HEALTH_CONNECT_EXPORTED, false)
                     )
                 )
             }

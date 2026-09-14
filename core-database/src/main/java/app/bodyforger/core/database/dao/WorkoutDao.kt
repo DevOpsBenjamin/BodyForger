@@ -116,7 +116,9 @@ interface WorkoutDao {
         completedAtEpochMs: Long?,
         weightKg: Double,
         reps: Int,
-        rpe: Double? = null
+        rpe: Double? = null,
+        startedAtEpochMs: Long? = null,
+        actualRestSeconds: Int? = null
     ) {
         val currentSet = getSetById(setId) ?: return
         val updatedSet = currentSet.copy(
@@ -124,7 +126,9 @@ interface WorkoutDao {
             completedAtEpochMs = completedAtEpochMs,
             weightKg = weightKg,
             reps = reps,
-            rpe = rpe
+            rpe = rpe,
+            startedAtEpochMs = startedAtEpochMs ?: currentSet.startedAtEpochMs,
+            actualRestSeconds = actualRestSeconds ?: currentSet.actualRestSeconds
         )
         updateSet(updatedSet)
 
@@ -136,4 +140,11 @@ interface WorkoutDao {
             updateSession(session.copy(totalVolumeKg = totalVolume))
         }
     }
+
+    @Transaction
+    @Query("SELECT * FROM workout_sessions WHERE status = 'COMPLETED' AND isHealthConnectExported = 0 ORDER BY endedAtEpochMs ASC")
+    suspend fun getUnexportedCompletedSessions(): List<WorkoutSessionWithSets>
+
+    @Query("UPDATE workout_sessions SET isHealthConnectExported = :exported WHERE id = :sessionId")
+    suspend fun setHealthConnectExported(sessionId: String, exported: Boolean = true)
 }

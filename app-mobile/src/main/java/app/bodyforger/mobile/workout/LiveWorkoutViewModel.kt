@@ -55,6 +55,9 @@ class LiveWorkoutViewModel(
     val resumable: StateFlow<WorkoutSession?> = _resumable.asStateFlow()
 
     init {
+        restTimerController.onRestEnded = { event ->
+            handleRestEnded(event)
+        }
         viewModelScope.launch {
             _resumable.value = workoutDao.getActiveSession()?.toDomain()
         }
@@ -163,9 +166,14 @@ class LiveWorkoutViewModel(
     fun toggleSetCompleted(setId: String) = mutate { workout ->
         workout.updateSet(setId) { set ->
             val completed = !set.isCompleted
+            val now = System.currentTimeMillis()
+            val startedAt = if (completed) {
+                set.startedAtEpochMs ?: (now - DEFAULT_ESTIMATED_SET_DURATION_MS).coerceAtLeast(workout.session.startedAtEpochMs)
+            } else null
             set.copy(
                 isCompleted = completed,
-                completedAtEpochMs = if (completed) System.currentTimeMillis() else null
+                completedAtEpochMs = if (completed) now else null,
+                startedAtEpochMs = startedAt
             )
         }.also { updated ->
             val recorded = updated.sets.first { it.id == setId }
@@ -176,7 +184,9 @@ class LiveWorkoutViewModel(
                     completedAtEpochMs = recorded.completedAtEpochMs,
                     weightKg = recorded.weightKg,
                     reps = recorded.reps,
-                    rpe = recorded.rpe
+                    rpe = recorded.rpe,
+                    startedAtEpochMs = recorded.startedAtEpochMs,
+                    actualRestSeconds = recorded.actualRestSeconds
                 )
             }
             if (recorded.isCompleted) {
@@ -200,7 +210,17 @@ class LiveWorkoutViewModel(
     }
 
     fun skipRest() {
-        restTimerController.stop()
+        restTimerController.skip()
+    }
+
+    private fun handleRestEnded(event: CompletedRestEvent) {
+        val workout = _active.value ?: return
+        val nextSet = workout.nextPendingSetAfter(event.exerciseIndex, event.setIndex) ?: return
+        val updatedSet = nextSet.copy(
+            startedAtEpochMs = event.endedAtEpochMs,
+            actualRestSeconds = event.actualDurationSeconds
+        )
+        editSet(nextSet.id) { updatedSet }
     }
 
     fun setWeight(setId: String, weightKg: Double) = editSet(setId) { it.copy(weightKg = weightKg) }
@@ -322,4 +342,5 @@ class LiveWorkoutViewModel(
 }
 
 private const val DEFAULT_REST_SECONDS = 90
+private const val DEFAULT_ESTIMATED_SET_DURATION_MS = 45_000L
 

@@ -34,7 +34,8 @@ class WorkoutMappingTest {
             averageHeartRateBpm = 142,
             activeCaloriesKcal = 420,
             totalVolumeKg = 8500.0,
-            isFinalized = true
+            isFinalized = true,
+            isHealthConnectExported = true
         )
 
         val entity = domainSession.toEntity()
@@ -44,12 +45,14 @@ class WorkoutMappingTest {
         assertEquals("COMPLETED", entity.status)
         assertEquals(8500.0, entity.totalVolumeKg, 0.01)
         assertTrue(entity.isFinalized)
+        assertTrue(entity.isHealthConnectExported)
 
         val convertedDomain = entity.toDomain()
         assertEquals(domainSession.id, convertedDomain.id)
         assertEquals(domainSession.title, convertedDomain.title)
         assertEquals(domainSession.status, convertedDomain.status)
         assertEquals(domainSession.totalVolumeKg, convertedDomain.totalVolumeKg, 0.01)
+        assertTrue(convertedDomain.isHealthConnectExported)
     }
 
     @Test
@@ -72,7 +75,9 @@ class WorkoutMappingTest {
             isCompleted = true,
             side = UnilateralSide.NONE,
             restTimeSeconds = 90,
-            completedAtEpochMs = 1756400600000L
+            completedAtEpochMs = 1756400600000L,
+            startedAtEpochMs = 1756400550000L,
+            actualRestSeconds = 95
         )
 
         val entity = domainSet.toEntity(sessionId = "sess_123")
@@ -88,6 +93,8 @@ class WorkoutMappingTest {
         assertEquals(10, entity.reps)
         assertTrue(entity.isCompleted)
         assertEquals("NONE", entity.side)
+        assertEquals(1756400550000L, entity.startedAtEpochMs)
+        assertEquals(95, entity.actualRestSeconds)
 
         val convertedDomain = entity.toDomain()
         assertEquals(domainSet.id, convertedDomain.id)
@@ -97,6 +104,8 @@ class WorkoutMappingTest {
         assertEquals(domainSet.weightUnit, convertedDomain.weightUnit)
         assertEquals(domainSet.side, convertedDomain.side)
         assertTrue(convertedDomain.isCompleted)
+        assertEquals(1756400550000L, convertedDomain.startedAtEpochMs)
+        assertEquals(95, convertedDomain.actualRestSeconds)
     }
 
     @Test

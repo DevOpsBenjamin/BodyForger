@@ -94,6 +94,7 @@ internal object BackupSerializer {
                     s.activeCaloriesKcal?.let { put(BackupKeys.ACTIVE_CALORIES_KCAL, it) }
                     put(BackupKeys.TOTAL_VOLUME_KG, s.totalVolumeKg)
                     put(BackupKeys.IS_FINALIZED, s.isFinalized)
+                    put(BackupKeys.IS_HEALTH_CONNECT_EXPORTED, s.isHealthConnectExported)
 
                     val setsArr = JSONArray()
                     s.sets.forEach { setItem ->
@@ -116,6 +117,8 @@ internal object BackupSerializer {
                             put(BackupKeys.SIDE, setItem.side.name)
                             put(BackupKeys.REST_TIME_SECONDS, setItem.restTimeSeconds)
                             setItem.completedAtEpochMs?.let { put(BackupKeys.COMPLETED_AT, it) }
+                            setItem.startedAtEpochMs?.let { put(BackupKeys.STARTED_AT, it) }
+                            setItem.actualRestSeconds?.let { put(BackupKeys.ACTUAL_REST_SECONDS, it) }
                         }
                         setsArr.put(setObj)
                     }

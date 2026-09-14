@@ -55,6 +55,7 @@ class JsonBackupManagerTest {
             startedAtEpochMs = 1756400000000L,
             endedAtEpochMs = 1756403600000L,
             totalVolumeKg = 4500.0,
+            isHealthConnectExported = true,
             sets = listOf(
                 WorkoutSet(
                     id = "wset_1",
@@ -68,7 +69,9 @@ class JsonBackupManagerTest {
                     weightKg = 100.0,
                     reps = 8,
                     isCompleted = true,
-                    side = UnilateralSide.NONE
+                    side = UnilateralSide.NONE,
+                    startedAtEpochMs = 1756400100000L,
+                    actualRestSeconds = 90
                 )
             )
         )
@@ -107,8 +110,11 @@ class JsonBackupManagerTest {
         assertEquals(1, restored.sessions.size)
         assertEquals("sess_001", restored.sessions[0].id)
         assertEquals(4500.0, restored.sessions[0].totalVolumeKg, 0.01)
+        assertTrue(restored.sessions[0].isHealthConnectExported)
         assertEquals(1, restored.sessions[0].sets.size)
         assertTrue(restored.sessions[0].sets[0].isCompleted)
+        assertEquals(1756400100000L, restored.sessions[0].sets[0].startedAtEpochMs)
+        assertEquals(90, restored.sessions[0].sets[0].actualRestSeconds)
 
         assertEquals(1, restored.customExercises.size)
         assertEquals("Low Cable Crossover", restored.customExercises[0].name)
