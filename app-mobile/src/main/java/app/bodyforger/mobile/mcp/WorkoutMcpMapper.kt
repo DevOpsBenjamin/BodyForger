@@ -18,6 +18,15 @@ import java.util.UUID
 
 internal object WorkoutMcpMapper {
 
+    /**
+     * Reads an enum name, falling back rather than throwing.
+     *
+     * A caller sending a unit this build does not know gets the default and a stored set, not a
+     * failed import of an entire session.
+     */
+    private inline fun <reified T : Enum<T>> enumOrDefault(raw: String?, fallback: T): T =
+        enumValues<T>().firstOrNull { it.name.equals(raw?.trim(), ignoreCase = true) } ?: fallback
+
     suspend fun parseSetEntities(
         sessionId: String,
         setsJson: JSONArray,
@@ -36,6 +45,10 @@ internal object WorkoutMcpMapper {
             val category = dbExercise?.activityCategory ?: WorkoutActivityCategory.STRENGTH_TRAINING.name
 
             val weight = sObj.optDouble("weightKg", 0.0)
+            // Loads are stored in kilograms whatever the athlete reads: the unit says how the
+            // set was measured, not what it weighs. A machine graduated in pounds keeps its own
+            // unit set by set, so 70 lb reads as 70 lb rather than as 31.75 kg.
+            val weightUnit = enumOrDefault(sObj.optString("weightUnit"), WeightUnit.KG)
             val reps = sObj.optInt("reps", 0)
             val isCompleted = sObj.optBoolean("isCompleted", true)
             if (isCompleted) volume += weight * reps
@@ -60,7 +73,7 @@ internal object WorkoutMcpMapper {
                     setIndex = sObj.optInt("setIndex", 1),
                     type = sObj.optString("type", RoutineSetType.NORMAL.name).uppercase(Locale.ROOT),
                     weightKg = weight,
-                    weightUnit = WeightUnit.KG.name,
+                    weightUnit = weightUnit.name,
                     reps = reps,
                     rpe = rpe,
                     isCompleted = isCompleted,
@@ -152,6 +165,7 @@ internal object WorkoutMcpMapper {
                 put("orderIndex", setItem.orderIndex)
                 put("type", setItem.type.name)
                 put("weightKg", setItem.weightKg)
+                put("weightUnit", setItem.weightUnit.name)
                 put("reps", setItem.reps)
                 if (setItem.rpe != null) put("rpe", setItem.rpe)
                 put("isCompleted", setItem.isCompleted)

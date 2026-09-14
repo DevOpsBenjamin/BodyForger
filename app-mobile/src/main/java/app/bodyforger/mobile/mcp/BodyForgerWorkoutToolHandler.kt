@@ -36,7 +36,7 @@ class BodyForgerWorkoutToolHandler(private val database: BodyForgerDatabase?) {
                 put("endedAtEpochMs", numProp("End timestamp in milliseconds (epoch ms)"))
                 put("averageHeartRateBpm", intProp("Average heart rate in BPM (optional)"))
                 put("activeCaloriesKcal", intProp("Estimated active calories burned (optional)"))
-                put("sets", arrayProp("List of performed sets with exerciseId, weightKg, reps, rpe, type, and optional timing (startedAtEpochMs, completedAtEpochMs, actualRestSeconds)"))
+                put("sets", arrayProp("List of performed sets with exerciseId, weightKg, reps, rpe, type, optional weightUnit (KG or LBS — how the load was read; the value stays in kilograms), and optional timing (startedAtEpochMs, completedAtEpochMs, actualRestSeconds)"))
                 put("heartRateSamples", arrayProp("Time-series heart rate points: [{timestampEpochMs, bpm}]"))
             },
             required = listOf("title", "startedAtEpochMs", "sets")

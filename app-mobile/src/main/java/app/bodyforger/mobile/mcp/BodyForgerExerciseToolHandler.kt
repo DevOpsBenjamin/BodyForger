@@ -140,10 +140,29 @@ class BodyForgerExerciseToolHandler(private val database: BodyForgerDatabase?) {
             }
         }
 
+        // Stored as text, so an unknown name would sit in the database until something read it
+        // back and quietly fell to a default. Refusing here says which value was wrong, while
+        // the exercise can still be created with a corrected one.
         val muscleStr = args.optString("primaryMuscleGroup", MuscleGroup.CHEST.name).uppercase(Locale.ROOT)
+        if (enumOrNull<MuscleGroup>(muscleStr) == null) {
+            return errorJson("Unknown primaryMuscleGroup '$muscleStr'. One of: ${names<MuscleGroup>()}")
+        }
         val equipStr = args.optString("equipment", EquipmentType.BARBELL.name).uppercase(Locale.ROOT)
+        if (enumOrNull<EquipmentType>(equipStr) == null) {
+            return errorJson("Unknown equipment '$equipStr'. One of: ${names<EquipmentType>()}")
+        }
         val catStr = args.optString("activityCategory", WorkoutActivityCategory.STRENGTH_TRAINING.name).uppercase(Locale.ROOT)
+        if (enumOrNull<WorkoutActivityCategory>(catStr) == null) {
+            return errorJson("Unknown activityCategory '$catStr'. One of: ${names<WorkoutActivityCategory>()}")
+        }
         val isUnilateral = args.optBoolean("isUnilateral", false)
+
+        // Declared by the tool and, until now, dropped on the floor.
+        val secondaryJson = args.optJSONArray("secondaryMuscleGroups") ?: JSONArray()
+        val secondary = (0 until secondaryJson.length()).map { secondaryJson.getString(it).trim().uppercase(Locale.ROOT) }
+        secondary.firstOrNull { enumOrNull<MuscleGroup>(it) == null }?.let {
+            return errorJson("Unknown secondary muscle group '$it'. One of: ${names<MuscleGroup>()}")
+        }
 
         val slug = name.lowercase(Locale.ROOT).replace(Regex("[^a-z0-9]+"), "_").trim('_')
         val id = "custom_$slug"
@@ -156,6 +175,7 @@ class BodyForgerExerciseToolHandler(private val database: BodyForgerDatabase?) {
             healthConnectType = HealthConnectExerciseType.OTHER_WORKOUT.name,
             primaryMuscleGroup = muscleStr,
             equipment = equipStr,
+            secondaryMuscleGroupsJson = JSONArray(secondary).toString(),
             isUnilateral = isUnilateral,
             isCustom = true
         )
@@ -167,8 +187,15 @@ class BodyForgerExerciseToolHandler(private val database: BodyForgerDatabase?) {
             put("name", name)
             put("primaryMuscleGroup", muscleStr)
             put("equipment", equipStr)
+            put("secondaryMuscleGroups", JSONArray(secondary))
         }
     }
+
+    private inline fun <reified T : Enum<T>> enumOrNull(raw: String): T? =
+        enumValues<T>().firstOrNull { it.name == raw }
+
+    private inline fun <reified T : Enum<T>> names(): String =
+        enumValues<T>().joinToString(", ") { it.name }
 
     companion object {
         const val TOOL_SEARCH_EXERCISES = "bodyforger_search_exercises"
