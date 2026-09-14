@@ -1,5 +1,6 @@
 package app.bodyforger.core.model
 
+import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Locale
 import java.util.UUID
@@ -62,31 +63,25 @@ enum class WeightUnit(val symbol: String) {
         "${format(kilograms, locale)} $symbol"
 
     /**
-     * A career total, short enough to sit in a stat card.
+     * A career total, rounded to the unit.
      *
-     * Every set of every session adds up fast: a season reads 233,436.5 kg, which wraps onto two
-     * lines and is no more informative than 233.4 t. Past a thousand units the figure switches to
-     * thousands — tonnes in kilograms, thousands of pounds otherwise — and keeps one decimal.
-     * Below that it is written out in full, because 840 kg is a number to read, not to round.
+     * A tenth of a kilogram is noise once every set of every session has been added up, and it
+     * costs two characters in a stat card that has none to spare. A single load keeps its
+     * decimal — 22.7 kg is a plate selection; 233,437 kg is a quantity.
      */
-    fun formatCumulative(kilograms: Double, locale: Locale = Locale.getDefault()): String {
-        val shown = fromKilograms(kilograms)
-        if (shown < THOUSAND) return formatWithSymbol(kilograms, locale)
+    fun formatWhole(kilograms: Double, locale: Locale = Locale.getDefault()): String {
         val format = NumberFormat.getNumberInstance(locale).apply {
-            maximumFractionDigits = 1
-            minimumFractionDigits = 0
+            maximumFractionDigits = 0
             isGroupingUsed = true
+            // NumberFormat rounds to even by default, which would show a total of 233,436.5 as
+            // 233,436. A half rounds up here, the way a reader expects a total to.
+            roundingMode = RoundingMode.HALF_UP
         }
-        val suffix = when (this) {
-            KG -> "t"
-            LBS -> "k $symbol"
-        }
-        return "${format.format(shown / THOUSAND)} $suffix"
+        return "${format.format(fromKilograms(kilograms))} $symbol"
     }
 
     private companion object {
         const val KILOGRAMS_PER_POUND = 0.45359237
-        const val THOUSAND = 1000.0
     }
 }
 

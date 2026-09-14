@@ -177,19 +177,19 @@ fun ProfileScreen(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             ProfileTotalStatCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(0.76f),
                 label = stringResource(R.string.profile_stat_sessions),
                 value = sessions.size.toString(),
                 color = NeonLime
             )
             ProfileTotalStatCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.48f),
                 label = stringResource(R.string.profile_stat_tonnage),
-                value = unit.formatCumulative(TrainingStats.totalTonnageKg(sessions)),
+                value = unit.formatWhole(TrainingStats.totalTonnageKg(sessions)),
                 color = ElectricCyan
             )
             ProfileTotalStatCard(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(0.76f),
                 label = stringResource(R.string.profile_stat_hours),
                 value = stringResource(R.string.unit_hours, TrainingStats.totalHours(sessions)),
                 color = AmberGold
