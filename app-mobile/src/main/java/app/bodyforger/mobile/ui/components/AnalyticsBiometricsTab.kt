@@ -110,7 +110,7 @@ fun AnalyticsBiometricsTab(
                         Text(text = stringResource(R.string.bio_body_fat), color = TextMuted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = lastLog.bodyFatPercentage?.let { "$it%" }
+                                text = lastLog.bodyFatPercentage?.let { "${formatMeasure(it)}%" }
                                     ?: stringResource(R.string.bio_body_fat_absent),
                                 color = NeonLime,
                                 fontSize = 26.sp,
@@ -124,7 +124,7 @@ fun AnalyticsBiometricsTab(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                val fatMass = ((userMassKg - report.fatFreeMassKg) * 10).toInt() / 10.0
+                val fatMass = userMassKg - report.fatFreeMassKg
                 val leanMass = report.fatFreeMassKg
                 val leanRatio = (leanMass / userMassKg).toFloat().coerceIn(0f, 1f)
 
@@ -220,7 +220,7 @@ fun AnalyticsBiometricsTab(
                     Icon(imageVector = Icons.Default.Opacity, contentDescription = null, tint = ElectricCyan, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(text = stringResource(R.string.bio_total_water), color = TextMuted, fontSize = 11.sp)
-                    Text(text = "${report.totalBodyWaterKg} L", color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "${formatMeasure(report.totalBodyWaterKg)} L", color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
