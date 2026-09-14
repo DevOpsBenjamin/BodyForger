@@ -28,9 +28,30 @@ object TrainingStats {
     fun completedSets(sessions: List<WorkoutSession>): List<WorkoutSet> =
         sessions.flatMap { it.sets }.filter { it.isCompleted }
 
-    /** Tonnage lifted across every session, in kilograms. */
+    /**
+     * Tonnage lifted across every session, in kilograms.
+     *
+     * Read from the total each session already carries rather than re-summed from its sets: the
+     * figure is written when a set is validated, when a session closes and when one is imported,
+     * always by the same rule. Adding up fifty-five stored totals is work a scroll frame can
+     * afford; walking twelve hundred sets is not.
+     */
     fun totalTonnageKg(sessions: List<WorkoutSession>): Double =
-        completedSets(sessions).sumOf { it.weightKg * it.reps }
+        sessions.sumOf(::sessionTonnageKg)
+
+    /**
+     * One session's tonnage, preferring the total it carries.
+     *
+     * A session whose total is zero while it holds performed sets has not been through the write
+     * path that maintains it — a restored backup, or a session built in a test — so its sets are
+     * summed instead. Showing zero for real work would be worse than the walk.
+     */
+    fun sessionTonnageKg(session: WorkoutSession): Double =
+        if (session.totalVolumeKg > 0.0) {
+            session.totalVolumeKg
+        } else {
+            session.sets.filter { it.isCompleted }.sumOf { it.weightKg * it.reps }
+        }
 
 
     /** Hours spent training, counting only sessions that were actually closed. */

@@ -252,7 +252,7 @@ private fun WorkoutSession.toHistoryItem(): HistoryWorkoutItem {
         dateDisplay = startedAt.format(HISTORY_DATE_FORMAT),
         durationDisplay = minutes?.let { "$it min" }.orEmpty(),
         avgBpm = averageHeartRateBpm ?: 0,
-        totalTonnageKg = TrainingStats.totalTonnageKg(listOf(this)),
+        totalTonnageKg = TrainingStats.sessionTonnageKg(this),
         exerciseSummary = TrainingStats.exerciseNames(this).joinToString(", "),
         personalRecordHighlight = null
     )
