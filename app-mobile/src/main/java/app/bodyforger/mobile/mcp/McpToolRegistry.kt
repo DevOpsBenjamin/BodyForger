@@ -14,6 +14,7 @@ class McpToolRegistry(
     private val exerciseHandler = BodyForgerExerciseToolHandler(database)
     private val routineHandler = BodyForgerRoutineToolHandler(database)
     private val workoutHandler = BodyForgerWorkoutToolHandler(database)
+    private val bodyLogHandler = BodyForgerBodyLogToolHandler(database)
 
     suspend fun isHealthConsentGranted(): Boolean = healthConnectHandler.isConsentGranted()
 
@@ -22,6 +23,7 @@ class McpToolRegistry(
         exerciseHandler.listToolDescriptors().forEach { put(it) }
         routineHandler.listToolDescriptors().forEach { put(it) }
         workoutHandler.listToolDescriptors().forEach { put(it) }
+        bodyLogHandler.listToolDescriptors().forEach { put(it) }
     }
 
     suspend fun executeTool(name: String, arguments: JSONObject): JSONObject {
@@ -31,6 +33,7 @@ class McpToolRegistry(
                 exerciseHandler.canHandle(name) -> exerciseHandler.execute(name, arguments)
                 routineHandler.canHandle(name) -> routineHandler.execute(name, arguments)
                 workoutHandler.canHandle(name) -> workoutHandler.execute(name, arguments)
+                bodyLogHandler.canHandle(name) -> bodyLogHandler.execute(name, arguments)
                 else -> McpToolHelpers.errorJson("Unknown tool: $name")
             }
         } catch (t: Throwable) {
@@ -54,5 +57,7 @@ class McpToolRegistry(
         const val TOOL_INSERT_WORKOUT = BodyForgerWorkoutToolHandler.TOOL_INSERT_WORKOUT
         const val TOOL_LIST_WORKOUTS = BodyForgerWorkoutToolHandler.TOOL_LIST_WORKOUTS
         const val TOOL_GET_WORKOUT = BodyForgerWorkoutToolHandler.TOOL_GET_WORKOUT
+        const val TOOL_INSERT_BODY_LOG = BodyForgerBodyLogToolHandler.TOOL_INSERT_BODY_LOG
+        const val TOOL_LIST_BODY_LOGS = BodyForgerBodyLogToolHandler.TOOL_LIST_BODY_LOGS
     }
 }
