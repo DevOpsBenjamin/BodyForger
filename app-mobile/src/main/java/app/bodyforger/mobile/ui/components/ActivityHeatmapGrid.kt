@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -112,17 +113,19 @@ fun ActivityHeatmapGrid(sessions: List<WorkoutSession>) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         // The weekday initials are what turn the grid into a calendar: without them a gap is
-        // just a gap, and with them it is a weekend.
+        // just a gap, and with them it is a weekend. Each initial sits in a box the height of a
+        // cell, with its line height pinned to match — left to itself the text box is taller
+        // than the cell, and the column drifts a little further out of step on every row.
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             initials.take(TrainingStats.DAYS_IN_A_WEEK).forEach { initial ->
-                Box(modifier = Modifier.size(width = 10.dp, height = 14.dp)) {
-                    Text(
-                        text = initial,
-                        color = TextMuted,
-                        fontSize = 8.sp,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
+                Text(
+                    text = initial,
+                    color = TextMuted,
+                    fontSize = 9.sp,
+                    lineHeight = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.size(14.dp).wrapContentHeight(Alignment.CenterVertically)
+                )
             }
         }
 
