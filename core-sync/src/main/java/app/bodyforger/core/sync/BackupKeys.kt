@@ -46,11 +46,13 @@ internal object BackupKeys {
     const val RPE = "rpe"
     const val IS_COMPLETED = "isCompleted"
     const val COMPLETED_AT = "completedAtEpochMs"
+    const val ACTUAL_REST_SECONDS = "actualRestSeconds"
     const val SESSION_ID = "sessionId"
 
     const val STARTED_AT = "startedAtEpochMs"
     const val ENDED_AT = "endedAtEpochMs"
     const val IS_FINALIZED = "isFinalized"
+    const val IS_HEALTH_CONNECT_EXPORTED = "isHealthConnectExported"
     const val TOTAL_VOLUME_KG = "totalVolumeKg"
     const val AVERAGE_HEART_RATE_BPM = "averageHeartRateBpm"
     const val ACTIVE_CALORIES_KCAL = "activeCaloriesKcal"

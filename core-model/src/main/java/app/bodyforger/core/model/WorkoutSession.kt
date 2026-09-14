@@ -14,5 +14,6 @@ data class WorkoutSession(
     val averageHeartRateBpm: Int? = null,
     val activeCaloriesKcal: Int? = null,
     val totalVolumeKg: Double = 0.0,
-    val isFinalized: Boolean = false
+    val isFinalized: Boolean = false,
+    val isHealthConnectExported: Boolean = false
 )

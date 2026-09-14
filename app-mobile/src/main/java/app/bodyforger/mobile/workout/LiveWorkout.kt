@@ -139,6 +139,11 @@ data class LiveWorkout(
         }
     }
 
+    fun nextPendingSetAfter(orderIndex: Int, setIndex: Int): WorkoutSet? =
+        sets.firstOrNull {
+            !it.isCompleted && (it.orderIndex > orderIndex || (it.orderIndex == orderIndex && it.setIndex > setIndex))
+        }
+
     private fun mutateExercise(index: Int, change: (RoutineExercise) -> RoutineExercise): LiveWorkout {
         if (index !in exercises.indices) return this
         return copy(exercises = exercises.toMutableList().apply { this[index] = change(this[index]) })

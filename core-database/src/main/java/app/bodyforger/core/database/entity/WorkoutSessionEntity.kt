@@ -29,7 +29,8 @@ data class WorkoutSessionEntity(
     val averageHeartRateBpm: Int? = null,
     val activeCaloriesKcal: Int? = null,
     val totalVolumeKg: Double = 0.0,
-    val isFinalized: Boolean = false
+    val isFinalized: Boolean = false,
+    val isHealthConnectExported: Boolean = false
 )
 
 @Entity(
@@ -66,7 +67,9 @@ data class WorkoutSetEntity(
     val isCompleted: Boolean = false,
     val side: String = UnilateralSide.NONE.name,
     val restTimeSeconds: Int = 90,
-    val completedAtEpochMs: Long? = null
+    val completedAtEpochMs: Long? = null,
+    val startedAtEpochMs: Long? = null,
+    val actualRestSeconds: Int? = null
 )
 
 data class WorkoutSessionWithSets(
@@ -91,7 +94,8 @@ fun WorkoutSessionEntity.toDomain(sets: List<WorkoutSet> = emptyList()): Workout
     averageHeartRateBpm = averageHeartRateBpm,
     activeCaloriesKcal = activeCaloriesKcal,
     totalVolumeKg = totalVolumeKg,
-    isFinalized = isFinalized
+    isFinalized = isFinalized,
+    isHealthConnectExported = isHealthConnectExported
 )
 
 fun WorkoutSetEntity.toDomain(): WorkoutSet = WorkoutSet(
@@ -112,7 +116,9 @@ fun WorkoutSetEntity.toDomain(): WorkoutSet = WorkoutSet(
     isCompleted = isCompleted,
     side = try { UnilateralSide.valueOf(side) } catch (e: Exception) { UnilateralSide.NONE },
     restTimeSeconds = restTimeSeconds,
-    completedAtEpochMs = completedAtEpochMs
+    completedAtEpochMs = completedAtEpochMs,
+    startedAtEpochMs = startedAtEpochMs,
+    actualRestSeconds = actualRestSeconds
 )
 
 fun WorkoutSessionWithSets.toDomain(): WorkoutSession = session.toDomain(
@@ -130,7 +136,8 @@ fun WorkoutSession.toEntity(): WorkoutSessionEntity = WorkoutSessionEntity(
     averageHeartRateBpm = averageHeartRateBpm,
     activeCaloriesKcal = activeCaloriesKcal,
     totalVolumeKg = totalVolumeKg,
-    isFinalized = isFinalized
+    isFinalized = isFinalized,
+    isHealthConnectExported = isHealthConnectExported
 )
 
 fun WorkoutSet.toEntity(sessionId: String): WorkoutSetEntity = WorkoutSetEntity(
@@ -151,7 +158,9 @@ fun WorkoutSet.toEntity(sessionId: String): WorkoutSetEntity = WorkoutSetEntity(
     isCompleted = isCompleted,
     side = side.name,
     restTimeSeconds = restTimeSeconds,
-    completedAtEpochMs = completedAtEpochMs
+    completedAtEpochMs = completedAtEpochMs,
+    startedAtEpochMs = startedAtEpochMs,
+    actualRestSeconds = actualRestSeconds
 )
 
 /** Maps a whole set list onto one session, for the initial write of a workout. */

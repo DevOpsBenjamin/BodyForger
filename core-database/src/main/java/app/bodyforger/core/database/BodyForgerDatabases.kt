@@ -129,6 +129,14 @@ object BodyForgerDatabases {
         }
     }
 
+    val MIGRATION_14_15 = object : Migration(14, 15) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `workout_sessions` ADD COLUMN `isHealthConnectExported` INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE `workout_sets` ADD COLUMN `startedAtEpochMs` INTEGER")
+            db.execSQL("ALTER TABLE `workout_sets` ADD COLUMN `actualRestSeconds` INTEGER")
+        }
+    }
+
     val ALL_MIGRATIONS: Array<Migration> = arrayOf(
         MIGRATION_5_6,
         MIGRATION_6_7,
@@ -138,7 +146,8 @@ object BodyForgerDatabases {
         MIGRATION_10_11,
         MIGRATION_11_12,
         MIGRATION_12_13,
-        MIGRATION_13_14
+        MIGRATION_13_14,
+        MIGRATION_14_15
     )
 
     @Volatile
