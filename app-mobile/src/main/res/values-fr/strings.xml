@@ -278,7 +278,7 @@ C\'est la date de naissance qui est conservée, et non l\'âge, pour qu\'elle ne
     <string name="home_volume_sets_done">%1$d séries effectives réalisées</string>
     <string name="home_volume_target">Objectif : %1$d séries</string>
     <string name="home_composition_title">COMPOSITION CORPORELLE</string>
-    <string name="heatmap_title">RÉGULARITÉ — 12 DERNIERS MOIS</string>
+    <string name="heatmap_title">RÉGULARITÉ — 52 DERNIÈRES SEMAINES</string>
     <string name="heatmap_less">Moins</string>
     <string name="heatmap_more">Plus</string>
     <!-- Biometrics -->
