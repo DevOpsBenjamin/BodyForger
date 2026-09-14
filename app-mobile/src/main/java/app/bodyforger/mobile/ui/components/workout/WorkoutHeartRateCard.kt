@@ -139,17 +139,21 @@ fun WorkoutHeartRateCard(
             bands.forEach { band ->
                 val left = size.width * (band.startEpochMs - firstAt).toFloat() / duration
                 val right = size.width * (band.endEpochMs - firstAt).toFloat() / duration
+                // A forty-second set on an hour-long session is a sliver, so a floor keeps it
+                // visible. The floor widens the band instead of moving its right edge, and the
+                // left edge steps back to make room — a band at the very end of the session
+                // would otherwise ask for a minimum past the canvas.
                 val clampedLeft = left.coerceIn(0f, size.width)
-                // A forty-second set on an hour-long session is a sliver; a floor keeps it
-                // visible rather than letting rounding swallow it.
-                val clampedRight = right.coerceIn(clampedLeft + MIN_BAND_WIDTH_PX, size.width)
-                if (clampedRight > clampedLeft) {
-                    drawRect(
-                        color = band.colour.copy(alpha = BAND_ALPHA),
-                        topLeft = Offset(clampedLeft, 0f),
-                        size = Size(clampedRight - clampedLeft, size.height)
-                    )
-                }
+                val clampedRight = right.coerceIn(0f, size.width)
+                val width = (clampedRight - clampedLeft)
+                    .coerceAtLeast(MIN_BAND_WIDTH_PX)
+                    .coerceAtMost(size.width)
+                val x = clampedLeft.coerceAtMost(size.width - width)
+                drawRect(
+                    color = band.colour.copy(alpha = BAND_ALPHA),
+                    topLeft = Offset(x, 0f),
+                    size = Size(width, size.height)
+                )
             }
 
             val path = Path()
