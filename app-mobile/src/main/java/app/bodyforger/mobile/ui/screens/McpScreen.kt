@@ -2,7 +2,9 @@ package app.bodyforger.mobile.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.bodyforger.mobile.R
 import app.bodyforger.mobile.mcp.McpViewModel
+import app.bodyforger.mobile.ui.components.mcp.McpCapabilitiesCard
+import app.bodyforger.mobile.ui.components.mcp.McpConnectionCard
 import app.bodyforger.mobile.ui.components.mcp.McpServerCard
 import org.koin.androidx.compose.koinViewModel
 
@@ -68,6 +72,14 @@ fun McpScreen(
                 port = uiState.serverPort,
                 onToggleServer = { enabled -> viewModel.setServerEnabled(enabled) }
             )
+
+            if (uiState.isServerRunning) {
+                McpConnectionCard(port = uiState.serverPort)
+            }
+
+            McpCapabilitiesCard()
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
