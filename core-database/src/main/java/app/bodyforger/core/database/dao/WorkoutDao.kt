@@ -152,10 +152,14 @@ interface WorkoutDao {
         val currentSet = getSetById(setId) ?: return
         val updatedSet = currentSet.copy(
             isCompleted = isCompleted,
+            // Written as given: a set being unticked has no end any more, and falling back to
+            // the stored value would leave the row claiming a completion the screen has dropped.
             completedAtEpochMs = completedAtEpochMs,
             weightKg = weightKg,
             reps = reps,
             rpe = rpe,
+            // The start is the one exception: it survives an unticking, so a caller passing null
+            // means "unchanged" rather than "cleared".
             startedAtEpochMs = startedAtEpochMs ?: currentSet.startedAtEpochMs,
             actualRestSeconds = actualRestSeconds ?: currentSet.actualRestSeconds
         )

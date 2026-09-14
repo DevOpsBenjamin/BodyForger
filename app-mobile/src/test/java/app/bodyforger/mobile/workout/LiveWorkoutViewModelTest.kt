@@ -191,4 +191,41 @@ class LiveWorkoutViewModelTest {
         assertNotNull(nextSet.startedAtEpochMs)
         assertNotNull(nextSet.actualRestSeconds)
     }
+
+    @Test
+    fun `unticking a set keeps its start and drops its end`() = runTest {
+        val viewModel = LiveWorkoutViewModel(workoutDao = FakeWorkoutDao(), workoutHaptics = RecordingHaptics())
+        viewModel.begin(routine = routineWithExercise(restTimeSeconds = 45), freeSessionTitle = "Free")
+        val firstSet = viewModel.active.value!!.sets.first()
+
+        viewModel.toggleSetCompleted(firstSet.id)
+        val started = viewModel.active.value!!.sets.first { it.id == firstSet.id }.startedAtEpochMs
+        assertNotNull(started)
+
+        viewModel.toggleSetCompleted(firstSet.id)
+        val unticked = viewModel.active.value!!.sets.first { it.id == firstSet.id }
+
+        // Correcting a mistyped load must not throw away the instant the rest before it ended.
+        assertEquals(started, unticked.startedAtEpochMs)
+        assertNull(unticked.completedAtEpochMs)
+    }
+
+    @Test
+    fun `re-validating a set moves its end forward`() = runTest {
+        val viewModel = LiveWorkoutViewModel(workoutDao = FakeWorkoutDao(), workoutHaptics = RecordingHaptics())
+        viewModel.begin(routine = routineWithExercise(restTimeSeconds = 45), freeSessionTitle = "Free")
+        val firstSet = viewModel.active.value!!.sets.first()
+
+        viewModel.toggleSetCompleted(firstSet.id)
+        val sets = viewModel.active.value!!.sets
+        val firstEnd = sets.first { it.id == firstSet.id }.completedAtEpochMs!!
+        val started = sets.first { it.id == firstSet.id }.startedAtEpochMs
+
+        viewModel.toggleSetCompleted(firstSet.id)
+        viewModel.toggleSetCompleted(firstSet.id)
+        val again = viewModel.active.value!!.sets.first { it.id == firstSet.id }
+
+        assertEquals(started, again.startedAtEpochMs)
+        assertTrue(again.completedAtEpochMs!! >= firstEnd)
+    }
 }
