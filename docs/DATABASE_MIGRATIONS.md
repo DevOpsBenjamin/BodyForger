@@ -2,12 +2,11 @@
 
 ## 1. Where we stand
 
-`BodyForgerDatabases.build()` still calls `fallbackToDestructiveMigration()`: every change of
-`version` wipes the database instead of migrating it. That is acceptable while the app has no
-users — the schema moves several times a week and nobody loses anything that matters.
+`fallbackToDestructiveMigration()` has been removed. All migrations from schema 5 to current
+are registered in `BodyForgerDatabases.ALL_MIGRATIONS` and verified with `MigrationTestHelper`.
 
-**It must be removed before the first release.** Left in, the same call would erase the
-training history and the weigh-ins of every user, without a word.
+Every schema change must supply an explicit `Migration` step; an unmigrated schema bump will
+loudly refuse to open rather than wipe the athlete's training logs or scale weigh-ins.
 
 ## 2. Why the schemas are exported now, and not later
 
