@@ -641,4 +641,22 @@ The date of birth is stored rather than the age, so that it never silently goes 
     <string name="mcp_service_notification_title">BodyForger MCP Server</string>
     <string name="mcp_service_notification_running">Running on port %1$d · Daemon active</string>
     <string name="mcp_service_notification_stopped">Daemon stopped</string>
+    <string name="workout_detail_timeline">TIMELINE</string>
+    <string name="workout_detail_heart_rate">HEART RATE</string>
+    <string name="workout_detail_heart_rate_empty">No heart rate was recorded for this session. Pair a watch through Health Connect to see the curve here.</string>
+    <string name="workout_detail_bpm_min">LOW</string>
+    <string name="workout_detail_bpm_avg">AVERAGE</string>
+    <string name="workout_detail_bpm_max">PEAK</string>
+    <string name="workout_detail_bpm">%1$d bpm</string>
+    <string name="workout_detail_rpe">RPE %1$.1f</string>
+    <string name="workout_detail_rest">%1$d s rest</string>
+    <string name="workout_detail_seconds">%1$d s</string>
+    <string name="workout_detail_no_time">--:--:--</string>
+    <string name="workout_detail_notes">NOTES</string>
+    <string name="workout_detail_duration">DURATION</string>
+    <string name="workout_detail_sets">SETS</string>
+    <string name="workout_detail_volume">VOLUME</string>
+    <string name="workout_detail_no_value">—</string>
+    <string name="workout_detail_loading">Loading the session…</string>
+    <string name="workout_detail_missing">This session is no longer in the database.</string>
 </resources>

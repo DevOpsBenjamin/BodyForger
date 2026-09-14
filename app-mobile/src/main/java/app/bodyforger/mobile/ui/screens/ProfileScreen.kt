@@ -71,6 +71,7 @@ data class HistoryWorkoutItem(
 @Composable
 fun ProfileScreen(
     onOpenSettings: () -> Unit = {},
+    onOpenWorkout: (String) -> Unit = {},
     library: LibraryViewModel = koinViewModel(),
     profileViewModel: AthleteProfileViewModel = koinViewModel(),
     settings: AppSettingsViewModel = koinViewModel()
@@ -220,7 +221,9 @@ fun ProfileScreen(
                 lineHeight = 19.sp
             )
         } else {
-            workoutHistory.forEach { item -> HistoryWorkoutCard(item = item, unit = unit) }
+            workoutHistory.forEach { item ->
+                HistoryWorkoutCard(item = item, unit = unit, onOpen = onOpenWorkout)
+            }
         }
     }
 }

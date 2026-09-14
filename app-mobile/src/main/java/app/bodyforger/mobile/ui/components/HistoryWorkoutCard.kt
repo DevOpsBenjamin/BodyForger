@@ -2,6 +2,7 @@ package app.bodyforger.mobile.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,12 +48,14 @@ fun HistoryWorkoutCard(
     /** A session's total follows the preference: the sets in it may each use another. */
     unit: WeightUnit = WeightUnit.KG,
     item: HistoryWorkoutItem,
+    onOpen: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(bottom = 12.dp)
+            .clickable { onOpen(item.id) }
             .border(1.dp, SurfaceBorder, RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(containerColor = SurfaceDark),
         shape = RoundedCornerShape(16.dp)

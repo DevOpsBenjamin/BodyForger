@@ -9,6 +9,7 @@ import app.bodyforger.mobile.profile.BiometricsViewModel
 import app.bodyforger.mobile.profile.GoalsViewModel
 import app.bodyforger.mobile.scale.ScaleViewModel
 import app.bodyforger.mobile.workout.LiveWorkoutViewModel
+import app.bodyforger.mobile.workout.WorkoutDetailViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -23,6 +24,7 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { LibraryViewModel(routineDao = get(), exerciseDao = get(), workoutDao = get()) }
     viewModel { LiveWorkoutViewModel(workoutDao = get(), workoutHaptics = get()) }
+    viewModel { WorkoutDetailViewModel(workoutDao = get()) }
     viewModel { RoutineDraftViewModel() }
     viewModel { AthleteProfileViewModel(identityDao = get()) }
     viewModel { BiometricsViewModel(bodyLogDao = get(), identityDao = get(), appSettingsDao = get()) }
